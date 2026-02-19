@@ -1,0 +1,80 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DijitalEvrakTakip.WebApi", "DijitalEvrakTakip.WebApi\DijitalEvrakTakip.WebApi.csproj", "{7F8C41E3-C00F-4D15-AC96-A4DC38C381FB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{4BF3E6F9-049A-4091-B6D4-23CCFA8CEE62}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{94BD2932-1754-4EDD-A0B9-28C29F859A8B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DijitalEvrakTakip.Application", "DijitalEvrakTakip.Application\DijitalEvrakTakip.Application.csproj", "{76786E7C-ED0A-40DA-A894-455046A2043A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DijitalEvrakTakip.Domain", "DijitalEvrakTakip.Domain\DijitalEvrakTakip.Domain.csproj", "{77D8F805-65D2-4B32-B9EA-4C0C8CA747B9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DijitalEvrakTakip.Infrastructure", "DijitalEvrakTakip.Infrastructure\DijitalEvrakTakip.Infrastructure.csproj", "{D85D8DC9-476E-4BA4-BFED-095BD5065205}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DijitalEvrakTakip.Persistance", "DijitalEvrakTakip.Persistance\DijitalEvrakTakip.Persistance.csproj", "{530671BC-41CD-4BD0-855B-8506B216DEA2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DijitalEvrakTakip.Presentation", "DijitalEvrakTakip.Presentation\DijitalEvrakTakip.Presentation.csproj", "{A8F002A0-5F18-413F-9A63-BE4C6949163F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{3BE2920A-DDC7-4FE0-82A7-DA727BDA4A9D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DijitalEvrakTakip.UnitTest", "DijitalEvrakTakip.UnitTest\DijitalEvrakTakip.UnitTest.csproj", "{FFB9AB9F-4813-4E35-AFBC-30B5EA46B954}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7F8C41E3-C00F-4D15-AC96-A4DC38C381FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F8C41E3-C00F-4D15-AC96-A4DC38C381FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F8C41E3-C00F-4D15-AC96-A4DC38C381FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F8C41E3-C00F-4D15-AC96-A4DC38C381FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76786E7C-ED0A-40DA-A894-455046A2043A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76786E7C-ED0A-40DA-A894-455046A2043A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76786E7C-ED0A-40DA-A894-455046A2043A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76786E7C-ED0A-40DA-A894-455046A2043A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77D8F805-65D2-4B32-B9EA-4C0C8CA747B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77D8F805-65D2-4B32-B9EA-4C0C8CA747B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77D8F805-65D2-4B32-B9EA-4C0C8CA747B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77D8F805-65D2-4B32-B9EA-4C0C8CA747B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D85D8DC9-476E-4BA4-BFED-095BD5065205}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D85D8DC9-476E-4BA4-BFED-095BD5065205}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D85D8DC9-476E-4BA4-BFED-095BD5065205}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D85D8DC9-476E-4BA4-BFED-095BD5065205}.Release|Any CPU.Build.0 = Release|Any CPU
+		{530671BC-41CD-4BD0-855B-8506B216DEA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{530671BC-41CD-4BD0-855B-8506B216DEA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{530671BC-41CD-4BD0-855B-8506B216DEA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{530671BC-41CD-4BD0-855B-8506B216DEA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8F002A0-5F18-413F-9A63-BE4C6949163F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8F002A0-5F18-413F-9A63-BE4C6949163F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8F002A0-5F18-413F-9A63-BE4C6949163F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8F002A0-5F18-413F-9A63-BE4C6949163F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFB9AB9F-4813-4E35-AFBC-30B5EA46B954}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFB9AB9F-4813-4E35-AFBC-30B5EA46B954}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFB9AB9F-4813-4E35-AFBC-30B5EA46B954}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFB9AB9F-4813-4E35-AFBC-30B5EA46B954}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7F8C41E3-C00F-4D15-AC96-A4DC38C381FB} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{4BF3E6F9-049A-4091-B6D4-23CCFA8CEE62} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{94BD2932-1754-4EDD-A0B9-28C29F859A8B} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{76786E7C-ED0A-40DA-A894-455046A2043A} = {4BF3E6F9-049A-4091-B6D4-23CCFA8CEE62}
+		{77D8F805-65D2-4B32-B9EA-4C0C8CA747B9} = {4BF3E6F9-049A-4091-B6D4-23CCFA8CEE62}
+		{D85D8DC9-476E-4BA4-BFED-095BD5065205} = {94BD2932-1754-4EDD-A0B9-28C29F859A8B}
+		{530671BC-41CD-4BD0-855B-8506B216DEA2} = {94BD2932-1754-4EDD-A0B9-28C29F859A8B}
+		{A8F002A0-5F18-413F-9A63-BE4C6949163F} = {94BD2932-1754-4EDD-A0B9-28C29F859A8B}
+		{FFB9AB9F-4813-4E35-AFBC-30B5EA46B954} = {3BE2920A-DDC7-4FE0-82A7-DA727BDA4A9D}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {40AD0946-6CB6-4BF5-B47C-F917673A81A7}
+	EndGlobalSection
+EndGlobal
