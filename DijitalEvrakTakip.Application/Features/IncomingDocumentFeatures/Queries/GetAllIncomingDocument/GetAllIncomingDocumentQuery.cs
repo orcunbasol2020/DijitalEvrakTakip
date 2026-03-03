@@ -9,4 +9,5 @@ public sealed record GetAllIncomingDocumentQuery() : IRequest<IList<IncomingDocu
     /// "completed" | "pending" | "error" | "all" | null
     /// </summary>
     public string? Status { get; set; }
+    public string? AssignedUserFullName { get; set; }
 }

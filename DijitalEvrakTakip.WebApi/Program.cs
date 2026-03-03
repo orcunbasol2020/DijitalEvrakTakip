@@ -34,13 +34,18 @@ builder.Services.AddScoped<IUnitOfWork>(srv => srv.GetRequiredService<AppDbConte
 builder.Services.AddScoped<IIncomingDocumentService, IncomingDocumentService>();
 builder.Services.AddScoped<IIncomingDocumentApplicationService, IncomingDocumentApplicationService>();
 builder.Services.AddScoped<IExternalInstitutionService, ExternalInstitutionService>();
-
+builder.Services.AddScoped<IDocumentTransactionService, DocumentTransactionService>();
+builder.Services.AddScoped<IDocumentAllocationService, DocumentAllocationService>();
+builder.Services.AddScoped<IDocumentAssignmentService, DocumentAssignmentService>();
+builder.Services.AddScoped<IScannedDocumentService, ScannedDocumentService>();
 
 //repository
+builder.Services.AddScoped<IScannedDocumentRepository, ScannedDocumentRepository>();
+builder.Services.AddScoped<IDocumentAssignmentRepository, DocumentAssignmentRepository>();
 builder.Services.AddScoped<IIncomingDocumentRepository, IncomingDocumentRepository>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IExternalInstitutionRepository, ExternalInstitutionRepository>();
-
+builder.Services.AddScoped<IDocumentTransactionRepository, DocumentTransactionRepository>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();

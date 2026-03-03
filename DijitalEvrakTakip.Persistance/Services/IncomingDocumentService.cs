@@ -5,7 +5,6 @@ using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Entities;
 using DijitalEvrakTakip.Domain.Enums;
 using DijitalEvrakTakip.Domain.Repositories;
-using DijitalEvrakTakip.Persistance.Repositories;
 using GenericRepository;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,14 +15,17 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
     private readonly IIncomingDocumentRepository _incomingDocumentRepository;
     private readonly IDocumentTransactionRepository _documentTransactionRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserRepository _userRepository;
 
     public IncomingDocumentService(
         IIncomingDocumentRepository incomingDocumentRepository,
         IDocumentTransactionRepository documentTransactionRepository,
+        IUserRepository userRepository,
         IUnitOfWork unitOfWork)
     {
         _incomingDocumentRepository = incomingDocumentRepository;
         _documentTransactionRepository = documentTransactionRepository;
+        _userRepository = userRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -59,6 +61,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         await _incomingDocumentRepository.AddAsync(incomingDocument, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
+
     public async Task UpdateAsync(UpdateIncomingDocumentCommand request, CancellationToken cancellationToken)
     {
         var entity = await _incomingDocumentRepository
@@ -67,44 +70,49 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         if (entity is null)
             throw new Exception("Kayıt bulunamadı.");
 
-        entity.OrginalNo = request.OrginalNo;
-        entity.QrCode = request.QrCode;
-        entity.SecurityDegree = request.SecurityDegree;
-        entity.DocumentTypeId = request.DocumentTypeId;
-        entity.LanguageId = request.LanguageId;
-        entity.Subject = request.Subject;
-        entity.Content_Ocr = request.Content_Ocr;
-        entity.ExternalInstitutionId = request.ExternalInstitutionId;
-        entity.DepartmentId = request.DepartmentId;
-        entity.Status = request.Status;
-        entity.ElectronicCopy = request.ElectronicCopy;
-        entity.Release = request.Release;
-        entity.PageCount = request.PageCount;
-        entity.DocumentDate = request.DocumentDate;
-        entity.ReleaseDate = request.ReleaseDate;
-        entity.OcrStatus = request.OcrStatus;
-        entity.SubmissionStatus = request.SubmissionStatus;
-        entity.DocumentName = request.DocumentName;
-        entity.Notes = request.Notes;
+        if (request.OrginalNo != null) entity.OrginalNo = request.OrginalNo;
+        if (request.QrCode != null) entity.QrCode = request.QrCode;
+        if (request.SecurityDegree.HasValue) entity.SecurityDegree = request.SecurityDegree;
+        if (request.DocumentTypeId.HasValue) entity.DocumentTypeId = request.DocumentTypeId;
+        if (request.LanguageId.HasValue) entity.LanguageId = request.LanguageId;
+        if (request.Subject != null) entity.Subject = request.Subject;
+        if (request.ExternalInstitutionId.HasValue) entity.ExternalInstitutionId = request.ExternalInstitutionId;
+        if (request.DepartmentId.HasValue) entity.DepartmentId = request.DepartmentId;
+        if (request.Status.HasValue) entity.Status = request.Status;
+        if (request.ElectronicCopy.HasValue) entity.ElectronicCopy = request.ElectronicCopy;
+        if (request.Release.HasValue) entity.Release = request.Release;
+        if (request.PageCount.HasValue) entity.PageCount = request.PageCount;
+        if (request.DocumentDate.HasValue) entity.DocumentDate = request.DocumentDate;
+        if (request.ReleaseDate.HasValue) entity.ReleaseDate = request.ReleaseDate;
+        if (request.SubmissionStatus.HasValue) entity.SubmissionStatus = request.SubmissionStatus;
+        if (request.DocumentName != null) entity.DocumentName = request.DocumentName;
+        if (request.Notes != null) entity.Notes = request.Notes;
+
         entity.UpdateDate = DateTime.UtcNow;
 
-        _incomingDocumentRepository.Update(entity); // incomingDocument update
+        _incomingDocumentRepository.Update(entity);
 
         // Yeni transaction ekle
         var transaction = new DocumentTransaction
         {
             DocumentId = entity.Id,
-            TransactionType = (int)TransactionTypeEnum.Update, // Güncelleme
+            TransactionType = (int)TransactionTypeEnum.Update,
             UserId = request.UserId,
             IsActive = true,
             CreatedDate = DateTime.UtcNow
         };
         await _documentTransactionRepository.AddAsync(transaction, cancellationToken);
-
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IncomingDocument> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<IncomingDocument?> GetByQrCodeAsync(string qrCode, CancellationToken cancellationToken)
+    {
+        return await _incomingDocumentRepository.GetByExpressionAsync(
+            x => x.QrCode == qrCode,
+            cancellationToken
+        );
+    }
+
+    public async Task<IncomingDocument?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _incomingDocumentRepository.GetByExpressionAsync(
             x => x.Id == id,
@@ -112,27 +120,18 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         );
     }
 
-
-    public async Task<IncomingDocument?> GetByQrCodeAsync(string qrCode, CancellationToken cancellationToken)
-    {
-        return await _incomingDocumentRepository.GetByExpressionAsync(
-    x => x.QrCode == qrCode,
-    cancellationToken
-);
-    }
-
     public async Task<IList<IncomingDocument>> GetAllAsync(GetAllIncomingDocumentQuery request, CancellationToken cancellationToken)
     {
         var query = _incomingDocumentRepository.GetAll()
-                       .Where(x => !x.IsDeleted); // opsiyonel, silinmişleri filtrele
+            .Where(x => !x.IsDeleted);
 
         if (!string.IsNullOrWhiteSpace(request.Status) && request.Status != "all")
         {
             query = request.Status switch
             {
-                "completed" => query.Where(x => x.Status == 1),
-                "pending" => query.Where(x => x.Status == 0),
-                "error" => query.Where(x => x.Status == 2),
+                "completed" => query.Where(x => x.OcrStatus == 1),
+                "pending" => query.Where(x => x.OcrStatus == 0),
+                "error" => query.Where(x => x.OcrStatus == 2),
                 _ => query
             };
         }
@@ -140,5 +139,41 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         return await query.ToListAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Assignment atandığında IncomingDocument tablosundaki CurrentAssignmentUserId alanını set eder.
+    /// SaveChanges handler tarafında yapılacak.
+    /// </summary>
+    public async Task SetCurrentAssignmentAsync(Guid documentId, Guid? userId)
+    {
+        // Evrakı getir
+        var entity = _incomingDocumentRepository
+            .GetAll()
+            .FirstOrDefault(x => x.Id == documentId);
 
+        if (entity is null)
+            throw new Exception("Evrak bulunamadı.");
+
+        entity.CurrentAssignmentUserId = userId;
+
+        if (userId.HasValue)
+        {
+            // Kullanıcı bilgilerini repository’den async al
+            var user = await _userRepository
+                .GetAll()
+                .FirstOrDefaultAsync(u => u.Id == userId.Value);
+
+            // Ad + Soyad alanını birleştir
+            entity.CurrentAssignmentUser = user != null
+                ? $"{user.Name} {user.Surname}"
+                : "Bilinmeyen Kullanıcı";
+        }
+        else
+        {
+            entity.CurrentAssignmentUser = "";
+        }
+
+        entity.UpdateDate = DateTime.UtcNow;
+
+        _incomingDocumentRepository.Update(entity);
+    }
 }

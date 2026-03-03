@@ -4,15 +4,19 @@ namespace DijitalEvrakTakip.Domain.Entities
 {
     public class DocumentAllocation : Entity
     {
-        public Guid DocumentId { get; set; }
+        // Foreign Keys
+        public Guid IncomingDocumentId { get; set; }
+        public Guid UserId { get; set; } 
 
-        public string? UserId { get; set; }
+        // Status
+        public int Status { get; set; }
 
-        public int? Status { get; set; }
-
-        public bool? IsActive { get; set; }
+        // Aynı evrakta tek aktif zimmet için
+        public bool IsActive { get; set; } = true;
+        public Guid? CreatedUserId { get; set; }
 
         // Navigation
-        public IncomingDocument IncomingDocument { get; set; }
+        public IncomingDocument IncomingDocument { get; set; } = null!;
+        public User User { get; set; } = null!; 
     }
 }

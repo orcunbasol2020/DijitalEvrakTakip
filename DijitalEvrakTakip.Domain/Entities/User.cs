@@ -1,5 +1,4 @@
 ﻿using DijitalEvrakTakip.Domain.Abstractions;
-using System.Security.Principal;
 
 namespace DijitalEvrakTakip.Domain.Entities;
 
@@ -13,9 +12,13 @@ public sealed class User : Entity
     public bool AutType { get; set; }
 
     public Guid DepartmentId { get; set; }
-    public Department Department { get; set; } // navigation property
+    public Department Department { get; set; }
 
     public bool IsActive { get; set; }
 
-    public ICollection<UserRole> UserRoles { get; set; }
+    public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+
+    // DocumentAllocation Navigation
+    public ICollection<DocumentAllocation> DocumentAllocations { get; set; } = new List<DocumentAllocation>();
 }
+

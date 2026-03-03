@@ -1,9 +1,8 @@
 ﻿using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.CreateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UpdateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetAllIncomingDocument;
+using DijitalEvrakTakip.Application.Features.ScannedDocumentFeatures.Commands.UpdateScannedDocument;
 using DijitalEvrakTakip.Domain.Entities;
-
-namespace DijitalEvrakTakip.Application.Services;
 
 public interface IIncomingDocumentService
 {
@@ -16,4 +15,12 @@ public interface IIncomingDocumentService
     Task<IncomingDocument?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
     Task<IncomingDocument?> GetByQrCodeAsync(string qrCode, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Assignment atandığında IncomingDocument tablosundaki CurrentAssignmentUserId alanını set eder.
+    /// SaveChanges handler tarafında yapılacak.
+    /// </summary>
+    Task SetCurrentAssignmentAsync(Guid documentId, Guid? userId);
+
+
 }

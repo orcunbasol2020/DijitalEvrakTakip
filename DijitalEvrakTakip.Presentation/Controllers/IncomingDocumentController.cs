@@ -1,11 +1,12 @@
 ﻿using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.CreateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.PreRegisterIncomingDocument;
-using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentByQrCode;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UpdateIncomingDocument;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetAllIncomingDocument;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentById;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentByQrCode;
 using DijitalEvrakTakip.Presentation.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetAllIncomingDocument;
 
 
 namespace DijitalEvrakTakip.Presentation.Controllers;
@@ -44,6 +45,14 @@ public sealed class IncomingDocumentsController : ApiController
         var response = await _mediator.Send(query, cancellationToken);
         return Ok(response);
 
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetById([FromQuery] Guid id, CancellationToken cancellationToken)
+    {
+        var query = new GetIncomingDocumentByIdQuery(id);
+        var response = await _mediator.Send(query, cancellationToken);
+        return Ok(response);
     }
 
     // UPDATE

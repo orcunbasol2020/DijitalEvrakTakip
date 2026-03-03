@@ -18,7 +18,7 @@ public sealed class DocumentAllocationConfiguration
 
         builder.Property(x => x.UserId)
             .IsRequired()
-            .HasMaxLength(50);
+            .HasColumnType("uniqueidentifier");
 
         builder.Property(x => x.Status)
             .IsRequired();
@@ -29,10 +29,10 @@ public sealed class DocumentAllocationConfiguration
         builder.Property(x => x.CreatedDate)
             .IsRequired();
 
-        // FK → IncomingDocument
-        builder.HasOne<IncomingDocument>()
-            .WithMany()
-            .HasForeignKey(x => x.DocumentId)
+        // ✅ DOĞRU FK TANIMI
+        builder.HasOne(x => x.IncomingDocument)
+            .WithMany(x => x.DocumentAllocations)
+            .HasForeignKey(x => x.IncomingDocumentId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

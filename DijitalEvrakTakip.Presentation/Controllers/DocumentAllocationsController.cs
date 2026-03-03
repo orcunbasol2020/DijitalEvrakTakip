@@ -1,0 +1,37 @@
+﻿using DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Commands.CreateDocumentAllocation;
+using DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Queries.GetByDocumentId;
+using DijitalEvrakTakip.Domain.Dtos;
+using DijitalEvrakTakip.Presentation.Abstractions;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+
+namespace DijitalEvrakTakip.Presentation.Controllers;
+
+public sealed class DocumentAllocationsController : ApiController
+{
+    public DocumentAllocationsController(IMediator mediator)
+        : base(mediator) { }
+
+    [HttpPost("[action]")]
+    public async Task<IActionResult> Create(
+        CreateDocumentAllocationCommand request,
+        CancellationToken cancellationToken)
+    {
+        MessageResponse response =
+            await _mediator.Send(request, cancellationToken);
+
+        return Ok(response);
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetByDocumentId(
+        Guid incomingDocumentId,
+        CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(
+            new GetDocumentAllocationByDocumentIdQuery(incomingDocumentId),
+            cancellationToken);
+
+        return Ok(response);
+    }
+}

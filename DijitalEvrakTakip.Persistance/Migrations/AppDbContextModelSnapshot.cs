@@ -149,10 +149,10 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("DocumentId")
+                    b.Property<Guid?>("CreatedUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("IncomingDocumentId")
+                    b.Property<Guid>("IncomingDocumentId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsActive")
@@ -167,18 +167,50 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IncomingDocumentId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("DocumentAllocations", (string)null);
+                });
+
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.DocumentAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool?>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("Lock")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("DocumentId");
 
-                    b.HasIndex("IncomingDocumentId");
-
-                    b.ToTable("DocumentAllocations", (string)null);
+                    b.ToTable("DocumentAssignments", (string)null);
                 });
 
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.ErrorLog", b =>
@@ -262,6 +294,12 @@ namespace DijitalEvrakTakip.Persistance.Migrations
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("CurrentAssignmentUser")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("CurrentAssignmentUserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("DepartmentId")
                         .HasColumnType("uniqueidentifier");
@@ -371,6 +409,41 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.ToTable("Roles", (string)null);
                 });
 
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.ScannedDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DocumentNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NewPath")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("OriginalPath")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ScannedDocument", (string)null);
+                });
+
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.TransactionType", b =>
                 {
                     b.Property<Guid>("Id")
@@ -478,6 +551,9 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("CreatedUserId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("DocumentId")
                         .HasColumnType("uniqueidentifier");
 
@@ -512,15 +588,30 @@ namespace DijitalEvrakTakip.Persistance.Migrations
 
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.DocumentAllocation", b =>
                 {
-                    b.HasOne("DijitalEvrakTakip.Domain.Entities.IncomingDocument", null)
-                        .WithMany()
-                        .HasForeignKey("DocumentId")
+                    b.HasOne("DijitalEvrakTakip.Domain.Entities.IncomingDocument", "IncomingDocument")
+                        .WithMany("DocumentAllocations")
+                        .HasForeignKey("IncomingDocumentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("DijitalEvrakTakip.Domain.Entities.User", "User")
+                        .WithMany("DocumentAllocations")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("IncomingDocument");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.DocumentAssignment", b =>
+                {
                     b.HasOne("DijitalEvrakTakip.Domain.Entities.IncomingDocument", "IncomingDocument")
-                        .WithMany()
-                        .HasForeignKey("IncomingDocumentId");
+                        .WithMany("DocumentAssignments")
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("IncomingDocument");
                 });
@@ -607,6 +698,13 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Navigation("Children");
                 });
 
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.IncomingDocument", b =>
+                {
+                    b.Navigation("DocumentAllocations");
+
+                    b.Navigation("DocumentAssignments");
+                });
+
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.Role", b =>
                 {
                     b.Navigation("UserRoles");
@@ -614,6 +712,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
 
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.User", b =>
                 {
+                    b.Navigation("DocumentAllocations");
+
                     b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618

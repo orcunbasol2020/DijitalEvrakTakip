@@ -4,8 +4,10 @@ namespace DijitalEvrakTakip.Domain.Entities
 {
     public class ScannedDocument : Entity
     {
-        public string? DocumentName { get; set; }
+        public string? DocumentNumber { get; set; }
+        public string? FileName { get; set; }
+        public string? OriginalPath { get; set; }
+        public string? NewPath { get; set; }
 
-        public int? OcrStatusId { get; set; }
     }
 }

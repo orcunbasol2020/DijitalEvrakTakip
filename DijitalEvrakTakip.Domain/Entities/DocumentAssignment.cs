@@ -13,8 +13,7 @@ namespace DijitalEvrakTakip.Domain.Entities
         public bool? IsActive { get; set; }
 
         // Navigation
-        public IncomingDocument IncomingDocument { get; set; }
-
+        public IncomingDocument IncomingDocument { get; set; } = null!;
 
     }
 }

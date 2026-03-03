@@ -48,8 +48,8 @@ public sealed class IncomingDocumentApplicationService : IIncomingDocumentApplic
 
         var allocation = new DocumentAllocation
         {
-            DocumentId = document.Id,
-            UserId = request.UserId,
+            IncomingDocumentId = document.Id,
+            UserId = Guid.Parse(request.UserId),
             Status = 1,
             IsActive = true,
             CreatedDate = DateTime.UtcNow

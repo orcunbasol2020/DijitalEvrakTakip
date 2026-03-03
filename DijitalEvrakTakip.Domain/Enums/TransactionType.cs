@@ -1,16 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 
-namespace DijitalEvrakTakip.Domain.Enums
+namespace DijitalEvrakTakip.Domain.Enums;
+
+public enum TransactionTypeEnum
 {
-    public enum TransactionTypeEnum
-    {
-        PreRegister = 1,   // Ön Kayıt
-        GeneralRegister = 2, // Genel Kayıt
-        Update = 3,        // Güncelleme / Evrak Tamamlandı
-        Delivery = 4       // Teslim
-    }
+    [Description("Ön Kayıt")]
+    PreRegister = 1,
+
+    [Description("Genel Kayıt")]
+    GeneralRegister = 2,
+
+    [Description("Güncelleme")]
+    Update = 3,
+
+    [Description("Teslim")]
+    Delivery = 4,
+
+    [Description("Detay Güncelleme")]
+    UpdateDetail = 5,
+
+    [Description("Zimmet")]
+    Zimmet = 6,
+
+    [Description("Teslim")]
+    TeslimZimmet = 7,
+
+    [Description("OCR")]
+    Ocr = 8,
+
+    [Description("Birim Arşivinde")]
+    Archive = 9
 }
