@@ -2,6 +2,7 @@
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UpdateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetAllIncomingDocument;
 using DijitalEvrakTakip.Application.Features.ScannedDocumentFeatures.Commands.UpdateScannedDocument;
+using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
 
 public interface IIncomingDocumentService
@@ -22,5 +23,8 @@ public interface IIncomingDocumentService
     /// </summary>
     Task SetCurrentAssignmentAsync(Guid documentId, Guid? userId);
 
+    Task<int> GetPendingCountByUserIdAsync(Guid userId, CancellationToken cancellationToken);
+    Task<IncomingDocumentTodayStatsDto> GetTodayStatsAsync(CancellationToken cancellationToken);
+    Task<IncomingDocumentLast30DaysStatsDto> GetLast30DaysStatsAsync(CancellationToken cancellationToken);
 
 }

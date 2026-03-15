@@ -86,12 +86,13 @@ public sealed class DocumentAllocationService : IDocumentAllocationService
     {
         return await _allocationRepository
             .GetAll()
-            .FirstOrDefaultAsync(
-                x => x.IncomingDocumentId == incomingDocumentId
-                     && x.IsActive
-                     && !x.IsDeleted,
-                cancellationToken);
+            .Where(x => x.IncomingDocumentId == incomingDocumentId
+                        && x.IsActive
+                        && !x.IsDeleted)
+            .Include(x => x.User)  // User bilgilerini dahil ediyoruz
+            .FirstOrDefaultAsync(cancellationToken);
     }
+
 
     public async Task<IList<DocumentAllocationDto>> GetByDocumentIdAsync(
         Guid incomingDocumentId,

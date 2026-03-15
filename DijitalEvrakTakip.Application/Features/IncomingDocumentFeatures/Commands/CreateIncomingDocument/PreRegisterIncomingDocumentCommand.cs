@@ -7,4 +7,4 @@ public sealed record PreRegisterIncomingDocumentCommand
 (
     string QrCode,
     string UserId
-) : IRequest<bool>;
+) : IRequest<string>;

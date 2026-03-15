@@ -2,6 +2,7 @@
 using DijitalEvrakTakip.Application.Features.ScannedDocumentFeatures.Queries.GetAllScannedDocument;
 using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Entities;
+using DijitalEvrakTakip.Domain.Enums;
 using DijitalEvrakTakip.Domain.Repositories;
 using GenericRepository;
 using Microsoft.EntityFrameworkCore;
@@ -11,13 +12,16 @@ namespace DijitalEvrakTakip.Persistance.Services;
 public sealed class ScannedDocumentService : IScannedDocumentService
 {
     private readonly IScannedDocumentRepository _scannedDocumentRepository;
+    private readonly IIncomingDocumentRepository _incomingDocumentRepository;
     private readonly IUnitOfWork _unitOfWork;
 
     public ScannedDocumentService(
         IScannedDocumentRepository scannedDocumentRepository,
+        IIncomingDocumentRepository incomingDocumentRepository,
         IUnitOfWork unitOfWork)
     {
         _scannedDocumentRepository = scannedDocumentRepository;
+        _incomingDocumentRepository = incomingDocumentRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -45,24 +49,48 @@ public sealed class ScannedDocumentService : IScannedDocumentService
         return await query.ToListAsync(cancellationToken);
     }
 
-    // Yeni güncelleme metodunu ekliyoruz.
     public async Task UpdateDocumentNumberAsync(
-        UpdateScannedDocumentCommand request, // UpdateCommand parametresi alıyoruz
-        CancellationToken cancellationToken)
+          UpdateScannedDocumentCommand request,
+          CancellationToken cancellationToken)
     {
-        // Kayıt kontrolü (scanned document)
+        // ScannedDocument kaydını bul
         var entity = await _scannedDocumentRepository
             .GetByExpressionAsync(x => x.Id == request.Id && !x.IsDeleted, cancellationToken);
 
         if (entity is null)
             throw new Exception("Belge bulunamadı.");
 
-        // Güncellenen alan (DocumentNumber) null kontrolü yapılmaz çünkü zaten gelen request'te mevcut.
+        // DocumentNumber ve UpdateDate güncelle
         entity.DocumentNumber = request.DocumentNumber;
         entity.UpdateDate = DateTime.UtcNow;
+        _scannedDocumentRepository.Update(entity);
 
-        _scannedDocumentRepository.Update(entity); // Veritabanı güncellemesi
+        // IncomingDocument ile eşleştirme
+        var incomingDocument = await _incomingDocumentRepository
+            .GetByExpressionAsync(x => x.QrCode == entity.DocumentNumber, cancellationToken);
 
+        if (incomingDocument != null)
+        {
+            // Eşleşen kayıt varsa, DocumentName güncelle
+            incomingDocument.DocumentName = entity.FileName;
+            _incomingDocumentRepository.Update(incomingDocument);
+        }
+        else
+        {
+            // Eşleşen kayıt yoksa, yeni kayıt oluştur
+            var newIncoming = new IncomingDocument
+            {
+                QrCode = entity.DocumentNumber ?? "",
+                DocumentName = entity.FileName,
+                OcrStatus = (int?)OcrStatusEnum.Wait,
+                Status = (int?)DocumentStatusEnum.Match,
+                Release = false,
+                UserId = request.UserId,
+            };
+            await _incomingDocumentRepository.AddAsync(newIncoming, cancellationToken);
+        }
+
+        // Tüm değişiklikleri kaydet
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

@@ -4,7 +4,7 @@ namespace DijitalEvrakTakip.Application.Services
 {
     public interface IIncomingDocumentApplicationService
     {
-        Task<bool> PreRegisterAsync(
+        Task<string> PreRegisterAsync(
             PreRegisterIncomingDocumentCommand request,
             CancellationToken cancellationToken);
     }

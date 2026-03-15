@@ -1,6 +1,7 @@
 ﻿using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.PreRegisterIncomingDocument;
 using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Entities;
+using DijitalEvrakTakip.Domain.Enums;
 using DijitalEvrakTakip.Domain.Repositories;
 using GenericRepository;
 
@@ -25,7 +26,7 @@ public sealed class IncomingDocumentApplicationService : IIncomingDocumentApplic
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<bool> PreRegisterAsync(
+    public async Task<string> PreRegisterAsync(
         PreRegisterIncomingDocumentCommand request,
         CancellationToken cancellationToken)
     {
@@ -33,13 +34,16 @@ public sealed class IncomingDocumentApplicationService : IIncomingDocumentApplic
             .AnyAsync(x => x.QrCode == request.QrCode && !x.IsDeleted, cancellationToken);
 
         if (isExist)
-            return false;
+            return ""; // Eğer QR kodu zaten mevcutsa, boş bir GUID döndürüyoruz.
 
         var document = new IncomingDocument
         {
             QrCode = request.QrCode,
             UserId = request.UserId,
+            OcrStatus = (int?)OcrStatusEnum.Wait,
+            Status = 1,
             SubmissionStatus = 1,
+            Release = false,
             IsDeleted = false,
             CreatedDate = DateTime.UtcNow
         };
@@ -70,7 +74,7 @@ public sealed class IncomingDocumentApplicationService : IIncomingDocumentApplic
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return true;
+        return document.Id.ToString(); // Başarıyla tamamlandıktan sonra, document.Id'yi döndürüyoruz.
     }
 
 

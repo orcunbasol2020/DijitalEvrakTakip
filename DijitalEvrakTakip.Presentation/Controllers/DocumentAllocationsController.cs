@@ -1,4 +1,5 @@
 ﻿using DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Commands.CreateDocumentAllocation;
+using DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Queries.GetActiveByDocumentId;
 using DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Queries.GetByDocumentId;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Presentation.Abstractions;
@@ -31,6 +32,23 @@ public sealed class DocumentAllocationsController : ApiController
         var response = await _mediator.Send(
             new GetDocumentAllocationByDocumentIdQuery(incomingDocumentId),
             cancellationToken);
+
+        return Ok(response);
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetActiveByDocumentId(
+    Guid incomingDocumentId,
+    CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(
+            new GetActiveDocumentAllocationByDocumentIdQuery(incomingDocumentId),
+            cancellationToken);
+
+        if (response == null)
+        {
+            return NotFound(new { Message = "Active document allocation not found." });
+        }
 
         return Ok(response);
     }
