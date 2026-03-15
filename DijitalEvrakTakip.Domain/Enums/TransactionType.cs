@@ -29,5 +29,8 @@ public enum TransactionTypeEnum
     Ocr = 8,
 
     [Description("Birim Arşivinde")]
-    Archive = 9
+    Archive = 9,
+
+    [Description("Yayınla")]
+    Yayinla = 10
 }

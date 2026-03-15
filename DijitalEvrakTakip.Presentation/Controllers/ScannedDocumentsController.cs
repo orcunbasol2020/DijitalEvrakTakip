@@ -53,7 +53,7 @@ public sealed class ScannedDocumentsController : ApiController
 
         fileName = Path.GetFileName(fileName);
 
-        var basePath = @"C:\EvrakTakip\belgeler\incoming\Processed";
+        var basePath = @"C:\EvrakTakip\belgeler\Processed";
         var fullPath = Path.Combine(basePath, fileName);
 
         if (!System.IO.File.Exists(fullPath))

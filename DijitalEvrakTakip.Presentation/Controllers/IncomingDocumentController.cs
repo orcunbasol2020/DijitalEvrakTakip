@@ -4,6 +4,9 @@ using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.U
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetAllIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentById;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentByQrCode;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentLast30DaysStats;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentTodayStats;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetPendingIncomingDocumentCount;
 using DijitalEvrakTakip.Presentation.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -33,9 +36,9 @@ public sealed class IncomingDocumentsController : ApiController
         [FromBody] PreRegisterIncomingDocumentCommand request,
         CancellationToken cancellationToken)
     {
-        var created = await _mediator.Send(request, cancellationToken);
+        var id = await _mediator.Send(request, cancellationToken);
 
-        return Ok(new { created });
+        return Ok(new { id });
     }
 
     [HttpGet("[action]")]
@@ -78,5 +81,27 @@ public sealed class IncomingDocumentsController : ApiController
         return Ok(response);
     }
 
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetPendingCount([FromQuery] Guid userId, CancellationToken cancellationToken)
+    {
+        var query = new GetPendingIncomingDocumentCountQuery(userId);
+        var response = await _mediator.Send(query, cancellationToken);
+        return Ok(response);
+    }
 
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetTodayStats(CancellationToken cancellationToken)
+    {
+        var query = new GetIncomingDocumentTodayStatsQuery();
+        var response = await _mediator.Send(query, cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetLast30DaysStats(CancellationToken cancellationToken)
+    {
+        var query = new GetIncomingDocumentLast30DaysStatsQuery();
+        var response = await _mediator.Send(query, cancellationToken);
+        return Ok(response);
+    }
 }

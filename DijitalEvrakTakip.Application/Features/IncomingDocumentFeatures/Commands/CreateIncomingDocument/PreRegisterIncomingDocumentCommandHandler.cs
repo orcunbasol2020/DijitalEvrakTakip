@@ -5,7 +5,7 @@ using MediatR;
 namespace DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.PreRegisterIncomingDocument;
 
 public sealed class PreRegisterIncomingDocumentCommandHandler
-    : IRequestHandler<PreRegisterIncomingDocumentCommand, bool>
+    : IRequestHandler<PreRegisterIncomingDocumentCommand, string>
 {
     private readonly IIncomingDocumentApplicationService _incomingDocumentApplicationService;
 
@@ -15,7 +15,7 @@ public sealed class PreRegisterIncomingDocumentCommandHandler
         _incomingDocumentApplicationService = incomingDocumentApplicationService;
     }
 
-    public async Task<bool> Handle(
+    public async Task<string> Handle(
         PreRegisterIncomingDocumentCommand request,
         CancellationToken cancellationToken)
     {

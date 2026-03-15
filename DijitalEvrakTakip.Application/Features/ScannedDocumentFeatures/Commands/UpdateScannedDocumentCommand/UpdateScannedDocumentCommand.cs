@@ -5,6 +5,7 @@ namespace DijitalEvrakTakip.Application.Features.ScannedDocumentFeatures.Command
 {
     public sealed record UpdateScannedDocumentCommand(
         Guid Id,
-        string DocumentNumber 
+        string DocumentNumber,
+        string UserId
     ) : IRequest<MessageResponse>;
 }
