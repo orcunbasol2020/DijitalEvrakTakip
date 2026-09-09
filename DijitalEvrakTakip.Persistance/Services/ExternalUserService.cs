@@ -44,16 +44,11 @@ public sealed class ExternalUserService : IExternalUserService
         return _externalUserRepository.GetAll();
     }
 
-    public async Task<ExternalUserDto> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<ExternalUser?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        var entity = await _externalUserRepository
+        return await _externalUserRepository
             .GetAll()
-            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-
-        if (entity == null)
-            return null;
-
-        return entity.Adapt<ExternalUserDto>();
+            .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, cancellationToken);
     }
 
     public async Task<ExternalUserDto> GetByExpressionAsync(
@@ -68,5 +63,18 @@ public sealed class ExternalUserService : IExternalUserService
             return null;
 
         return entity.Adapt<ExternalUserDto>();
+    }
+
+    public async Task UpdateAsync(ExternalUser externalUser, CancellationToken cancellationToken)
+    {
+        _externalUserRepository.Update(externalUser);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteAsync(ExternalUser externalUser, CancellationToken cancellationToken)
+    {
+        externalUser.IsDeleted = true;
+        _externalUserRepository.Update(externalUser);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

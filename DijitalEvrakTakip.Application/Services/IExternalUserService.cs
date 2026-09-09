@@ -17,4 +17,10 @@ public interface IExternalUserService
     Task<ExternalUserDto> GetByExpressionAsync(
         Expression<Func<ExternalUser, bool>> predicate,
         CancellationToken cancellationToken);
+
+    Task<ExternalUser?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+
+    Task UpdateAsync(ExternalUser externalUser, CancellationToken cancellationToken);
+
+    Task DeleteAsync(ExternalUser externalUser, CancellationToken cancellationToken);
 }
