@@ -145,4 +145,20 @@ public sealed class DocumentAllocationService : IDocumentAllocationService
             })
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<UserAllocationTransferCountDto> GetTransferCountByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var count = await _allocationRepository
+            .GetAll()
+            .Where(x => x.CreatedUserId == userId && !x.IsDeleted)
+            .CountAsync(cancellationToken);
+
+        return new UserAllocationTransferCountDto
+        {
+            UserId = userId,
+            TransferCount = count
+        };
+    }
 }

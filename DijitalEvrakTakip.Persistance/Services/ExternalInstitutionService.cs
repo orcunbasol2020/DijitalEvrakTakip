@@ -48,4 +48,21 @@ public sealed class ExternalInstitutionService : IExternalInstitutionService
             .Where(x => !x.IsDeleted && x.Id == id)
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+    public async Task UpdateAsync(
+        ExternalInstitution institution,
+        CancellationToken cancellationToken)
+    {
+        _repository.Update(institution);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteAsync(
+        ExternalInstitution institution,
+        CancellationToken cancellationToken)
+    {
+        institution.IsDeleted = true;
+        _repository.Update(institution);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
 }

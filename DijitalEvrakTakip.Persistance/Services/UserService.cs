@@ -85,4 +85,26 @@ public sealed class UserService : IUserService
         return user;
     }
 
+    public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await _userRepository
+            .GetAll()
+            .Include(u => u.Department)
+            .Where(x => !x.IsDeleted && x.Id == id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task UpdateAsync(User user, CancellationToken cancellationToken)
+    {
+        _userRepository.Update(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteAsync(User user, CancellationToken cancellationToken)
+    {
+        user.IsDeleted = true;
+        _userRepository.Update(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
 }

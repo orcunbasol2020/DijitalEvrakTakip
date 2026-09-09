@@ -28,4 +28,8 @@ public interface IDocumentAllocationService
     Task<IList<UserActiveAllocationDto>> GetActiveByUserIdAsync(
         Guid userId,
         CancellationToken cancellationToken);
+
+    Task<UserAllocationTransferCountDto> GetTransferCountByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken);
 }
