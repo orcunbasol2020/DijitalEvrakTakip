@@ -19,20 +19,16 @@ public sealed class IncomingDocumentConfiguration
 
         // String Fields
         builder.Property(x => x.OrginalNo)
-            .HasMaxLength(50)
-            .IsUnicode(false);
+            .HasMaxLength(50);
 
         builder.Property(x => x.QrCode)
-            .HasMaxLength(50)
-            .IsUnicode(false);
+            .HasMaxLength(50);
 
         builder.Property(x => x.DocumentName)
-            .HasMaxLength(200)
-            .IsUnicode(false);
+            .HasMaxLength(200);
 
         builder.Property(x => x.Notes)
-            .HasMaxLength(500)
-            .IsUnicode(false);
+            .HasMaxLength(500);
 
         builder.Property(x => x.Subject)
             .HasMaxLength(200);

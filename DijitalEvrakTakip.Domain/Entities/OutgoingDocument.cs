@@ -18,9 +18,13 @@ namespace DijitalEvrakTakip.Domain.Entities
 
         public string? Content_Ocr { get; set; }
 
-        public string? DepartmentId { get; set; }
+        public int? Status { get; set; }
+
+        public Guid? DepartmentId { get; set; }
+        public Department? Department { get; set; }
 
         public Guid? ExternalInstitutonId { get; set; }
+        public ExternalInstitution? ExternalInstitution { get; set; }
 
         public bool? ElectronicCopy { get; set; }
 

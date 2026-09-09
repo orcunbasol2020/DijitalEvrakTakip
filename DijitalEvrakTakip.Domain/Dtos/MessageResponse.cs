@@ -1,3 +1,4 @@
 ﻿namespace DijitalEvrakTakip.Domain.Dtos;
 
-public sealed record MessageResponse(string Message);
+public sealed record MessageResponse(string Message,
+    object? Data = null);

@@ -142,6 +142,23 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
 
         return await query.ToListAsync(cancellationToken);
     }
+    public async Task<IList<IncomingDocument>> GetAllByDirectionAsync(string? documentDirection, CancellationToken cancellationToken)
+    {
+        var query = _incomingDocumentRepository.GetAll()
+            .Where(x => !x.IsDeleted);
+
+        if (!string.IsNullOrWhiteSpace(documentDirection) && documentDirection != "all")
+        {
+            query = documentDirection switch
+            {
+                "incoming" => query.Where(x => x.DocumentDirection == (int)DocumentDirectionEnum.Incoming),
+                "outgoing" => query.Where(x => x.DocumentDirection == (int)DocumentDirectionEnum.Outgoing),
+                _ => query
+            };
+        }
+
+        return await query.ToListAsync(cancellationToken);
+    }
 
     /// <summary>
     /// Assignment atandığında IncomingDocument tablosundaki CurrentAssignmentUserId alanını set eder.
@@ -259,6 +276,75 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         return new IncomingDocumentLast30DaysStatsDto
         {
             Last30DaysCount = last30DaysCount,
+            ChangePercent = changePercent
+        };
+    }
+
+    public async Task<IncomingDocumentPendingScanStatsDto> GetPendingScanStatsAsync(CancellationToken cancellationToken)
+    {
+        var today = DateTime.UtcNow.Date;
+        var yesterday = today.AddDays(-1);
+
+        var pendingCount = await _incomingDocumentRepository
+            .GetAll()
+            .Where(x =>
+                !x.IsDeleted &&
+                string.IsNullOrEmpty(x.DocumentName))
+            .CountAsync(cancellationToken);
+
+        var yesterdayCount = await _incomingDocumentRepository
+            .GetAll()
+            .Where(x =>
+                !x.IsDeleted &&
+                !string.IsNullOrEmpty(x.DocumentName) &&
+                x.CreatedDate.Date == yesterday)
+            .CountAsync(cancellationToken);
+
+        double changePercent = 0;
+
+        if (yesterdayCount > 0)
+        {
+            changePercent = ((double)(pendingCount - yesterdayCount) / yesterdayCount) * 100;
+        }
+
+        return new IncomingDocumentPendingScanStatsDto
+        {
+            PendingScanCount = pendingCount,
+            ChangePercent = changePercent
+        };
+    }
+
+    public async Task<IncomingDocumentOcrQueueStatsDto> GetOcrQueueStatsAsync(CancellationToken cancellationToken)
+    {
+        var today = DateTime.UtcNow.Date;
+        var yesterday = today.AddDays(-1);
+
+        // Bugünkü OCR kuyruğundaki toplam kayıt (OCR bekleyenler)
+        var ocrQueueCount = await _incomingDocumentRepository
+            .GetAll()
+            .Where(x =>
+                !x.IsDeleted &&
+                x.OcrStatus == 0) // 0 = pending OCR
+            .CountAsync(cancellationToken);
+
+        // Bir gün öncesi OCR tamamlanmış kayıtlar
+        var yesterdayCount = await _incomingDocumentRepository
+            .GetAll()
+            .Where(x =>
+                !x.IsDeleted &&
+                x.OcrStatus != 0 &&
+                x.CreatedDate.Date == yesterday)
+            .CountAsync(cancellationToken);
+
+        double changePercent = 0;
+        if (yesterdayCount > 0)
+        {
+            changePercent = ((double)(ocrQueueCount - yesterdayCount) / yesterdayCount) * 100;
+        }
+
+        return new IncomingDocumentOcrQueueStatsDto
+        {
+            OcrQueueCount = ocrQueueCount,
             ChangePercent = changePercent
         };
     }

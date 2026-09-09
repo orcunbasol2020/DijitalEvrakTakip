@@ -1,4 +1,5 @@
 ﻿using DijitalEvrakTakip.Domain.Entities;
+using DijitalEvrakTakip.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -22,6 +23,10 @@ public sealed class DocumentAllocationConfiguration
 
         builder.Property(x => x.Status)
             .IsRequired();
+
+        builder.Property(x => x.Source)
+            .IsRequired()
+            .HasDefaultValue((int)AllocationSourceEnum.EvrakTakip);
 
         builder.Property(x => x.IsActive)
             .IsRequired();

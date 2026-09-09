@@ -8,6 +8,7 @@ public sealed class DocumentAllocationDto
     public string FullName { get; set; } = default!; 
 
     public int Status { get; set; }
+    public int Source { get; set; }
     public bool IsActive { get; set; }
     public bool IsDeleted { get; set; }
     public DateTime CreatedDate { get; set; }

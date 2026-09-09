@@ -1,6 +1,7 @@
 ﻿using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
+using DijitalEvrakTakip.Domain.Enums;
 using MediatR;
 
 namespace DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Commands.CreateDocumentAllocation;
@@ -45,6 +46,7 @@ public sealed class CreateDocumentAllocationCommandHandler
             UserId = Guid.Parse(request.UserId),
             CreatedUserId = Guid.Parse(request.CreatedUserId),
             Status = Convert.ToInt32(request.Status),
+            Source = (int)AllocationSourceEnum.EvrakTakip,
             IsActive = true
         };
 

@@ -18,6 +18,7 @@ namespace DijitalEvrakTakip.Domain.Entities
 
         public int? SecurityDegree { get; set; }
         public int? DocumentTypeId { get; set; }
+        public int? DocumentDirection { get; set; }
         public int? LanguageId { get; set; }
         public int? Status { get; set; }
         public int? SubmissionStatus { get; set; }

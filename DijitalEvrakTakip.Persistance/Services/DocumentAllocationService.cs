@@ -110,10 +110,38 @@ public sealed class DocumentAllocationService : IDocumentAllocationService
                 UserId = x.UserId.ToString(),
                 FullName = x.User.Name + " " + x.User.Surname,
                 Status = x.Status,
+                Source = x.Source,
                 IsActive = x.IsActive,
                 IsDeleted = x.IsDeleted,
                 CreatedDate = x.CreatedDate,
                 UpdateDate = x.UpdateDate
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IList<UserActiveAllocationDto>> GetActiveByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        return await _allocationRepository
+            .GetAll()
+            .Where(x => x.UserId == userId
+                        && x.IsActive
+                        && !x.IsDeleted)
+            .Include(x => x.IncomingDocument)
+            .OrderByDescending(x => x.CreatedDate)
+            .Select(x => new UserActiveAllocationDto
+            {
+                AllocationId = x.Id,
+                IncomingDocumentId = x.IncomingDocumentId,
+                OrginalNo = x.IncomingDocument.OrginalNo,
+                QrCode = x.IncomingDocument.QrCode,
+                DocumentName = x.IncomingDocument.DocumentName,
+                Subject = x.IncomingDocument.Subject,
+                DocumentDate = x.IncomingDocument.DocumentDate,
+                Status = x.Status,
+                Source = x.Source,
+                AllocatedDate = x.CreatedDate
             })
             .ToListAsync(cancellationToken);
     }

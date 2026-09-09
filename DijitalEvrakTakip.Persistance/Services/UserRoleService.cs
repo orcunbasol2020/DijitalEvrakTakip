@@ -51,4 +51,17 @@ public sealed class UserRoleService : IUserRoleService
             .ToListAsync(cancellationToken);
     }
 
+    public async Task RemoveRoleFromUser(Guid userId, Guid roleId, CancellationToken cancellationToken)
+    {
+        var entity = await _userRoleRepository
+            .Where(x => x.UserId == userId && x.RoleId == roleId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (entity != null)
+        {
+            entity.IsDeleted = true;              
+            entity.UpdateDate = DateTime.UtcNow;
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+    }
 }

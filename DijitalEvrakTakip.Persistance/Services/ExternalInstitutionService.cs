@@ -39,14 +39,13 @@ public sealed class ExternalInstitutionService : IExternalInstitutionService
             .ToListAsync(cancellationToken);
     }
 
-    // Id ile getirme (gerektiğinde kullanılabilir)
     public async Task<ExternalInstitution?> GetByIdAsync(
         Guid id,
         CancellationToken cancellationToken)
     {
-        return await _repository.GetByExpressionAsync(
-            x => x.Id == id,
-            cancellationToken
-        );
+        return await _repository
+            .GetAll()
+            .Where(x => !x.IsDeleted && x.Id == id)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 }

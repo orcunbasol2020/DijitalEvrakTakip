@@ -32,6 +32,7 @@ public sealed class GetActiveDocumentAllocationByDocumentIdHandler
             UserId = allocation.UserId.ToString(),
             FullName = allocation.User.Name + " " + allocation.User.Surname, // User bilgilerini ekliyoruz
             Status = allocation.Status,
+            Source = allocation.Source,
             IsActive = allocation.IsActive,
             IsDeleted = allocation.IsDeleted,
             CreatedDate = allocation.CreatedDate,

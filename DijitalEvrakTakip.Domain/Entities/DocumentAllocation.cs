@@ -11,6 +11,9 @@ namespace DijitalEvrakTakip.Domain.Entities
         // Status
         public int Status { get; set; }
 
+        // Zimmetin hangi sistemde yapıldığı (AllocationSourceEnum: EvrakTakip / AtlasEbys)
+        public int Source { get; set; }
+
         // Aynı evrakta tek aktif zimmet için
         public bool IsActive { get; set; } = true;
         public Guid? CreatedUserId { get; set; }

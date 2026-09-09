@@ -24,4 +24,8 @@ public interface IDocumentAllocationService
     Task UpdateAsync(
         DocumentAllocation allocation,
         CancellationToken cancellationToken);
+
+    Task<IList<UserActiveAllocationDto>> GetActiveByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken);
 }

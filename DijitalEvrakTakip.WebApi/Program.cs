@@ -33,16 +33,27 @@ builder.Services.AddTransient<ErrorMiddleware>();
 builder.Services.AddScoped<IUnitOfWork>(srv => srv.GetRequiredService<AppDbContext>());
 builder.Services.AddScoped<IIncomingDocumentService, IncomingDocumentService>();
 builder.Services.AddScoped<IIncomingDocumentApplicationService, IncomingDocumentApplicationService>();
+builder.Services.AddScoped<IOutgoingDocumentService, OutgoingDocumentService>();
 builder.Services.AddScoped<IExternalInstitutionService, ExternalInstitutionService>();
 builder.Services.AddScoped<IDocumentTransactionService, DocumentTransactionService>();
 builder.Services.AddScoped<IDocumentAllocationService, DocumentAllocationService>();
 builder.Services.AddScoped<IDocumentAssignmentService, DocumentAssignmentService>();
 builder.Services.AddScoped<IScannedDocumentService, ScannedDocumentService>();
+builder.Services.AddScoped<IEnvelopeService, EnvelopeService>();
+builder.Services.AddScoped<IEnvelopeDocumentService, EnvelopeDocumentService>();
+builder.Services.AddScoped<IExternalUserService, ExternalUserService>();
+builder.Services.AddScoped<IAtlasEbysService, AtlasEbysService>();
+builder.Services.AddScoped<ILanguageService, LanguageService>();
 
 //repository
+builder.Services.AddScoped<IExternalUserRepository, ExternalUserRepository>();
+builder.Services.AddScoped<IEnvelopeDocumentRepository, EnvelopeDocumentRepository>();
+builder.Services.AddScoped<IEnvelopeRepository, EnvelopeRepository>();
 builder.Services.AddScoped<IScannedDocumentRepository, ScannedDocumentRepository>();
 builder.Services.AddScoped<IDocumentAssignmentRepository, DocumentAssignmentRepository>();
 builder.Services.AddScoped<IIncomingDocumentRepository, IncomingDocumentRepository>();
+builder.Services.AddScoped<IOutgoingDocumentRepository, OutgoingDocumentRepository>();
+builder.Services.AddScoped<IOutgoingDocumentTransactionRepository, OutgoingDocumentTransactionRepository>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IExternalInstitutionRepository, ExternalInstitutionRepository>();
 builder.Services.AddScoped<IDocumentTransactionRepository, DocumentTransactionRepository>();
@@ -51,7 +62,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<IDocumentAllocationRepository, DocumentAllocationRepository>();
-builder.Services.AddScoped<IDocumentTransactionRepository, DocumentTransactionRepository>();
+builder.Services.AddScoped<IAtlasZimmetChangeRepository, AtlasZimmetChangeRepository>();
+builder.Services.AddScoped<ILanguageRepository, LanguageRepository>();
 
 string connectionString = builder.Configuration.GetConnectionString("SqlServer");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
