@@ -1,4 +1,5 @@
 ﻿using DijitalEvrakTakip.Domain.Entities;
+using DijitalEvrakTakip.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -18,6 +19,9 @@ public sealed class EnvelopeConfiguration : IEntityTypeConfiguration<Envelope>
 
         builder.Property(x => x.CreatedByUserId)
             .IsRequired();
+
+        builder.Property(x => x.Status)
+            .HasDefaultValue((int)EnvelopeStatusEnum.Created);
 
 
         builder.HasMany(x => x.EnvelopeDocuments)

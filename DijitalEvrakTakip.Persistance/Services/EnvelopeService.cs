@@ -31,12 +31,20 @@ public sealed class EnvelopeService : IEnvelopeService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task UpdateAsync(
+        Envelope envelope,
+        CancellationToken cancellationToken)
+    {
+        _envelopeRepository.Update(envelope);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<IList<Envelope>> GetAllAsync(
         CancellationToken cancellationToken)
     {
         return await _envelopeRepository
             .GetAll()
-            .Include(x => x.EnvelopeDocuments) 
+            .Include(x => x.EnvelopeDocuments!.Where(d => !d.IsDeleted))
             .Where(x => !x.IsDeleted)
             .ToListAsync(cancellationToken);
     }
@@ -84,7 +92,7 @@ public sealed class EnvelopeService : IEnvelopeService
     {
         return await _envelopeRepository
             .GetAll()
-            .Include(x => x.EnvelopeDocuments)
+            .Include(x => x.EnvelopeDocuments!.Where(d => !d.IsDeleted))
             .Where(x => !x.IsDeleted && x.Id == id)
             .FirstOrDefaultAsync(cancellationToken);
     }

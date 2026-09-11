@@ -12,5 +12,8 @@ public sealed class CreateEnvelopeDocumentValidator
 
         RuleFor(p => p.QrCode)
             .NotEmpty().WithMessage("Evrak bilgisi boş olamaz!");
+
+        RuleFor(p => p.CreatedUserId)
+            .NotEmpty().WithMessage("Kullanıcı bilgisi boş olamaz!");
     }
 }

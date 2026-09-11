@@ -265,11 +265,12 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("UserType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.HasKey("Id");
-
-                    b.HasIndex("IncomingDocumentId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("DocumentAllocations", (string)null);
                 });
@@ -340,6 +341,11 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<string>("UnitName")
                         .HasColumnType("nvarchar(max)");
 
@@ -359,6 +365,9 @@ namespace DijitalEvrakTakip.Persistance.Migrations
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DocumentId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("EnvelopeId")
                         .HasColumnType("uniqueidentifier");
@@ -626,6 +635,50 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.ToTable("OutgoingDocuments", (string)null);
                 });
 
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.OutgoingDocumentAllocation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("OutgoingDocumentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Source")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("UserType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OutgoingDocumentAllocations", (string)null);
+                });
+
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.OutgoingDocumentTransaction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -838,9 +891,6 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<Guid>("DocumentId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("IncomingDocumentId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -859,10 +909,6 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DocumentId");
-
-                    b.HasIndex("IncomingDocumentId");
 
                     b.ToTable("DocumentTransactions", (string)null);
                 });
@@ -953,25 +999,6 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("IncomingDocument");
-                });
-
-            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.DocumentAllocation", b =>
-                {
-                    b.HasOne("DijitalEvrakTakip.Domain.Entities.IncomingDocument", "IncomingDocument")
-                        .WithMany("DocumentAllocations")
-                        .HasForeignKey("IncomingDocumentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("DijitalEvrakTakip.Domain.Entities.User", "User")
-                        .WithMany("DocumentAllocations")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("IncomingDocument");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.DocumentAssignment", b =>
@@ -1070,21 +1097,6 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DocumentTransaction", b =>
-                {
-                    b.HasOne("DijitalEvrakTakip.Domain.Entities.IncomingDocument", null)
-                        .WithMany()
-                        .HasForeignKey("DocumentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("DijitalEvrakTakip.Domain.Entities.IncomingDocument", "IncomingDocument")
-                        .WithMany()
-                        .HasForeignKey("IncomingDocumentId");
-
-                    b.Navigation("IncomingDocument");
-                });
-
             modelBuilder.Entity("ExternalInstitution", b =>
                 {
                     b.HasOne("ExternalInstitution", "Parent")
@@ -1118,8 +1130,6 @@ namespace DijitalEvrakTakip.Persistance.Migrations
 
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.IncomingDocument", b =>
                 {
-                    b.Navigation("DocumentAllocations");
-
                     b.Navigation("DocumentAssignments");
                 });
 
@@ -1130,8 +1140,6 @@ namespace DijitalEvrakTakip.Persistance.Migrations
 
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.User", b =>
                 {
-                    b.Navigation("DocumentAllocations");
-
                     b.Navigation("UserRoles");
                 });
 

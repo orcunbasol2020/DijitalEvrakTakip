@@ -46,6 +46,16 @@ public sealed class EnvelopeDocumentService : IEnvelopeDocumentService
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IList<EnvelopeDocument>> GetByDocumentIdAsync(
+      Guid documentId,
+      CancellationToken cancellationToken)
+    {
+        return await _envelopeDocumentRepository
+            .GetAll()
+            .Where(x => !x.IsDeleted && x.DocumentId == documentId)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task RemoveAsync(Guid id, CancellationToken cancellationToken)
     {
         var envelopeDocument = await _envelopeDocumentRepository

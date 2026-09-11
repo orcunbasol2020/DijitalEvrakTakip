@@ -7,7 +7,7 @@ namespace DijitalEvrakTakip.Application.Services;
 
 public interface IOutgoingDocumentService
 {
-    Task CreateAsync(CreateOutgoingDocumentCommand request, CancellationToken cancellationToken);
+    Task<Guid> CreateAsync(CreateOutgoingDocumentCommand request, CancellationToken cancellationToken);
 
     Task UpdateAsync(UpdateOutgoingDocumentCommand request, CancellationToken cancellationToken);
 

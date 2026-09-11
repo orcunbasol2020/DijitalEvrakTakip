@@ -5,6 +5,7 @@ namespace DijitalEvrakTakip.Application.Features.EnvelopeDocumentFeatures.Comman
 {
     public sealed record CreateEnvelopeDocumentCommand(
         Guid EnvelopeId,
-        string QrCode
+        string QrCode,
+        string CreatedUserId
     ) : IRequest<MessageResponse>;
 }

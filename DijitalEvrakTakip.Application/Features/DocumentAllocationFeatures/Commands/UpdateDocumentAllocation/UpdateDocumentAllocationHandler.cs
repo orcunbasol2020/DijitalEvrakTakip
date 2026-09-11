@@ -31,6 +31,9 @@ public sealed class UpdateDocumentAllocationCommandHandler
         if (!string.IsNullOrWhiteSpace(request.UserId))
             allocation.UserId = Guid.Parse(request.UserId);
 
+        if (request.UserType.HasValue)
+            allocation.UserType = request.UserType.Value;
+
         if (request.Status.HasValue)
             allocation.Status = request.Status.Value;
 

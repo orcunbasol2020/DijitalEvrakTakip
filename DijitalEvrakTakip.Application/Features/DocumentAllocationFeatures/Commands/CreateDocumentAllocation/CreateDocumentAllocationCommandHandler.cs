@@ -44,6 +44,7 @@ public sealed class CreateDocumentAllocationCommandHandler
         {
             IncomingDocumentId = request.IncomingDocumentId,
             UserId = Guid.Parse(request.UserId),
+            UserType = request.UserType,
             CreatedUserId = Guid.Parse(request.CreatedUserId),
             Status = Convert.ToInt32(request.Status),
             Source = (int)AllocationSourceEnum.EvrakTakip,

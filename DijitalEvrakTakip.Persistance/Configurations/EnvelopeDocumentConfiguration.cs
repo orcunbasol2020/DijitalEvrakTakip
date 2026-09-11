@@ -18,5 +18,7 @@ public sealed class EnvelopeDocumentConfiguration : IEntityTypeConfiguration<Env
         builder.Property(x => x.QrCode)
             .HasMaxLength(200);
 
+        builder.Property(x => x.DocumentId)
+            .HasColumnType("uniqueidentifier");
     }
 }

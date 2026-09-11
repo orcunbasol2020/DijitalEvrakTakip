@@ -4,9 +4,14 @@ namespace DijitalEvrakTakip.Domain.Entities
 {
     public class DocumentAllocation : Entity
     {
-        // Foreign Keys
+        // Zimmetlenen evrağın Id'si (FK değildir)
         public Guid IncomingDocumentId { get; set; }
-        public Guid UserId { get; set; } 
+
+        // Zimmetlenen kişinin Id'si (User veya ExternalUser tablosuna ait olabilir, FK değildir)
+        public Guid UserId { get; set; }
+
+        // Zimmetlenen kişinin iç mi dış kurum personeli mi olduğu (AllocationUserTypeEnum: Internal / External)
+        public int UserType { get; set; }
 
         // Status
         public int Status { get; set; }
@@ -17,9 +22,5 @@ namespace DijitalEvrakTakip.Domain.Entities
         // Aynı evrakta tek aktif zimmet için
         public bool IsActive { get; set; } = true;
         public Guid? CreatedUserId { get; set; }
-
-        // Navigation
-        public IncomingDocument IncomingDocument { get; set; } = null!;
-        public User User { get; set; } = null!; 
     }
 }

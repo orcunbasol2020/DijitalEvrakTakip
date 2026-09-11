@@ -42,6 +42,7 @@ public sealed class GetAllEnvelopeHandler
                 x.Id,
                 x.EnvelopeNo,
                 x.IsClosed,
+                x.Status,
                 x.CreatedByUserId,
                 x.ExternalInstitutionId,
                 institutionName,

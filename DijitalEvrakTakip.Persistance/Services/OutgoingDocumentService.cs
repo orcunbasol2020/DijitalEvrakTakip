@@ -26,7 +26,7 @@ public sealed class OutgoingDocumentService : IOutgoingDocumentService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task CreateAsync(CreateOutgoingDocumentCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> CreateAsync(CreateOutgoingDocumentCommand request, CancellationToken cancellationToken)
     {
         OutgoingDocument outgoingDocument = new()
         {
@@ -61,6 +61,8 @@ public sealed class OutgoingDocumentService : IOutgoingDocumentService
         await _outgoingDocumentTransactionRepository.AddAsync(creationTransaction, cancellationToken);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return outgoingDocument.Id;
     }
 
     public async Task UpdateAsync(UpdateOutgoingDocumentCommand request, CancellationToken cancellationToken)

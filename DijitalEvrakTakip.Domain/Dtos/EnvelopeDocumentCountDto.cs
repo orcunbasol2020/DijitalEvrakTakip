@@ -4,6 +4,7 @@ public sealed record EnvelopeDocumentCountDto(
     Guid Id,
     string EnvelopeNo,
     bool IsClosed,
+    int Status,
     Guid CreatedByUserId,
     Guid? ExternalInstitutionId,
     string? ExternalInstitutionName,

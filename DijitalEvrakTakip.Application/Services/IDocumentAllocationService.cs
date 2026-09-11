@@ -17,6 +17,10 @@ public interface IDocumentAllocationService
         Guid incomingDocumentId,
         CancellationToken cancellationToken);
 
+    Task<DocumentAllocationDto?> GetActiveDtoByDocumentIdAsync(
+        Guid incomingDocumentId,
+        CancellationToken cancellationToken);
+
     Task<DocumentAllocation?> GetByIdAsync(
         Guid id,
         CancellationToken cancellationToken);

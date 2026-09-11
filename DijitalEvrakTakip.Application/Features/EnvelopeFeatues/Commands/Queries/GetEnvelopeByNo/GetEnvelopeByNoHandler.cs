@@ -29,6 +29,7 @@ public sealed class GetEnvelopeByNoHandler
             envelope.Id,
             envelope.EnvelopeNo,
             envelope.IsClosed,
+            envelope.Status,
             envelope.CreatedByUserId,
             envelope.ExternalInstitutionId,
             envelope.DepartmentId,

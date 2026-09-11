@@ -17,8 +17,5 @@ public sealed class User : Entity
     public bool IsActive { get; set; }
 
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-
-    // DocumentAllocation Navigation
-    public ICollection<DocumentAllocation> DocumentAllocations { get; set; } = new List<DocumentAllocation>();
 }
 

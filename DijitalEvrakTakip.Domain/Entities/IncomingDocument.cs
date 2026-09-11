@@ -40,9 +40,6 @@ namespace DijitalEvrakTakip.Domain.Entities
         public string? CurrentAssignmentUser { get; set; }
         public Guid? CurrentAssignmentUserId { get; set; }
 
-        public ICollection<DocumentAllocation> DocumentAllocations { get; set; }
-            = new List<DocumentAllocation>();
-
         public ICollection<DocumentAssignment> DocumentAssignments { get; set; }
             = new List<DocumentAssignment>();
     }

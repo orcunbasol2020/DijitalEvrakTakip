@@ -37,6 +37,7 @@ builder.Services.AddScoped<IOutgoingDocumentService, OutgoingDocumentService>();
 builder.Services.AddScoped<IExternalInstitutionService, ExternalInstitutionService>();
 builder.Services.AddScoped<IDocumentTransactionService, DocumentTransactionService>();
 builder.Services.AddScoped<IDocumentAllocationService, DocumentAllocationService>();
+builder.Services.AddScoped<IOutgoingDocumentAllocationService, OutgoingDocumentAllocationService>();
 builder.Services.AddScoped<IDocumentAssignmentService, DocumentAssignmentService>();
 builder.Services.AddScoped<IScannedDocumentService, ScannedDocumentService>();
 builder.Services.AddScoped<IEnvelopeService, EnvelopeService>();
@@ -62,6 +63,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<IDocumentAllocationRepository, DocumentAllocationRepository>();
+builder.Services.AddScoped<IOutgoingDocumentAllocationRepository, OutgoingDocumentAllocationRepository>();
 builder.Services.AddScoped<IAtlasZimmetChangeRepository, AtlasZimmetChangeRepository>();
 builder.Services.AddScoped<ILanguageRepository, LanguageRepository>();
 

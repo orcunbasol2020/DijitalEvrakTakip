@@ -18,8 +18,10 @@ public sealed class CreateOutgoingDocumentCommandHandler
         CreateOutgoingDocumentCommand request,
         CancellationToken cancellationToken)
     {
-        await _outgoingDocumentService.CreateAsync(request, cancellationToken);
+        var id = await _outgoingDocumentService.CreateAsync(request, cancellationToken);
 
-        return new MessageResponse("Giden evrak başarıyla oluşturuldu");
+        return new MessageResponse(
+            Message: "Giden evrak başarıyla oluşturuldu",
+            Data: new { Id = id });
     }
 }

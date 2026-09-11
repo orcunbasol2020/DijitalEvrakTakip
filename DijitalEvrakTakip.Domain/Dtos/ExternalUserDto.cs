@@ -6,7 +6,9 @@ public sealed record ExternalUserDto
     public string Name { get; set; }
     public string Surname { get; set; }
     public string Email { get; set; }
+    public string IdentityNo { get; set; }
     public int UserType { get; set; }
+    public Guid ExternalInstitutionId { get; set; }
     public bool IsActive { get; set; }
     public bool IsDeleted { get; set; }
     public DateTime CreatedDate { get; set; }

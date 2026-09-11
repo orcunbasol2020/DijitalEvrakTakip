@@ -1,6 +1,7 @@
 ﻿using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
+using DijitalEvrakTakip.Domain.Enums;
 using MediatR;
 
 namespace DijitalEvrakTakip.Application.Features.EnvelopeFeatures.Commands.CreateEnvelope;
@@ -27,7 +28,8 @@ public sealed class CreateEnvelopeCommandHandler
             DepartmentId = request.DepartmentId,
             UnitName = request.UnitName,
             Address = request.Address,
-            IsClosed = false
+            IsClosed = false,
+            Status = (int)EnvelopeStatusEnum.Created
         };
 
         await _envelopeService.CreateAsync(envelope, cancellationToken);

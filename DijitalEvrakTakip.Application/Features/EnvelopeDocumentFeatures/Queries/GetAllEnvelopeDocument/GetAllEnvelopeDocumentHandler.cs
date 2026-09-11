@@ -26,6 +26,7 @@ public sealed class GetAllEnvelopeDocumentHandler
                 x.Id,
                 x.EnvelopeId,
                 x.QrCode,
+                x.DocumentId,
                 x.IsDeleted,
                 x.CreatedDate,
                 x.UpdateDate
