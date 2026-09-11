@@ -14,4 +14,10 @@ public interface IUserService
     public IQueryable<User> GetAll();
     Task<UserLoginDto> GetUserByUserName(Expression<Func<User, bool>> predicate, CancellationToken cancellationToken);
 
+    Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+
+    Task UpdateAsync(User user, CancellationToken cancellationToken);
+
+    Task DeleteAsync(User user, CancellationToken cancellationToken);
+
 }

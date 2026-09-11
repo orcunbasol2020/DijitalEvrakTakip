@@ -18,6 +18,7 @@ namespace DijitalEvrakTakip.Domain.Entities
 
         public int? SecurityDegree { get; set; }
         public int? DocumentTypeId { get; set; }
+        public int? DocumentDirection { get; set; }
         public int? LanguageId { get; set; }
         public int? Status { get; set; }
         public int? SubmissionStatus { get; set; }
@@ -38,9 +39,6 @@ namespace DijitalEvrakTakip.Domain.Entities
         public string UserId { get; set; } = null!;
         public string? CurrentAssignmentUser { get; set; }
         public Guid? CurrentAssignmentUserId { get; set; }
-
-        public ICollection<DocumentAllocation> DocumentAllocations { get; set; }
-            = new List<DocumentAllocation>();
 
         public ICollection<DocumentAssignment> DocumentAssignments { get; set; }
             = new List<DocumentAssignment>();

@@ -24,7 +24,8 @@ public sealed class GetAllDepartmentHandler
             .Where(x => !x.IsDeleted)
             .Select(x => new DepartmentDto(
                 x.Id,
-                x.Name
+                x.Name,
+                x.ShortName
             ))
             .ToList();
     }

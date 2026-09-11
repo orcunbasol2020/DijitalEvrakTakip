@@ -8,6 +8,7 @@ public sealed record UpdateDocumentAllocationCommand
     Guid Id,
     Guid? IncomingDocumentId,
     string? UserId,
+    int? UserType,
     int? Status,
     bool? IsActive
 ) : IRequest<MessageResponse>;

@@ -6,6 +6,7 @@ namespace DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Comm
     public sealed record CreateDocumentAllocationCommand(
         Guid IncomingDocumentId,
         string UserId,
+        int UserType,
         string CreatedUserId,
         string Status
     ) : IRequest<MessageResponse>;

@@ -40,6 +40,7 @@ public sealed class IncomingDocumentApplicationService : IIncomingDocumentApplic
         {
             QrCode = request.QrCode,
             UserId = request.UserId,
+            DocumentDirection = request.DocumentDirection,
             OcrStatus = (int?)OcrStatusEnum.Wait,
             Status = 1,
             SubmissionStatus = 1,

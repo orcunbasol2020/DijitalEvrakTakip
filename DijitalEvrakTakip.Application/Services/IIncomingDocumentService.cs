@@ -12,6 +12,7 @@ public interface IIncomingDocumentService
     Task UpdateAsync(UpdateIncomingDocumentCommand request, CancellationToken cancellationToken);
 
     Task<IList<IncomingDocument>> GetAllAsync(GetAllIncomingDocumentQuery request, CancellationToken cancellationToken);
+    Task<IList<IncomingDocument>> GetAllByDirectionAsync(string? documentDirection, CancellationToken cancellationToken);
 
     Task<IncomingDocument?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
@@ -26,5 +27,7 @@ public interface IIncomingDocumentService
     Task<int> GetPendingCountByUserIdAsync(Guid userId, CancellationToken cancellationToken);
     Task<IncomingDocumentTodayStatsDto> GetTodayStatsAsync(CancellationToken cancellationToken);
     Task<IncomingDocumentLast30DaysStatsDto> GetLast30DaysStatsAsync(CancellationToken cancellationToken);
+    Task<IncomingDocumentPendingScanStatsDto> GetPendingScanStatsAsync(CancellationToken cancellationToken);
+    Task<IncomingDocumentOcrQueueStatsDto> GetOcrQueueStatsAsync(CancellationToken cancellationToken);
 
 }

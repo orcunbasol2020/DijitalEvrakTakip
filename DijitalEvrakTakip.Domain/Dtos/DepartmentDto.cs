@@ -2,5 +2,6 @@
 
 public sealed record DepartmentDto(
     Guid Id,
-    string Name
+    string Name,
+    string ShortName
 );

@@ -1,4 +1,5 @@
 ﻿using DijitalEvrakTakip.Domain.Entities;
+using DijitalEvrakTakip.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -20,8 +21,16 @@ public sealed class DocumentAllocationConfiguration
             .IsRequired()
             .HasColumnType("uniqueidentifier");
 
+        builder.Property(x => x.UserType)
+            .IsRequired()
+            .HasDefaultValue((int)AllocationUserTypeEnum.Internal);
+
         builder.Property(x => x.Status)
             .IsRequired();
+
+        builder.Property(x => x.Source)
+            .IsRequired()
+            .HasDefaultValue((int)AllocationSourceEnum.EvrakTakip);
 
         builder.Property(x => x.IsActive)
             .IsRequired();
@@ -29,10 +38,8 @@ public sealed class DocumentAllocationConfiguration
         builder.Property(x => x.CreatedDate)
             .IsRequired();
 
-        // ✅ DOĞRU FK TANIMI
-        builder.HasOne(x => x.IncomingDocument)
-            .WithMany(x => x.DocumentAllocations)
-            .HasForeignKey(x => x.IncomingDocumentId)
-            .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.IncomingDocumentId)
+            .IsRequired()
+            .HasColumnType("uniqueidentifier");
     }
 }

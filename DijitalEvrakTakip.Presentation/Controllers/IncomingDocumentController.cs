@@ -6,6 +6,7 @@ using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.Ge
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentByQrCode;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentLast30DaysStats;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentTodayStats;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetOcrQueueStats;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetPendingIncomingDocumentCount;
 using DijitalEvrakTakip.Presentation.Abstractions;
 using MediatR;
@@ -101,6 +102,36 @@ public sealed class IncomingDocumentsController : ApiController
     public async Task<IActionResult> GetLast30DaysStats(CancellationToken cancellationToken)
     {
         var query = new GetIncomingDocumentLast30DaysStatsQuery();
+        var response = await _mediator.Send(query, cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetPendingScanStats(CancellationToken cancellationToken)
+    {
+        var query = new GetPendingIncomingDocumentTotalCountQuery();
+        var response = await _mediator.Send(query, cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetOcrQueueStats(CancellationToken cancellationToken)
+    {
+        var query = new GetOcrQueueStatsQuery();
+        var response = await _mediator.Send(query, cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetByDirection(
+        [FromQuery] string? documentDirection,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetDocumentsByDirectionQuery
+        {
+            DocumentDirection = documentDirection
+        };
+
         var response = await _mediator.Send(query, cancellationToken);
         return Ok(response);
     }

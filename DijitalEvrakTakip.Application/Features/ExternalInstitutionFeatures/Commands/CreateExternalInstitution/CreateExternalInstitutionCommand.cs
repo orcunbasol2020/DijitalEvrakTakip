@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DijitalEvrakTakip.Domain.Dtos;
+using MediatR;
 
-namespace DijitalEvrakTakip.Application.Features.ExternalInstitutionFeatures.Commands.CreateExternalInstitution
-{
-    internal class CreateExternalInstitutionCommand
-    {
-    }
-}
+namespace DijitalEvrakTakip.Application.Features.ExternalInstitutionFeatures.Commands.CreateExternalInstitution;
+
+public sealed record CreateExternalInstitutionCommand(
+    string Name,
+    int Type,
+    string? Address = null,
+    Guid? ParentId = null
+) : IRequest<MessageResponse>;

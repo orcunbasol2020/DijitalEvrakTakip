@@ -17,11 +17,23 @@ public interface IDocumentAllocationService
         Guid incomingDocumentId,
         CancellationToken cancellationToken);
 
+    Task<DocumentAllocationDto?> GetActiveDtoByDocumentIdAsync(
+        Guid incomingDocumentId,
+        CancellationToken cancellationToken);
+
     Task<DocumentAllocation?> GetByIdAsync(
         Guid id,
         CancellationToken cancellationToken);
 
     Task UpdateAsync(
         DocumentAllocation allocation,
+        CancellationToken cancellationToken);
+
+    Task<IList<UserActiveAllocationDto>> GetActiveByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken);
+
+    Task<UserAllocationTransferCountDto> GetTransferCountByUserIdAsync(
+        Guid userId,
         CancellationToken cancellationToken);
 }
