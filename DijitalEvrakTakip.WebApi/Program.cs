@@ -45,6 +45,17 @@ builder.Services.AddScoped<IEnvelopeDocumentService, EnvelopeDocumentService>();
 builder.Services.AddScoped<IExternalUserService, ExternalUserService>();
 builder.Services.AddScoped<IAtlasEbysService, AtlasEbysService>();
 builder.Services.AddScoped<ILanguageService, LanguageService>();
+builder.Services.AddScoped<IWetSignedDocumentStorageService>(_ =>
+{
+    string configuredPath = builder.Configuration["FileStorage:WetSignedDocumentsPath"]
+        ?? "App_Data/WetSignedDocuments";
+
+    string rootPath = Path.IsPathRooted(configuredPath)
+        ? configuredPath
+        : Path.Combine(builder.Environment.ContentRootPath, configuredPath);
+
+    return new WetSignedDocumentStorageService(rootPath);
+});
 
 //repository
 builder.Services.AddScoped<IExternalUserRepository, ExternalUserRepository>();

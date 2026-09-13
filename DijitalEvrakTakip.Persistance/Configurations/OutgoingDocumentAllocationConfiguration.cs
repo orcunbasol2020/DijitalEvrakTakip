@@ -41,5 +41,14 @@ public sealed class OutgoingDocumentAllocationConfiguration
 
         builder.Property(x => x.CreatedDate)
             .IsRequired();
+
+        builder.Property(x => x.WetSignedDocumentPath)
+            .HasMaxLength(500);
+
+        builder.Property(x => x.WetSignedDocumentFileName)
+            .HasMaxLength(260);
+
+        builder.Property(x => x.WetSignedDocumentUploadedUserId)
+            .HasColumnType("uniqueidentifier");
     }
 }

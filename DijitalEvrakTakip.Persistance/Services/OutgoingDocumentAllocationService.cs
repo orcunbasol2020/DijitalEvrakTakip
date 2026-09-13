@@ -121,7 +121,13 @@ public sealed class OutgoingDocumentAllocationService : IOutgoingDocumentAllocat
             IsActive = allocation.IsActive,
             IsDeleted = allocation.IsDeleted,
             CreatedDate = allocation.CreatedDate,
-            UpdateDate = allocation.UpdateDate
+            UpdateDate = allocation.UpdateDate,
+            WetSignedDocumentFileName = allocation.WetSignedDocumentFileName,
+            WetSignedDocumentUploadDate = allocation.WetSignedDocumentUploadDate,
+            WetSignedDocumentUploadedByFullName = allocation.WetSignedDocumentUploadedUserId.HasValue
+                && fullNames.TryGetValue(allocation.WetSignedDocumentUploadedUserId.Value, out var uploaderName)
+                    ? uploaderName
+                    : null
         };
     }
 
@@ -135,6 +141,9 @@ public sealed class OutgoingDocumentAllocationService : IOutgoingDocumentAllocat
             .Concat(allocations
                 .Where(x => x.CreatedUserId.HasValue)
                 .Select(x => x.CreatedUserId!.Value))
+            .Concat(allocations
+                .Where(x => x.WetSignedDocumentUploadedUserId.HasValue)
+                .Select(x => x.WetSignedDocumentUploadedUserId!.Value))
             .Distinct()
             .ToList();
 

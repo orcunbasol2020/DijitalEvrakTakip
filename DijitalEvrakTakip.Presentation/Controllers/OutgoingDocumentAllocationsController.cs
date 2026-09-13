@@ -1,12 +1,15 @@
 using DijitalEvrakTakip.Application.Features.OutgoingDocumentAllocationFeatures.Commands.CreateOutgoingDocumentAllocation;
 using DijitalEvrakTakip.Application.Features.OutgoingDocumentAllocationFeatures.Commands.UpdateOutgoingDocumentAllocation;
+using DijitalEvrakTakip.Application.Features.OutgoingDocumentAllocationFeatures.Commands.UploadWetSignedDocument;
 using DijitalEvrakTakip.Application.Features.OutgoingDocumentAllocationFeatures.Queries.GetActiveAllocationsByUserId;
 using DijitalEvrakTakip.Application.Features.OutgoingDocumentAllocationFeatures.Queries.GetActiveByDocumentId;
 using DijitalEvrakTakip.Application.Features.OutgoingDocumentAllocationFeatures.Queries.GetAllocationTransferCountByUserId;
 using DijitalEvrakTakip.Application.Features.OutgoingDocumentAllocationFeatures.Queries.GetByDocumentId;
+using DijitalEvrakTakip.Application.Features.OutgoingDocumentAllocationFeatures.Queries.GetWetSignedDocument;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Presentation.Abstractions;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DijitalEvrakTakip.Presentation.Controllers;
@@ -89,5 +92,45 @@ public sealed class OutgoingDocumentAllocationsController : ApiController
             cancellationToken);
 
         return Ok(response);
+    }
+
+    [HttpPost("[action]")]
+    [RequestSizeLimit(20_000_000)]
+    public async Task<IActionResult> UploadWetSignedDocument(
+        [FromForm] Guid outgoingDocumentId,
+        [FromForm] IFormFile file,
+        [FromForm] string? uploadedUserId,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { Message = "Yüklenecek dosya boş olamaz." });
+
+        await using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream, cancellationToken);
+
+        var command = new UploadWetSignedDocumentCommand(
+            outgoingDocumentId,
+            file.FileName,
+            memoryStream.ToArray(),
+            uploadedUserId);
+
+        MessageResponse response = await _mediator.Send(command, cancellationToken);
+
+        return Ok(response);
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> DownloadWetSignedDocument(
+        Guid allocationId,
+        CancellationToken cancellationToken)
+    {
+        var file = await _mediator.Send(
+            new GetWetSignedDocumentQuery(allocationId),
+            cancellationToken);
+
+        if (file is null)
+            return NotFound(new { Message = "Islak imzalı belge bulunamadı." });
+
+        return File(file.Content, file.ContentType, file.FileName);
     }
 }

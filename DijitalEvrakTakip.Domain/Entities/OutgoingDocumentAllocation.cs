@@ -22,5 +22,16 @@ namespace DijitalEvrakTakip.Domain.Entities
         // Aynı evrakta tek aktif zimmet için
         public bool IsActive { get; set; } = true;
         public Guid? CreatedUserId { get; set; }
+
+        // Zimmet sonrası yüklenen ıslak imzalı belgenin diske göreli yolu
+        public string? WetSignedDocumentPath { get; set; }
+
+        // Yüklenen dosyanın orijinal adı (indirirken kullanılır)
+        public string? WetSignedDocumentFileName { get; set; }
+
+        public DateTime? WetSignedDocumentUploadDate { get; set; }
+
+        // Belgeyi yükleyen kişinin Id'si (User veya ExternalUser tablosuna ait olabilir, FK değildir)
+        public Guid? WetSignedDocumentUploadedUserId { get; set; }
     }
 }

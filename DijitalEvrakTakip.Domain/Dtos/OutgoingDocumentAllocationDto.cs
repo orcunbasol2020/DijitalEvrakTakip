@@ -16,6 +16,11 @@ public sealed class OutgoingDocumentAllocationDto
     public DateTime CreatedDate { get; set; }
     public DateTime? UpdateDate { get; set; }
 
+    public string? WetSignedDocumentFileName { get; set; }
+    public DateTime? WetSignedDocumentUploadDate { get; set; }
+    public string? WetSignedDocumentUploadedByFullName { get; set; }
+
     public bool IsPreRegistered => Status == 1;
     public bool IsAllocated => Status == 2;
+    public bool HasWetSignedDocument => !string.IsNullOrEmpty(WetSignedDocumentFileName);
 }
