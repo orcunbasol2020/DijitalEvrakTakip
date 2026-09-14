@@ -1,4 +1,5 @@
 using DijitalEvrakTakip.Domain.Entities;
+using DijitalEvrakTakip.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -44,6 +45,10 @@ public sealed class OutgoingDocumentConfiguration
         builder.Property(x => x.Status);
 
         builder.Property(x => x.PageCount);
+
+        builder.Property(x => x.Source)
+            .IsRequired()
+            .HasDefaultValue((int)AllocationSourceEnum.EvrakTakip);
 
         // Boolean Fields
         builder.Property(x => x.ElectronicCopy);

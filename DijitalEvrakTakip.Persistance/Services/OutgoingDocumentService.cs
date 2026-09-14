@@ -46,6 +46,7 @@ public sealed class OutgoingDocumentService : IOutgoingDocumentService
             Notes = request.Notes,
             DocumentDate = request.DocumentDate,
             CreatedUserId = request.CreatedUserId,
+            Source = (int)AllocationSourceEnum.EvrakTakip,
             IsDeleted = false
         };
 

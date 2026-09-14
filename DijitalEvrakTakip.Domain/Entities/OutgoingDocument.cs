@@ -37,5 +37,8 @@ namespace DijitalEvrakTakip.Domain.Entities
         public DateTime? DocumentDate { get; set; }
 
         public string? CreatedUserId { get; set; }
+
+        // Evrağın hangi sistemde oluşturulduğu (AllocationSourceEnum: EvrakTakip / AtlasEbys)
+        public int Source { get; set; }
     }
 }
