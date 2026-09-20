@@ -35,6 +35,9 @@ public sealed class UpdateExternalInstitutionCommandHandler
         if (request.ParentId.HasValue)
             institution.ParentId = request.ParentId.Value;
 
+        if (!string.IsNullOrWhiteSpace(request.DetsisCode))
+            institution.DetsisCode = request.DetsisCode;
+
         await _externalInstitutionService.UpdateAsync(institution, cancellationToken);
 
         return new MessageResponse("Kurum kaydı güncellendi");

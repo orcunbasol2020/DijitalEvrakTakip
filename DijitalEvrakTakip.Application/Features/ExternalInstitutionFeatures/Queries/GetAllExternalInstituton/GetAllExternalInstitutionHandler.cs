@@ -27,7 +27,9 @@ public sealed class GetAllExternalInstitutionQueryHandler
                 Id = x.Id,
                 Name = x.Name,
                 Type= x.Type,
-                Address = x.Address
+                Address = x.Address,
+                DetsisCode = x.DetsisCode,
+                ParentId = x.ParentId
             })
             .ToList();
     }

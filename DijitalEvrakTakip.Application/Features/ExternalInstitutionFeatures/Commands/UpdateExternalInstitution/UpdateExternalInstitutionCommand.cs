@@ -8,5 +8,6 @@ public sealed record UpdateExternalInstitutionCommand(
     string? Name,
     int? Type,
     string? Address,
-    Guid? ParentId
+    Guid? ParentId,
+    string? DetsisCode
 ) : IRequest<MessageResponse>;

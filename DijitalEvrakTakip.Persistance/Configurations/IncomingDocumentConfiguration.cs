@@ -31,13 +31,15 @@ public sealed class IncomingDocumentConfiguration
             .HasMaxLength(500);
 
         builder.Property(x => x.Subject)
-            .HasMaxLength(200);
+            .HasMaxLength(100);
 
         builder.Property(x => x.Content_Ocr)
             .HasColumnType("nvarchar(max)");
 
         // Numeric / Enum Fields
         builder.Property(x => x.SecurityDegree);
+
+        builder.Property(x => x.UrgencyDegree);
 
         builder.Property(x => x.DocumentTypeId);
 
@@ -55,6 +57,8 @@ public sealed class IncomingDocumentConfiguration
         builder.Property(x => x.ElectronicCopy);
 
         builder.Property(x => x.Release);
+
+        builder.Property(x => x.ActionRequired);
 
         builder.Property(x => x.IsDeleted)
             .IsRequired();

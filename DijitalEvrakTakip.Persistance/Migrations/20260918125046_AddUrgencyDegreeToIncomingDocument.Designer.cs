@@ -4,6 +4,7 @@ using DijitalEvrakTakip.Persistance.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DijitalEvrakTakip.Persistance.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260918125046_AddUrgencyDegreeToIncomingDocument")]
+    partial class AddUrgencyDegreeToIncomingDocument
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -433,9 +436,6 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool?>("ActionRequired")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Content_Ocr")
                         .HasColumnType("nvarchar(max)");
 
@@ -507,8 +507,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Subject")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int?>("SubmissionStatus")
                         .HasColumnType("int");
@@ -569,9 +569,6 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool?>("ActionRequired")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Content_Ocr")
                         .HasColumnType("nvarchar(max)");
 
@@ -600,8 +597,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("LanguageId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("LanguageId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
@@ -630,8 +627,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Subject")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int?>("Type")
                         .HasColumnType("int");
@@ -954,10 +951,6 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("DetsisCode")
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -976,8 +969,6 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DetsisCode");
 
                     b.HasIndex("ParentId");
 

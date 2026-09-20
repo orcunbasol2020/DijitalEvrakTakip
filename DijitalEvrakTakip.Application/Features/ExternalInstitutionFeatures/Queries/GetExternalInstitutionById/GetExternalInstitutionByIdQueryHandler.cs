@@ -28,7 +28,9 @@ public sealed class GetExternalInstitutionByIdQueryHandler
             Id = entity.Id,
             Name = entity.Name,
             Type = entity.Type,
-            Address = entity.Address
+            Address = entity.Address,
+            DetsisCode = entity.DetsisCode,
+            ParentId = entity.ParentId
         };
     }
 }

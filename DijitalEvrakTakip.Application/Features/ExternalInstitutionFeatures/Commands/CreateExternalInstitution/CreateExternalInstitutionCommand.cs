@@ -7,5 +7,6 @@ public sealed record CreateExternalInstitutionCommand(
     string Name,
     int Type,
     string? Address = null,
-    Guid? ParentId = null
+    Guid? ParentId = null,
+    string? DetsisCode = null
 ) : IRequest<MessageResponse>;

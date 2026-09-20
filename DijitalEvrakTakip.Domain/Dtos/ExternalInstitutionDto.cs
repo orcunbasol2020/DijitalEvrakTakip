@@ -6,4 +6,6 @@ public sealed class ExternalInstitutionDto
     public string Name { get; set; } = string.Empty;
     public int Type { get; set; }
     public string Address { get; set; } = string.Empty;
+    public string? DetsisCode { get; set; }
+    public Guid? ParentId { get; set; }
 }

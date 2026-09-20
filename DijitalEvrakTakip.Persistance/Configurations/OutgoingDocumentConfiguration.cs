@@ -25,11 +25,8 @@ public sealed class OutgoingDocumentConfiguration
         builder.Property(x => x.OriginalDocumentNumber)
             .HasMaxLength(50);
 
-        builder.Property(x => x.SecurityDegree)
-            .HasMaxLength(50);
-
         builder.Property(x => x.Subject)
-            .HasMaxLength(200);
+            .HasMaxLength(100);
 
         builder.Property(x => x.Notes)
             .HasMaxLength(500);
@@ -38,6 +35,10 @@ public sealed class OutgoingDocumentConfiguration
             .HasColumnType("nvarchar(max)");
 
         // Numeric / Enum Fields
+        builder.Property(x => x.SecurityDegree);
+
+        builder.Property(x => x.UrgencyDegree);
+
         builder.Property(x => x.Type);
 
         builder.Property(x => x.LanguageId);
@@ -54,6 +55,8 @@ public sealed class OutgoingDocumentConfiguration
         builder.Property(x => x.ElectronicCopy);
 
         builder.Property(x => x.EbysTransfer);
+
+        builder.Property(x => x.ActionRequired);
 
         builder.Property(x => x.IsDeleted)
             .IsRequired();

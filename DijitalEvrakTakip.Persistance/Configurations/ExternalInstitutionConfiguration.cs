@@ -22,6 +22,12 @@ namespace DijitalEvrakTakip.Persistance.Configurations
 
             builder.Property(x => x.Type);
 
+            builder.Property(x => x.DetsisCode)
+                   .HasMaxLength(8)
+                   .IsRequired(false);
+
+            builder.HasIndex(x => x.DetsisCode);
+
             builder.Property(x => x.ParentId)
                    .IsRequired(false);
 

@@ -16,7 +16,10 @@ namespace DijitalEvrakTakip.Domain.Entities
 
         public string? Content_Ocr { get; set; }
 
+        // SecurityDegreeEnum: Tasnif Dışı / Özel / Hizmete Özel / Kişiye Özel / Gizli / Çok Gizli
         public int? SecurityDegree { get; set; }
+        // UrgencyDegreeEnum: Normal / Acele / Çok Acele / Yıldırım / Günlüdür / İvedi Süreli
+        public int? UrgencyDegree { get; set; }
         public int? DocumentTypeId { get; set; }
         public int? DocumentDirection { get; set; }
         public int? LanguageId { get; set; }
@@ -26,6 +29,8 @@ namespace DijitalEvrakTakip.Domain.Entities
 
         public bool? ElectronicCopy { get; set; }
         public bool? Release { get; set; }
+        // Bilgi/Gereği: true = Gereği, false = Bilgi
+        public bool? ActionRequired { get; set; }
         public int? PageCount { get; set; }
         public DateTime? DocumentDate { get; set; }
         public DateTime? ReleaseDate { get; set; }
