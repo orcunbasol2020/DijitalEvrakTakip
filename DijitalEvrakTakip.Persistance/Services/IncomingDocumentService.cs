@@ -38,6 +38,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
             OrginalNo = request.OrginalNo,
             QrCode = request.QrCode,
             SecurityDegree = request.SecurityDegree,
+            UrgencyDegree = request.UrgencyDegree,
             DocumentTypeId = request.DocumentTypeId,
             LanguageId = request.LanguageId,
             Subject = request.Subject,
@@ -47,6 +48,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
             Status = request.Status,
             ElectronicCopy = request.ElectronicCopy,
             Release = request.Release,
+            ActionRequired = request.ActionRequired,
             PageCount = request.PageCount,
             DocumentDate = request.DocumentDate,
             ReleaseDate = request.ReleaseDate,
@@ -74,6 +76,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         if (request.OrginalNo != null) entity.OrginalNo = request.OrginalNo;
         if (request.QrCode != null) entity.QrCode = request.QrCode;
         if (request.SecurityDegree.HasValue) entity.SecurityDegree = request.SecurityDegree;
+        if (request.UrgencyDegree.HasValue) entity.UrgencyDegree = request.UrgencyDegree;
         if (request.DocumentTypeId.HasValue) entity.DocumentTypeId = request.DocumentTypeId;
         if (request.LanguageId.HasValue) entity.LanguageId = request.LanguageId;
         if (request.Subject != null) entity.Subject = request.Subject;
@@ -82,6 +85,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         if (request.Status.HasValue) entity.Status = request.Status;
         if (request.ElectronicCopy.HasValue) entity.ElectronicCopy = request.ElectronicCopy;
         if (request.Release.HasValue) entity.Release = request.Release;
+        if (request.ActionRequired.HasValue) entity.ActionRequired = request.ActionRequired;
         if (request.PageCount.HasValue) entity.PageCount = request.PageCount;
         if (request.DocumentDate.HasValue) entity.DocumentDate = request.DocumentDate;
         if (request.ReleaseDate.HasValue) entity.ReleaseDate = request.ReleaseDate;
@@ -139,6 +143,12 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
                 _ => query
             };
         }
+
+        if (!string.IsNullOrEmpty(request.CreatedUserId))
+            query = query.Where(x => x.UserId == request.CreatedUserId);
+
+        if (request.DepartmentId.HasValue)
+            query = query.Where(x => x.DepartmentId == request.DepartmentId.Value);
 
         return await query.ToListAsync(cancellationToken);
     }

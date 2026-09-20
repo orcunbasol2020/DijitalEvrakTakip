@@ -22,7 +22,7 @@ public sealed class GetAllEnvelopeHandler
         GetAllEnvelopeQuery request,
         CancellationToken cancellationToken)
     {
-        var envelopes = await _envelopeService.GetAllAsync(cancellationToken);
+        var envelopes = await _envelopeService.GetAllAsync(request.CreatedByUserId, request.DepartmentId, cancellationToken);
 
         var result = new List<EnvelopeDocumentCountDto>();
 

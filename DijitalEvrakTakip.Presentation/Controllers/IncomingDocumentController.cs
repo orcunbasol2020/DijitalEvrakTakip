@@ -71,11 +71,17 @@ public sealed class IncomingDocumentsController : ApiController
 
 
     [HttpGet("[action]")]
-    public async Task<IActionResult> GetAll([FromQuery] string? Status, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] string? Status,
+        [FromQuery] string? createdUserId,
+        [FromQuery] Guid? departmentId,
+        CancellationToken cancellationToken)
     {
         var query = new GetAllIncomingDocumentQuery
         {
-            Status = Status
+            Status = Status,
+            CreatedUserId = createdUserId,
+            DepartmentId = departmentId
         };
 
         var response = await _mediator.Send(query, cancellationToken);

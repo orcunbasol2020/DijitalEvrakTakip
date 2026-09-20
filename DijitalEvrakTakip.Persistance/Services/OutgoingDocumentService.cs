@@ -33,6 +33,7 @@ public sealed class OutgoingDocumentService : IOutgoingDocumentService
             QrCode = request.QrCode,
             OriginalDocumentNumber = request.OriginalDocumentNumber,
             SecurityDegree = request.SecurityDegree,
+            UrgencyDegree = request.UrgencyDegree,
             Type = request.Type,
             LanguageId = request.LanguageId,
             Subject = request.Subject,
@@ -42,6 +43,7 @@ public sealed class OutgoingDocumentService : IOutgoingDocumentService
             ExternalInstitutonId = request.ExternalInstitutonId,
             ElectronicCopy = request.ElectronicCopy,
             EbysTransfer = request.EbysTransfer,
+            ActionRequired = request.ActionRequired,
             PageCount = request.PageCount,
             Notes = request.Notes,
             DocumentDate = request.DocumentDate,
@@ -77,6 +79,7 @@ public sealed class OutgoingDocumentService : IOutgoingDocumentService
         if (request.QrCode != null) entity.QrCode = request.QrCode;
         if (request.OriginalDocumentNumber != null) entity.OriginalDocumentNumber = request.OriginalDocumentNumber;
         if (request.SecurityDegree != null) entity.SecurityDegree = request.SecurityDegree;
+        if (request.UrgencyDegree.HasValue) entity.UrgencyDegree = request.UrgencyDegree;
         if (request.Type.HasValue) entity.Type = request.Type;
         if (request.LanguageId.HasValue) entity.LanguageId = request.LanguageId;
         if (request.Subject != null) entity.Subject = request.Subject;
@@ -86,6 +89,7 @@ public sealed class OutgoingDocumentService : IOutgoingDocumentService
         if (request.ExternalInstitutonId.HasValue) entity.ExternalInstitutonId = request.ExternalInstitutonId;
         if (request.ElectronicCopy.HasValue) entity.ElectronicCopy = request.ElectronicCopy;
         if (request.EbysTransfer.HasValue) entity.EbysTransfer = request.EbysTransfer;
+        if (request.ActionRequired.HasValue) entity.ActionRequired = request.ActionRequired;
         if (request.PageCount.HasValue) entity.PageCount = request.PageCount;
         if (request.Notes != null) entity.Notes = request.Notes;
         if (request.DocumentDate.HasValue) entity.DocumentDate = request.DocumentDate;
@@ -115,6 +119,12 @@ public sealed class OutgoingDocumentService : IOutgoingDocumentService
 
         if (request.Status.HasValue)
             query = query.Where(x => x.Status == request.Status.Value);
+
+        if (!string.IsNullOrEmpty(request.CreatedUserId))
+            query = query.Where(x => x.CreatedUserId == request.CreatedUserId);
+
+        if (request.DepartmentId.HasValue)
+            query = query.Where(x => x.DepartmentId == request.DepartmentId.Value);
 
         return await query.ToListAsync(cancellationToken);
     }

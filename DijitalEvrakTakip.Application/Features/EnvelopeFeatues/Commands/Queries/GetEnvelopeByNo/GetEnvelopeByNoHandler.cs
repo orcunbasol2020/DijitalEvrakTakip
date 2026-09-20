@@ -18,7 +18,7 @@ public sealed class GetEnvelopeByNoHandler
         GetEnvelopeByNoQuery request,
         CancellationToken cancellationToken)
     {
-        var envelopes = await _envelopeService.GetAllAsync(cancellationToken);
+        var envelopes = await _envelopeService.GetAllAsync(createdByUserId: null, departmentId: null, cancellationToken);
 
         var envelope = envelopes
             .FirstOrDefault(x => !x.IsDeleted && x.EnvelopeNo == request.EnvelopeNo);

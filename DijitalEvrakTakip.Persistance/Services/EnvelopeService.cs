@@ -40,13 +40,22 @@ public sealed class EnvelopeService : IEnvelopeService
     }
 
     public async Task<IList<Envelope>> GetAllAsync(
+        Guid? createdByUserId,
+        Guid? departmentId,
         CancellationToken cancellationToken)
     {
-        return await _envelopeRepository
+        var query = _envelopeRepository
             .GetAll()
             .Include(x => x.EnvelopeDocuments!.Where(d => !d.IsDeleted))
-            .Where(x => !x.IsDeleted)
-            .ToListAsync(cancellationToken);
+            .Where(x => !x.IsDeleted);
+
+        if (createdByUserId.HasValue)
+            query = query.Where(x => x.CreatedByUserId == createdByUserId.Value);
+
+        if (departmentId.HasValue)
+            query = query.Where(x => x.DepartmentId == departmentId.Value);
+
+        return await query.ToListAsync(cancellationToken);
     }
 
     public async Task<Envelope?> GetByNoAsync(

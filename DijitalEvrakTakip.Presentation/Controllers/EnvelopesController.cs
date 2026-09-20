@@ -24,10 +24,12 @@ public sealed class EnvelopesController : ApiController
 
     [HttpGet("[action]")]
     public async Task<IActionResult> GetAll(
+        [FromQuery] Guid? createdByUserId,
+        [FromQuery] Guid? departmentId,
         CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(
-            new GetAllEnvelopeQuery(),
+            new GetAllEnvelopeQuery(createdByUserId, departmentId),
             cancellationToken);
 
         return Ok(response);
