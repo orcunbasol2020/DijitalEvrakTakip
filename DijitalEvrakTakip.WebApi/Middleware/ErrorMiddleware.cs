@@ -6,11 +6,11 @@ namespace DijitalEvrakTakip.WebApi.Middleware;
 
 public sealed class ErrorMiddleware : IMiddleware
 {
-    private readonly AppDbContext _context;
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public ErrorMiddleware(AppDbContext context)
+    public ErrorMiddleware(IServiceScopeFactory scopeFactory)
     {
-        _context = context;
+        _scopeFactory = scopeFactory;
     }
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
@@ -21,7 +21,16 @@ public sealed class ErrorMiddleware : IMiddleware
         }
         catch (Exception ex)
         {
-            await LogExceptionToDatabaseAsync(ex, context.Request);
+            try
+            {
+                await LogExceptionToDatabaseAsync(ex, context.Request);
+            }
+            catch
+            {
+                // Logging the original exception must never hide it behind a secondary failure
+                // (e.g. the same DB outage that caused ex in the first place).
+            }
+
             await HandleExceptionAsync(context, ex);
         }
     }
@@ -51,14 +60,20 @@ public sealed class ErrorMiddleware : IMiddleware
     {
         ErrorLog errorLog = new()
         {
-            ErrorMessage = ex.Message,
+            ErrorMessage = ex.ToString(),
             StackTrace = ex.StackTrace,
             RequestPath = request.Path,
             RequestMethod = request.Method,
             TimeStamp = DateTime.Now
         };
 
-        await _context.Set<ErrorLog>().AddAsync(errorLog, default);
-        await _context.SaveChangesAsync(default);
+        // Use a fresh scope/DbContext instead of the request's own scoped context:
+        // if ex originated from that same context (e.g. a failed SaveChanges), it can be
+        // left in a state where reusing it to log the error throws a second exception.
+        using var scope = _scopeFactory.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        await context.Set<ErrorLog>().AddAsync(errorLog, default);
+        await context.SaveChangesAsync(default);
     }
 }
