@@ -7,9 +7,6 @@ namespace DijitalEvrakTakip.Application.Features.OutgoingDocumentAllocationFeatu
 public sealed class UploadWetSignedDocumentCommandHandler
     : IRequestHandler<UploadWetSignedDocumentCommand, MessageResponse>
 {
-    // OutgoingDocumentAllocationDto.IsAllocated (Status == 2) ile aynı anlamı taşır
-    private const int AllocatedStatus = 2;
-
     private readonly IOutgoingDocumentAllocationService _allocationService;
     private readonly IWetSignedDocumentStorageService _storageService;
 
@@ -33,10 +30,6 @@ public sealed class UploadWetSignedDocumentCommandHandler
             return new MessageResponse(
                 "Bu evrak için aktif bir zimmet kaydı bulunamadı. " +
                 "Islak imzalı belge yalnızca zimmetlenmiş evraklar için yüklenebilir.");
-
-        if (allocation.Status != AllocatedStatus)
-            return new MessageResponse(
-                "Evrak henüz zimmetlenmedi. Islak imzalı belge yalnızca zimmet tamamlandıktan sonra yüklenebilir.");
 
         var previousFilePath = allocation.WetSignedDocumentPath;
 
