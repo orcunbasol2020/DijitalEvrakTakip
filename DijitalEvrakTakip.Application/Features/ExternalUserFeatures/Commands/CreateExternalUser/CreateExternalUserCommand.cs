@@ -7,7 +7,7 @@ public sealed record CreateExternalUserCommand(
     string Name,
     string Surname,
     string Email,
-    string IdentityNo,
+    string? IdentityNo,
     int UserType,
     Guid ExternalInstitutionId,
     bool IsActive

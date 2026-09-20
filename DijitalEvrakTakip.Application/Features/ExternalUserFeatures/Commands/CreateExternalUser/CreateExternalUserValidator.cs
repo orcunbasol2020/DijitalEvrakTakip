@@ -20,9 +20,6 @@ public sealed class CreateExternalUserValidator : AbstractValidator<CreateExtern
             .NotEmpty().WithMessage("Eposta bilgisi boş geçilemez")
             .EmailAddress().WithMessage("Geçerli bir eposta adresi gönderiniz");
 
-        RuleFor(p => p.IdentityNo)
-            .NotEmpty().WithMessage("Kimlik numarası boş olamaz!");
-
         RuleFor(p => p.ExternalInstitutionId)
             .NotEmpty().WithMessage("Kurum bilgisi boş geçilemez");
     }
