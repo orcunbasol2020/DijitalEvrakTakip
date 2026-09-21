@@ -22,9 +22,14 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser
             //IList<UserDto> users = await _userService.GetAllAsync(request, cancellationToken);
             //return users.OrderBy(u => u.Name).ToList();
 
-            var query = _userService
+            IQueryable<User> query = _userService
                 .GetAll()
                 .Include(u => u.Department);
+
+            if (request.DepartmentId.HasValue)
+            {
+                query = query.Where(u => u.DepartmentId == request.DepartmentId.Value);
+            }
 
             var result = await query
                 .ProjectToType<UserDto>()
