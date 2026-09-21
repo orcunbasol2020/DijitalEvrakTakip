@@ -21,6 +21,11 @@ public sealed class CreateDocumentAllocationCommandHandler
         CreateDocumentAllocationCommand request,
         CancellationToken cancellationToken)
     {
+        if (!int.TryParse(request.Status, out var status) ||
+            !Enum.IsDefined(typeof(AllocationStatusEnum), status))
+            return new MessageResponse(
+                "Geçersiz Status: 1 (Ön Kayıt), 2 (Devir), 3 (Teslim) veya 4 (Arşiv) olmalıdır.");
+
         var activeAllocation =
             await _allocationService.GetActiveByDocumentIdAsync(
                 request.IncomingDocumentId,
@@ -46,7 +51,7 @@ public sealed class CreateDocumentAllocationCommandHandler
             UserId = Guid.Parse(request.UserId),
             UserType = request.UserType,
             CreatedUserId = Guid.Parse(request.CreatedUserId),
-            Status = Convert.ToInt32(request.Status),
+            Status = status,
             Source = (int)AllocationSourceEnum.EvrakTakip,
             IsActive = true
         };

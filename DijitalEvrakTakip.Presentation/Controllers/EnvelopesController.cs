@@ -1,4 +1,5 @@
 ﻿using DijitalEvrakTakip.Application.Features.EnvelopeFeatures.Commands.CreateEnvelope;
+using DijitalEvrakTakip.Application.Features.EnvelopeFeatures.Commands.UpdateEnvelopeStatus;
 using DijitalEvrakTakip.Application.Features.EnvelopeFeatures.Queries.GetAllEnvelope;
 using DijitalEvrakTakip.Application.Features.EnvelopeFeatures.Queries.GetEnvelopeById;
 using DijitalEvrakTakip.Application.Features.EnvelopeFeatures.Queries.GetEnvelopeByNo;
@@ -19,6 +20,15 @@ public sealed class EnvelopesController : ApiController
         CancellationToken cancellationToken)
     {
         EnvelopeReturnDto response = await _mediator.Send(request, cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpPost("[action]")]
+    public async Task<IActionResult> UpdateStatus(
+        UpdateEnvelopeStatusCommand request,
+        CancellationToken cancellationToken)
+    {
+        MessageResponse response = await _mediator.Send(request, cancellationToken);
         return Ok(response);
     }
 

@@ -13,7 +13,7 @@ namespace DijitalEvrakTakip.Domain.Entities
         // Zimmetlenen kişinin iç mi dış kurum personeli mi olduğu (AllocationUserTypeEnum: Internal / External)
         public int UserType { get; set; }
 
-        // Status
+        // Zimmet durumu (AllocationStatusEnum: OnKayit / Devir / Teslim / Arsiv)
         public int Status { get; set; }
 
         // Zimmetin hangi sistemde yapıldığı (AllocationSourceEnum: EvrakTakip / AtlasEbys)

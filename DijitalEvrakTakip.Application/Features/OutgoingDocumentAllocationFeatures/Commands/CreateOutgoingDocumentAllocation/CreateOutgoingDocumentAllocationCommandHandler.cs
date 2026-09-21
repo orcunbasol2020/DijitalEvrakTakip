@@ -10,19 +10,13 @@ public sealed class CreateOutgoingDocumentAllocationCommandHandler
     : IRequestHandler<CreateOutgoingDocumentAllocationCommand, MessageResponse>
 {
     private readonly IOutgoingDocumentAllocationService _allocationService;
-    private readonly IEnvelopeDocumentService _envelopeDocumentService;
-    private readonly IEnvelopeService _envelopeService;
     private readonly IOutgoingDocumentService _outgoingDocumentService;
 
     public CreateOutgoingDocumentAllocationCommandHandler(
         IOutgoingDocumentAllocationService allocationService,
-        IEnvelopeDocumentService envelopeDocumentService,
-        IEnvelopeService envelopeService,
         IOutgoingDocumentService outgoingDocumentService)
     {
         _allocationService = allocationService;
-        _envelopeDocumentService = envelopeDocumentService;
-        _envelopeService = envelopeService;
         _outgoingDocumentService = outgoingDocumentService;
     }
 
@@ -38,6 +32,11 @@ public sealed class CreateOutgoingDocumentAllocationCommandHandler
             return new MessageResponse(
                 "Geçersiz OutgoingDocumentId: bu Id'ye sahip bir evrak bulunamadı. " +
                 "Zarfa evrak eklerken dönen 'DocumentId' alanı gönderilmelidir, 'Id' alanı değil.");
+
+        if (!int.TryParse(request.Status, out var status) ||
+            !Enum.IsDefined(typeof(AllocationStatusEnum), status))
+            return new MessageResponse(
+                "Geçersiz Status: 1 (Ön Kayıt), 2 (Devir), 3 (Teslim) veya 4 (Arşiv) olmalıdır.");
 
         var activeAllocation =
             await _allocationService.GetActiveByDocumentIdAsync(
@@ -64,39 +63,13 @@ public sealed class CreateOutgoingDocumentAllocationCommandHandler
             UserId = Guid.Parse(request.UserId),
             UserType = request.UserType,
             CreatedUserId = Guid.Parse(request.CreatedUserId),
-            Status = Convert.ToInt32(request.Status),
+            Status = status,
             Source = (int)AllocationSourceEnum.EvrakTakip,
             IsActive = true
         };
 
         await _allocationService.CreateAsync(allocation, cancellationToken);
 
-        await MarkContainingEnvelopesAsDeliveredAsync(request.OutgoingDocumentId, cancellationToken);
-
         return new MessageResponse("Evrak başarıyla zimmetlendi");
-    }
-
-    private async Task MarkContainingEnvelopesAsDeliveredAsync(
-        Guid outgoingDocumentId,
-        CancellationToken cancellationToken)
-    {
-        var envelopeDocuments = await _envelopeDocumentService
-            .GetByDocumentIdAsync(outgoingDocumentId, cancellationToken);
-
-        var envelopeIds = envelopeDocuments
-            .Select(x => x.EnvelopeId)
-            .Distinct();
-
-        foreach (var envelopeId in envelopeIds)
-        {
-            var envelope = await _envelopeService.GetByIdAsync(envelopeId, cancellationToken);
-
-            if (envelope is null || envelope.Status == (int)EnvelopeStatusEnum.Delivered)
-                continue;
-
-            envelope.Status = (int)EnvelopeStatusEnum.Delivered;
-
-            await _envelopeService.UpdateAsync(envelope, cancellationToken);
-        }
     }
 }
