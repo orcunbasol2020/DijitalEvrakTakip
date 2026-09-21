@@ -16,7 +16,7 @@ namespace DijitalEvrakTakip.Domain.Entities
 
         public bool IsClosed { get; set; }
 
-        // EnvelopeStatusEnum: Created / Delivered
+        // EnvelopeStatusEnum: YeniKayit / EvrakBiriminde / TeslimEdildi / ZimmetDevri
         public int Status { get; set; }
 
         public ICollection<EnvelopeDocument>? EnvelopeDocuments { get; set; }

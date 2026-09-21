@@ -4,9 +4,15 @@ namespace DijitalEvrakTakip.Domain.Enums;
 
 public enum EnvelopeStatusEnum
 {
-    [Description("Oluşturuldu")]
-    Created = 1,
+    [Description("Yeni Kayıt")]
+    YeniKayit = 1,
+
+    [Description("Evrak Biriminde")]
+    EvrakBiriminde = 2,
 
     [Description("Teslim Edildi")]
-    Delivered = 2
+    TeslimEdildi = 3,
+
+    [Description("Zimmet Devri")]
+    ZimmetDevri = 4
 }

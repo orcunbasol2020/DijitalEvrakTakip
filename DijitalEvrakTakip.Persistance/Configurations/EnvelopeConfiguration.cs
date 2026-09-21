@@ -21,7 +21,7 @@ public sealed class EnvelopeConfiguration : IEntityTypeConfiguration<Envelope>
             .IsRequired();
 
         builder.Property(x => x.Status)
-            .HasDefaultValue((int)EnvelopeStatusEnum.Created);
+            .HasDefaultValue((int)EnvelopeStatusEnum.YeniKayit);
 
 
         builder.HasMany(x => x.EnvelopeDocuments)

@@ -29,7 +29,7 @@ public sealed class CreateEnvelopeCommandHandler
             UnitName = request.UnitName,
             Address = request.Address,
             IsClosed = false,
-            Status = (int)EnvelopeStatusEnum.Created
+            Status = (int)EnvelopeStatusEnum.YeniKayit
         };
 
         await _envelopeService.CreateAsync(envelope, cancellationToken);
