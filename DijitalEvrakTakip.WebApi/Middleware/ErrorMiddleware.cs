@@ -19,6 +19,18 @@ public sealed class ErrorMiddleware : IMiddleware
         {
             await next(context);
         }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            // The client disconnected or aborted the request before it completed
+            // (browser refresh, navigation, frontend AbortController/switchMap, HTTP timeout).
+            // This is not an application error, so don't log it or report it as 500.
+            // 499 = "Client Closed Request" (nginx convention). Nothing can be sent if the
+            // response has already started, so only set the status when it hasn't.
+            if (!context.Response.HasStarted)
+            {
+                context.Response.StatusCode = 499;
+            }
+        }
         catch (Exception ex)
         {
             try
