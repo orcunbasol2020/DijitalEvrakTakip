@@ -14,5 +14,8 @@ public enum AllocationStatusEnum
     Teslim = 3,
 
     [Description("Arşiv")]
-    Arsiv = 4
+    Arsiv = 4,
+
+    [Description("Teslim Alındı")]
+    TeslimAlindi = 5
 }

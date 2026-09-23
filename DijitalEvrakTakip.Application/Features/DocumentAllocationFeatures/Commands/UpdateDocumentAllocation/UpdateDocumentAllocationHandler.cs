@@ -39,7 +39,7 @@ public sealed class UpdateDocumentAllocationCommandHandler
         {
             if (!Enum.IsDefined(typeof(AllocationStatusEnum), request.Status.Value))
                 return new MessageResponse(
-                    "Geçersiz Status: 1 (Ön Kayıt), 2 (Devir), 3 (Teslim) veya 4 (Arşiv) olmalıdır.");
+                    "Geçersiz Status: 1 (Ön Kayıt), 2 (Devir), 3 (Teslim), 4 (Arşiv) veya 5 (Teslim Alındı) olmalıdır.");
 
             allocation.Status = request.Status.Value;
         }

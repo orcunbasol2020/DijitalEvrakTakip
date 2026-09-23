@@ -1,4 +1,4 @@
-using DijitalEvrakTakip.Application.Services;
+﻿using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
 using DijitalEvrakTakip.Domain.Enums;
@@ -36,7 +36,7 @@ public sealed class CreateOutgoingDocumentAllocationCommandHandler
         if (!int.TryParse(request.Status, out var status) ||
             !Enum.IsDefined(typeof(AllocationStatusEnum), status))
             return new MessageResponse(
-                "Geçersiz Status: 1 (Ön Kayıt), 2 (Devir), 3 (Teslim) veya 4 (Arşiv) olmalıdır.");
+                "Geçersiz Status: 1 (Ön Kayıt), 2 (Devir), 3 (Teslim), 4 (Arşiv) veya 5 (Teslim Alındı) olmalıdır.");
 
         var activeAllocation =
             await _allocationService.GetActiveByDocumentIdAsync(
