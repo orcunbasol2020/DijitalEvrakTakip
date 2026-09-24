@@ -41,5 +41,9 @@ public sealed class DocumentAllocationConfiguration
         builder.Property(x => x.IncomingDocumentId)
             .IsRequired()
             .HasColumnType("uniqueidentifier");
+
+        // Kullanıcı üzerindeki aktif zimmet sorguları için (UserId + IsActive + IsDeleted)
+        builder.HasIndex(x => new { x.UserId, x.IsActive, x.IsDeleted })
+            .HasDatabaseName("IX_DocumentAllocations_UserId_IsActive_IsDeleted");
     }
 }

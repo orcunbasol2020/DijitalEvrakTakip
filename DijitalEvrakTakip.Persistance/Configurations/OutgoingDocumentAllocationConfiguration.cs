@@ -50,5 +50,9 @@ public sealed class OutgoingDocumentAllocationConfiguration
 
         builder.Property(x => x.WetSignedDocumentUploadedUserId)
             .HasColumnType("uniqueidentifier");
+
+        // Kullanıcı üzerindeki aktif zimmet sorguları için (UserId + IsActive + IsDeleted)
+        builder.HasIndex(x => new { x.UserId, x.IsActive, x.IsDeleted })
+            .HasDatabaseName("IX_OutgoingDocumentAllocations_UserId_IsActive_IsDeleted");
     }
 }

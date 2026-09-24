@@ -38,6 +38,7 @@ builder.Services.AddScoped<IExternalInstitutionService, ExternalInstitutionServi
 builder.Services.AddScoped<IDocumentTransactionService, DocumentTransactionService>();
 builder.Services.AddScoped<IDocumentAllocationService, DocumentAllocationService>();
 builder.Services.AddScoped<IOutgoingDocumentAllocationService, OutgoingDocumentAllocationService>();
+builder.Services.AddScoped<IUserActiveDocumentService, UserActiveDocumentService>();
 builder.Services.AddScoped<IDocumentAssignmentService, DocumentAssignmentService>();
 builder.Services.AddScoped<IScannedDocumentService, ScannedDocumentService>();
 builder.Services.AddScoped<IEnvelopeService, EnvelopeService>();
