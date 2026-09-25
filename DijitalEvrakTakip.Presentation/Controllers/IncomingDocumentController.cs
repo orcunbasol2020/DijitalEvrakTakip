@@ -1,6 +1,7 @@
 ﻿using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.CreateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.PreRegisterIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UpdateIncomingDocument;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UploadIncomingDocumentFile;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetAllIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentById;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentByQrCode;
@@ -10,6 +11,7 @@ using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.Ge
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetPendingIncomingDocumentCount;
 using DijitalEvrakTakip.Presentation.Abstractions;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -40,6 +42,33 @@ public sealed class IncomingDocumentsController : ApiController
         var id = await _mediator.Send(request, cancellationToken);
 
         return Ok(new { id });
+    }
+
+    /// <summary>
+    /// Tarama gerektirmeyen evrak için PDF dosyasını elle yükler. Evrakta dosya varsa üzerine yazılır.
+    /// </summary>
+    [HttpPost("[action]")]
+    [RequestSizeLimit(20_000_000)]
+    public async Task<IActionResult> UploadFile(
+        [FromForm] Guid incomingDocumentId,
+        [FromForm] IFormFile file,
+        [FromForm] string userId,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { Message = "Yüklenecek dosya boş olamaz." });
+
+        await using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream, cancellationToken);
+
+        var command = new UploadIncomingDocumentFileCommand(
+            incomingDocumentId,
+            file.FileName,
+            memoryStream.ToArray(),
+            userId);
+
+        var response = await _mediator.Send(command, cancellationToken);
+        return Ok(response);
     }
 
     [HttpGet("[action]")]

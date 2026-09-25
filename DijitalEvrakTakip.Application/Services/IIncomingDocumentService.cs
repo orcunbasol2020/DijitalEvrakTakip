@@ -11,6 +11,19 @@ public interface IIncomingDocumentService
 
     Task UpdateAsync(UpdateIncomingDocumentCommand request, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Elle yüklenen PDF dosyasını evraka bağlar: DocumentName ve ElectronicCopy güncellenir,
+    /// eşleştirme listesinde görünmemesi için DocumentNumber dolu bir ScannedDocument kaydı açılır/güncellenir
+    /// ve DocumentTransaction eklenir.
+    /// </summary>
+    Task AttachUploadedFileAsync(
+        Guid documentId,
+        string savedFileName,
+        string savedFullPath,
+        string originalFileName,
+        string userId,
+        CancellationToken cancellationToken);
+
     Task<IList<IncomingDocument>> GetAllAsync(GetAllIncomingDocumentQuery request, CancellationToken cancellationToken);
     Task<IList<IncomingDocument>> GetAllByDirectionAsync(string? documentDirection, CancellationToken cancellationToken);
 

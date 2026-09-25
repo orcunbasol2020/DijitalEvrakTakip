@@ -57,6 +57,17 @@ builder.Services.AddScoped<IWetSignedDocumentStorageService>(_ =>
 
     return new WetSignedDocumentStorageService(rootPath);
 });
+builder.Services.AddScoped<IIncomingDocumentStorageService>(_ =>
+{
+    string configuredPath = builder.Configuration["FileStorage:IncomingDocumentsPath"]
+        ?? @"C:\EvrakTakip\belgeler\Processed";
+
+    string rootPath = Path.IsPathRooted(configuredPath)
+        ? configuredPath
+        : Path.Combine(builder.Environment.ContentRootPath, configuredPath);
+
+    return new IncomingDocumentStorageService(rootPath);
+});
 
 //repository
 builder.Services.AddScoped<IExternalUserRepository, ExternalUserRepository>();

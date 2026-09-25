@@ -15,19 +15,81 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
 {
     private readonly IIncomingDocumentRepository _incomingDocumentRepository;
     private readonly IDocumentTransactionRepository _documentTransactionRepository;
+    private readonly IScannedDocumentRepository _scannedDocumentRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IUserRepository _userRepository;
 
     public IncomingDocumentService(
         IIncomingDocumentRepository incomingDocumentRepository,
         IDocumentTransactionRepository documentTransactionRepository,
+        IScannedDocumentRepository scannedDocumentRepository,
         IUserRepository userRepository,
         IUnitOfWork unitOfWork)
     {
         _incomingDocumentRepository = incomingDocumentRepository;
         _documentTransactionRepository = documentTransactionRepository;
+        _scannedDocumentRepository = scannedDocumentRepository;
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
+    }
+
+    public async Task AttachUploadedFileAsync(
+        Guid documentId,
+        string savedFileName,
+        string savedFullPath,
+        string originalFileName,
+        string userId,
+        CancellationToken cancellationToken)
+    {
+        var entity = await _incomingDocumentRepository
+            .GetByExpressionAsync(x => x.Id == documentId && !x.IsDeleted, cancellationToken);
+
+        if (entity is null)
+            throw new Exception("Evrak bulunamadı.");
+
+        entity.DocumentName = savedFileName;
+        entity.ElectronicCopy = true;
+        entity.UpdateDate = DateTime.UtcNow;
+        _incomingDocumentRepository.Update(entity);
+
+        // Taranan evraklarla aynı kayıt yapısını koru: DocumentNumber dolu olduğu için
+        // eşleştirme bekleyenler listesinde görünmez.
+        var scanned = await _scannedDocumentRepository
+            .GetByExpressionAsync(x => x.DocumentNumber == entity.QrCode && !x.IsDeleted, cancellationToken);
+
+        if (scanned is null)
+        {
+            scanned = new ScannedDocument
+            {
+                DocumentNumber = entity.QrCode,
+                FileName = savedFileName,
+                OriginalPath = originalFileName,
+                NewPath = savedFullPath,
+                IsDeleted = false,
+                CreatedDate = DateTime.UtcNow
+            };
+            await _scannedDocumentRepository.AddAsync(scanned, cancellationToken);
+        }
+        else
+        {
+            scanned.FileName = savedFileName;
+            scanned.OriginalPath = originalFileName;
+            scanned.NewPath = savedFullPath;
+            scanned.UpdateDate = DateTime.UtcNow;
+            _scannedDocumentRepository.Update(scanned);
+        }
+
+        var transaction = new DocumentTransaction
+        {
+            DocumentId = entity.Id,
+            TransactionType = (int)TransactionTypeEnum.Update,
+            UserId = userId,
+            IsActive = true,
+            CreatedDate = DateTime.UtcNow
+        };
+        await _documentTransactionRepository.AddAsync(transaction, cancellationToken);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task CreateAsync(CreateIncomingDocumentCommand request, CancellationToken cancellationToken)

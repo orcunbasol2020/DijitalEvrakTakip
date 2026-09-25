@@ -1,6 +1,7 @@
 ﻿using DijitalEvrakTakip.Application.Features.ScannedDocumentFeatures.Commands.CreateScannedDocument;
 using DijitalEvrakTakip.Application.Features.ScannedDocumentFeatures.Commands.UpdateScannedDocument;
 using DijitalEvrakTakip.Application.Features.ScannedDocumentFeatures.Queries.GetAllScannedDocument;
+using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Presentation.Abstractions;
 using MediatR;
@@ -10,7 +11,14 @@ namespace DijitalEvrakTakip.Presentation.Controllers;
 
 public sealed class ScannedDocumentsController : ApiController
 {
-    public ScannedDocumentsController(IMediator mediator) : base(mediator) { }
+    private readonly IIncomingDocumentStorageService _storageService;
+
+    public ScannedDocumentsController(
+        IMediator mediator,
+        IIncomingDocumentStorageService storageService) : base(mediator)
+    {
+        _storageService = storageService;
+    }
 
     // Create methodu olduğu gibi.
     [HttpPost("[action]")]
@@ -51,10 +59,7 @@ public sealed class ScannedDocumentsController : ApiController
         if (string.IsNullOrWhiteSpace(fileName))
             return BadRequest();
 
-        fileName = Path.GetFileName(fileName);
-
-        var basePath = @"C:\EvrakTakip\belgeler\Processed";
-        var fullPath = Path.Combine(basePath, fileName);
+        var fullPath = _storageService.GetFullPath(fileName);
 
         if (!System.IO.File.Exists(fullPath))
             return NotFound();
