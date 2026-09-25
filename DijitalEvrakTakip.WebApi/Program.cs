@@ -1,4 +1,5 @@
 using DijitalEvrakTakip.Application.Behaviors;
+using DijitalEvrakTakip.Application.Options;
 using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Repositories;
 using DijitalEvrakTakip.Persistance.Context;
@@ -8,8 +9,11 @@ using DijitalEvrakTakip.WebApi.Middleware;
 using FluentValidation;
 using GenericRepository;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 //services 
@@ -25,6 +29,8 @@ builder.Services.AddCors(options =>
 
 //service
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+builder.Services.AddScoped<IUserLoginLogService, UserLoginLogService>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
@@ -83,12 +89,38 @@ builder.Services.AddScoped<IExternalInstitutionRepository, ExternalInstitutionRe
 builder.Services.AddScoped<IDocumentTransactionRepository, DocumentTransactionRepository>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserLoginLogRepository, UserLoginLogRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<IDocumentAllocationRepository, DocumentAllocationRepository>();
 builder.Services.AddScoped<IOutgoingDocumentAllocationRepository, OutgoingDocumentAllocationRepository>();
 builder.Services.AddScoped<IAtlasZimmetChangeRepository, AtlasZimmetChangeRepository>();
 builder.Services.AddScoped<ILanguageRepository, LanguageRepository>();
+
+//authentication (JWT)
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
+JwtSettings jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()
+    ?? throw new InvalidOperationException("Jwt ayarları (appsettings 'Jwt' bölümü) bulunamadı.");
+if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey) || jwtSettings.SecretKey.Length < 32)
+    throw new InvalidOperationException("Jwt:SecretKey en az 32 karakter olmalıdır.");
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+            ClockSkew = TimeSpan.FromMinutes(1)
+        };
+    });
+builder.Services.AddAuthorization();
 
 string connectionString = builder.Configuration.GetConnectionString("SqlServer");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
@@ -109,6 +141,8 @@ var app = builder.Build();
 //middleware
 app.UseCors("AllowAll");
 app.UseMiddlewareExtensions();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 app.MapOpenApi();
 app.MapScalarApiReference();

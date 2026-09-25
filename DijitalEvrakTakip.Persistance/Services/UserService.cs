@@ -85,6 +85,14 @@ public sealed class UserService : IUserService
         return user;
     }
 
+    public async Task<User?> GetByUserNameAsync(string userName, CancellationToken cancellationToken)
+    {
+        return await _userRepository
+            .GetAll()
+            .Include(u => u.Department)
+            .FirstOrDefaultAsync(x => x.UserName == userName, cancellationToken);
+    }
+
     public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _userRepository

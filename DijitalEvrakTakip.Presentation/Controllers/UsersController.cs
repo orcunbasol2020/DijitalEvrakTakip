@@ -7,6 +7,7 @@ using DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetUserByUsern
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Presentation.Abstractions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DijitalEvrakTakip.Presentation.Controllers;
@@ -54,20 +55,20 @@ public sealed class UsersController : ApiController
         return Ok(response);
     }
 
-    //[HttpPost("Login")]
-    //public async Task<IActionResult> Login([FromBody] GetUserByUsernameQuery request, CancellationToken cancellationToken)
-    //{
-    //    var response = await _mediator.Send(request, cancellationToken);
-
-    //    if (response == null)
-    //        return Unauthorized();
-
-    //    return Ok(response);
-    //}
-
     [HttpPost("[action]")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] GetUserByUsernameQuery request, CancellationToken cancellationToken)
     {
+        // IP ve UserAgent istemciden alınmaz, sunucu tarafında HttpContext'ten doldurulur (login logu için).
+        string ipAddress = Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',')[0].Trim()
+            ?? HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        request = request with
+        {
+            IpAddress = ipAddress,
+            UserAgent = Request.Headers["User-Agent"].ToString()
+        };
+
         var response = await _mediator.Send(request, cancellationToken);
 
         if (response == null)
