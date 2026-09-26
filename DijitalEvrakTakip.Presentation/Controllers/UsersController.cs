@@ -4,6 +4,8 @@ using DijitalEvrakTakip.Application.Features.UserFeatures.Commands.UpdateUser;
 using DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser;
 using DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetUserById;
 using DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetUserByUsername;
+using DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetUsersByParentDepartment;
+using DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetDepartmentUsersLoginStatus;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Presentation.Abstractions;
 using MediatR;
@@ -27,6 +29,31 @@ public sealed class UsersController : ApiController
     public async Task<IActionResult> GetAll([FromQuery] GetAllUserQuery request, CancellationToken cancellationToken)
     {
         IList<UserDto> response = await _mediator.Send(request, cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Yöneticinin departmanı (departmentId) ve altındaki tüm alt departmanlardaki personelleri getirir.
+    /// </summary>
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetByParentDepartment(
+        [FromQuery] GetUsersByParentDepartmentQuery request,
+        CancellationToken cancellationToken)
+    {
+        IList<UserDto> response = await _mediator.Send(request, cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Birimdeki personelleri oturum (login) durumlarıyla birlikte getirir.
+    /// Son başarılı giriş JWT geçerlilik süresi içindeyse IsLoggedIn=true döner.
+    /// </summary>
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetDepartmentUsersLoginStatus(
+        [FromQuery] GetDepartmentUsersLoginStatusQuery request,
+        CancellationToken cancellationToken)
+    {
+        IList<DepartmentUserLoginStatusDto> response = await _mediator.Send(request, cancellationToken);
         return Ok(response);
     }
 

@@ -18,4 +18,12 @@ public interface IUserLoginLogService
     Task<PagedResultDto<UserLoginLogDto>> GetPagedAsync(
         GetUserLoginLogsQuery request,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Verilen kullanıcıların son başarılı girişine göre oturum durumlarını döndürür.
+    /// Hiç başarılı girişi olmayan kullanıcı sözlükte yer almaz.
+    /// </summary>
+    Task<IDictionary<Guid, UserLoginStatusDto>> GetLoginStatusesAsync(
+        IReadOnlyCollection<Guid> userIds,
+        CancellationToken cancellationToken);
 }

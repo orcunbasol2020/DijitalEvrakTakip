@@ -1,4 +1,5 @@
 using DijitalEvrakTakip.Application.Features.UserLoginLogFeatures.Queries.GetUserLoginLogs;
+using DijitalEvrakTakip.Application.Options;
 using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
@@ -6,6 +7,7 @@ using DijitalEvrakTakip.Domain.Enums;
 using DijitalEvrakTakip.Domain.Repositories;
 using GenericRepository;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace DijitalEvrakTakip.Persistance.Services;
 
@@ -15,11 +17,62 @@ public sealed class UserLoginLogService : IUserLoginLogService
 
     private readonly IUserLoginLogRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly JwtSettings _jwtSettings;
 
-    public UserLoginLogService(IUserLoginLogRepository repository, IUnitOfWork unitOfWork)
+    public UserLoginLogService(
+        IUserLoginLogRepository repository,
+        IUnitOfWork unitOfWork,
+        IOptions<JwtSettings> jwtSettings)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
+        _jwtSettings = jwtSettings.Value;
+    }
+
+    public async Task<IDictionary<Guid, UserLoginStatusDto>> GetLoginStatusesAsync(
+        IReadOnlyCollection<Guid> userIds,
+        CancellationToken cancellationToken)
+    {
+        if (userIds.Count == 0)
+            return new Dictionary<Guid, UserLoginStatusDto>();
+
+        IQueryable<UserLoginLog> successfulLogins = _repository
+            .GetAll()
+            .AsNoTracking()
+            .Where(x => x.IsSuccess && x.UserId.HasValue && userIds.Contains(x.UserId.Value));
+
+        // 1) Her kullanıcı için en son başarılı giriş zamanı.
+        var lastLogins = await successfulLogins
+            .GroupBy(x => x.UserId!.Value)
+            .Select(g => new { UserId = g.Key, LastLoginDate = g.Max(x => x.LoginDate) })
+            .ToListAsync(cancellationToken);
+
+        if (lastLogins.Count == 0)
+            return new Dictionary<Guid, UserLoginStatusDto>();
+
+        // 2) Bu girişlerin IP adresleri (UserId + LoginDate çifti ile bellekte eşleştirilir).
+        List<DateTime> lastDates = lastLogins.Select(x => x.LastLoginDate).Distinct().ToList();
+        var ipRows = await successfulLogins
+            .Where(x => lastDates.Contains(x.LoginDate))
+            .Select(x => new { UserId = x.UserId!.Value, x.LoginDate, x.IpAddress })
+            .ToListAsync(cancellationToken);
+
+        Dictionary<(Guid, DateTime), string?> ipByLogin = ipRows
+            .GroupBy(x => (x.UserId, x.LoginDate))
+            .ToDictionary(g => g.Key, g => g.First().IpAddress);
+
+        // Logout kaydı tutulmadığı için token geçerlilik penceresi (Jwt:ExpirationMinutes) "oturum açık" sayılır.
+        DateTime activeSince = DateTime.UtcNow.AddMinutes(-_jwtSettings.ExpirationMinutes);
+
+        return lastLogins.ToDictionary(
+            x => x.UserId,
+            x => new UserLoginStatusDto
+            {
+                UserId = x.UserId,
+                LastLoginDate = x.LastLoginDate,
+                LastLoginIpAddress = ipByLogin.GetValueOrDefault((x.UserId, x.LastLoginDate)),
+                IsLoggedIn = x.LastLoginDate >= activeSince
+            });
     }
 
     public async Task LogAsync(
