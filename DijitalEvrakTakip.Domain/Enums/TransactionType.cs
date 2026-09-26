@@ -32,5 +32,8 @@ public enum TransactionTypeEnum
     Archive = 9,
 
     [Description("Yayınla")]
-    Yayinla = 10
+    Yayinla = 10,
+
+    [Description("Dosya Yükleme")]
+    FileUpload = 11
 }

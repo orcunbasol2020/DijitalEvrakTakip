@@ -49,6 +49,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
 
         entity.DocumentName = savedFileName;
         entity.ElectronicCopy = true;
+        entity.Status = (int)DocumentStatusEnum.Update;
         entity.UpdateDate = DateTime.UtcNow;
         _incomingDocumentRepository.Update(entity);
 
@@ -82,7 +83,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         var transaction = new DocumentTransaction
         {
             DocumentId = entity.Id,
-            TransactionType = (int)TransactionTypeEnum.Update,
+            TransactionType = (int)TransactionTypeEnum.FileUpload,
             UserId = userId,
             IsActive = true,
             CreatedDate = DateTime.UtcNow
