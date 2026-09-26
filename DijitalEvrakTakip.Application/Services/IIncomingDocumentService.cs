@@ -1,6 +1,7 @@
 ﻿using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.CreateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UpdateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetAllIncomingDocument;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetDocumentsByStatus;
 using DijitalEvrakTakip.Application.Features.ScannedDocumentFeatures.Commands.UpdateScannedDocument;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
@@ -26,6 +27,11 @@ public interface IIncomingDocumentService
 
     Task<IList<IncomingDocument>> GetAllAsync(GetAllIncomingDocumentQuery request, CancellationToken cancellationToken);
     Task<IList<IncomingDocument>> GetAllByDirectionAsync(string? documentDirection, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// DocumentStatusEnum (Status alanı) değerine göre evrakları getirir. Opsiyonel departman ve kullanıcı filtresi uygulanabilir.
+    /// </summary>
+    Task<IList<IncomingDocument>> GetAllByStatusAsync(GetDocumentsByStatusQuery request, CancellationToken cancellationToken);
 
     Task<IncomingDocument?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 

@@ -27,5 +27,6 @@ public sealed record CreateIncomingDocumentCommand
     int? SubmissionStatus,
     string UserId,
     string? DocumentName,
-    string? Notes
+    string? Notes,
+    string? CreatedUserId = null
 ) : IRequest<MessageResponse>;

@@ -7,5 +7,6 @@ public sealed record PreRegisterIncomingDocumentCommand
 (
     string QrCode,
     string UserId,
-    int DocumentDirection
+    int DocumentDirection,
+    string? CreatedUserId = null
 ) : IRequest<string>;

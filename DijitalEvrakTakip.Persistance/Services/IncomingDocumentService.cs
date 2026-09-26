@@ -1,6 +1,7 @@
 ﻿using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.CreateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UpdateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetAllIncomingDocument;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetDocumentsByStatus;
 using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
@@ -118,6 +119,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
             OcrStatus = request.OcrStatus,
             SubmissionStatus = request.SubmissionStatus,
             UserId = request.UserId,
+            CreatedUserId = request.CreatedUserId ?? request.UserId,
             DocumentName = request.DocumentName,
             Notes = request.Notes,
             IsDeleted = false,
@@ -207,8 +209,9 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
             };
         }
 
+        // Oluşturan kullanıcı yalnızca CreatedUserId sütunundan okunur (UserId'ye düşülmez)
         if (!string.IsNullOrEmpty(request.CreatedUserId))
-            query = query.Where(x => x.UserId == request.CreatedUserId);
+            query = query.Where(x => x.CreatedUserId == request.CreatedUserId);
 
         if (request.DepartmentId.HasValue)
             query = query.Where(x => x.DepartmentId == request.DepartmentId.Value);
@@ -233,6 +236,22 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         return await query.ToListAsync(cancellationToken);
     }
 
+    public async Task<IList<IncomingDocument>> GetAllByStatusAsync(GetDocumentsByStatusQuery request, CancellationToken cancellationToken)
+    {
+        var query = _incomingDocumentRepository.GetAll()
+            .Where(x => !x.IsDeleted && x.Status == request.Status);
+
+        if (request.DepartmentId.HasValue)
+            query = query.Where(x => x.DepartmentId == request.DepartmentId.Value);
+
+        // Oluşturan kullanıcı yalnızca CreatedUserId sütunundan okunur (UserId'ye düşülmez)
+        if (!string.IsNullOrEmpty(request.CreatedUserId))
+            query = query.Where(x => x.CreatedUserId == request.CreatedUserId);
+
+        return await query
+            .OrderByDescending(x => x.CreatedDate)
+            .ToListAsync(cancellationToken);
+    }
     /// <summary>
     /// Assignment atandığında IncomingDocument tablosundaki CurrentAssignmentUserId alanını set eder.
     /// SaveChanges handler tarafında yapılacak.

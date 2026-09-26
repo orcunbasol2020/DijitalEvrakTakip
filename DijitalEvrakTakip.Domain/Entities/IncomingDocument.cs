@@ -42,6 +42,9 @@ namespace DijitalEvrakTakip.Domain.Entities
         public Department? Department { get; set; }
 
         public string UserId { get; set; } = null!;
+
+        // Evrağı ilk kaydeden (ön kayıt / oluşturma) kullanıcı
+        public string? CreatedUserId { get; set; }
         public string? CurrentAssignmentUser { get; set; }
         public Guid? CurrentAssignmentUserId { get; set; }
 

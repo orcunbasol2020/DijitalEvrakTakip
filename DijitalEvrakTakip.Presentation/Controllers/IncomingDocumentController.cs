@@ -3,6 +3,7 @@ using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.P
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UpdateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UploadIncomingDocumentFile;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetAllIncomingDocument;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetDocumentsByStatus;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentById;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentByQrCode;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentLast30DaysStats;
@@ -165,6 +166,27 @@ public sealed class IncomingDocumentsController : ApiController
         var query = new GetDocumentsByDirectionQuery
         {
             DocumentDirection = documentDirection
+        };
+
+        var response = await _mediator.Send(query, cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Status (DocumentStatusEnum) değerine göre evrakları getirir. Örn: status=1 => Ön Kayıt.
+    /// </summary>
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetByStatus(
+        [FromQuery] int status,
+        [FromQuery] Guid? departmentId,
+        [FromQuery] string? createdUserId,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetDocumentsByStatusQuery
+        {
+            Status = status,
+            DepartmentId = departmentId,
+            CreatedUserId = createdUserId
         };
 
         var response = await _mediator.Send(query, cancellationToken);
