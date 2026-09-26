@@ -25,7 +25,9 @@ public sealed class GetAllDepartmentHandler
             .Select(x => new DepartmentDto(
                 x.Id,
                 x.Name,
-                x.ShortName
+                x.ShortName,
+                x.ParentId,
+                x.DisnetId
             ))
             .ToList();
     }

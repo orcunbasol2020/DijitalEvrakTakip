@@ -1,15 +1,13 @@
-﻿using DijitalEvrakTakip.Domain.Abstractions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DijitalEvrakTakip.Domain.Abstractions;
 
 namespace DijitalEvrakTakip.Domain.Entities
 {
     public sealed class Department : Entity
     {
-        public int? ParentId { get; set; }
+        public Guid? ParentId { get; set; }
+        public Department? Parent { get; set; }
+        public ICollection<Department> Children { get; set; } = new List<Department>();
+
         public int? DisnetId { get; set; }
         public string Name { get; set; }
         public string ShortName { get; set; }
