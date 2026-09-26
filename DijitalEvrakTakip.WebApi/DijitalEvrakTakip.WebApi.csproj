@@ -4,7 +4,14 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Uygulama versiyonu: her sürümde burası artırılır; /api/AppSettings/GetAppInfo buradan okur. -->
+    <Version>1.0.0</Version>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Derleme anı, assembly'ye gömülür ve GetAppInfo'da "BuildDate" olarak döner. -->
+    <AssemblyMetadata Include="BuildDate" Value="$([System.DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="12.1.0" />

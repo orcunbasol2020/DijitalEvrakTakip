@@ -52,6 +52,9 @@ builder.Services.AddScoped<IEnvelopeDocumentService, EnvelopeDocumentService>();
 builder.Services.AddScoped<IExternalUserService, ExternalUserService>();
 builder.Services.AddScoped<IAtlasEbysService, AtlasEbysService>();
 builder.Services.AddScoped<ILanguageService, LanguageService>();
+builder.Services.AddScoped<IAppSettingService, AppSettingService>();
+builder.Services.AddSingleton<IAppVersionProvider, AssemblyAppVersionProvider>();
+builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IWetSignedDocumentStorageService>(_ =>
 {
     string configuredPath = builder.Configuration["FileStorage:WetSignedDocumentsPath"]
@@ -96,6 +99,7 @@ builder.Services.AddScoped<IDocumentAllocationRepository, DocumentAllocationRepo
 builder.Services.AddScoped<IOutgoingDocumentAllocationRepository, OutgoingDocumentAllocationRepository>();
 builder.Services.AddScoped<IAtlasZimmetChangeRepository, AtlasZimmetChangeRepository>();
 builder.Services.AddScoped<ILanguageRepository, LanguageRepository>();
+builder.Services.AddScoped<IAppSettingRepository, AppSettingRepository>();
 
 //authentication (JWT)
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));

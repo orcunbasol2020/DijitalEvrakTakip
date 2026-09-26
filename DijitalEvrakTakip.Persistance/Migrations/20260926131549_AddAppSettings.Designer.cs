@@ -4,6 +4,7 @@ using DijitalEvrakTakip.Persistance.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DijitalEvrakTakip.Persistance.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260926131549_AddAppSettings")]
+    partial class AddAppSettings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -171,8 +174,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<int?>("ParentId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ShortName")
                         .HasColumnType("nvarchar(max)");
@@ -184,6 +187,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
 
                     b.ToTable("Departments", (string)null);
                 });
@@ -1135,6 +1140,16 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Navigation("IncomingDocument");
                 });
 
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.Department", b =>
+                {
+                    b.HasOne("DijitalEvrakTakip.Domain.Entities.Department", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Parent");
+                });
+
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.DocumentAssignment", b =>
                 {
                     b.HasOne("DijitalEvrakTakip.Domain.Entities.IncomingDocument", "IncomingDocument")
@@ -1264,6 +1279,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
 
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.Department", b =>
                 {
+                    b.Navigation("Children");
+
                     b.Navigation("Users");
                 });
 
