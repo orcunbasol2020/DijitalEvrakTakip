@@ -1,3 +1,4 @@
+using DijitalEvrakTakip.WebApi.BackgroundServices;
 using DijitalEvrakTakip.Application.Behaviors;
 using DijitalEvrakTakip.Application.Options;
 using DijitalEvrakTakip.Application.Services;
@@ -55,6 +56,8 @@ builder.Services.AddScoped<IExternalUserService, ExternalUserService>();
 builder.Services.AddScoped<IAtlasEbysService, AtlasEbysService>();
 builder.Services.AddScoped<ILanguageService, LanguageService>();
 builder.Services.AddScoped<IAppSettingService, AppSettingService>();
+builder.Services.AddScoped<IScannedDocumentImportService, ScannedDocumentImportService>();
+builder.Services.AddHostedService<ScannedDocumentImportBackgroundService>();
 builder.Services.AddSingleton<IAppVersionProvider, AssemblyAppVersionProvider>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IWetSignedDocumentStorageService>(_ =>

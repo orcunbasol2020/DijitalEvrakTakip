@@ -1,4 +1,5 @@
 ﻿using DijitalEvrakTakip.Application.Features.ScannedDocumentFeatures.Commands.CreateScannedDocument;
+using DijitalEvrakTakip.Application.Features.ScannedDocumentFeatures.Commands.ImportScannedDocuments;
 using DijitalEvrakTakip.Application.Features.ScannedDocumentFeatures.Commands.UpdateScannedDocument;
 using DijitalEvrakTakip.Application.Features.ScannedDocumentFeatures.Queries.GetAllScannedDocument;
 using DijitalEvrakTakip.Application.Services;
@@ -30,14 +31,22 @@ public sealed class ScannedDocumentsController : ApiController
         return Ok(response);
     }
 
-    // GetAll methodu olduğu gibi.
+    // Eşleştirme bekleyen taranmış belgeler; fileName, startDate, endDate ile filtrelenebilir
     [HttpGet("[action]")]
     public async Task<IActionResult> GetAll(
+        [FromQuery] GetAllScannedDocumentQuery request,
         CancellationToken cancellationToken)
     {
-        var response = await _mediator.Send(
-            new GetAllScannedDocumentQuery(),
-            cancellationToken);
+        var response = await _mediator.Send(request, cancellationToken);
+
+        return Ok(response);
+    }
+
+    // Tarama klasörünü hemen kontrol eder (otomatik içe aktarma kapalı olsa da çalışır)
+    [HttpPost("[action]")]
+    public async Task<IActionResult> ImportFromFolder(CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(new ImportScannedDocumentsCommand(), cancellationToken);
 
         return Ok(response);
     }
