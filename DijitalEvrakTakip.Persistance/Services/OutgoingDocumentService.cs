@@ -103,7 +103,6 @@ public sealed class OutgoingDocumentService : IOutgoingDocumentService
         {
             OutgoingDocumentId = entity.Id,
             Type = request.Status ?? (int)OutgoingTransactionTypeEnum.Update,
-            CargoPostNumber = request.CargoPostNumber,
             UserId = request.CreatedUserId
         };
 
@@ -114,7 +113,10 @@ public sealed class OutgoingDocumentService : IOutgoingDocumentService
 
     public async Task<IList<OutgoingDocument>> GetAllAsync(GetAllOutgoingDocumentQuery request, CancellationToken cancellationToken)
     {
+        // Liste ekranındaki "Nereye" sütunu için dağıtım listesi (silinmemiş
+        // satırlar) evrakla birlikte döner; birim/kurum adları client'ta çözülür.
         var query = _outgoingDocumentRepository.GetAll()
+            .Include(x => x.Distributions!.Where(d => !d.IsDeleted))
             .Where(x => !x.IsDeleted);
 
         if (request.Status.HasValue)

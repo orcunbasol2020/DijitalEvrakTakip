@@ -13,6 +13,6 @@ public sealed class UpdateEnvelopeStatusValidator
 
         RuleFor(p => p.Status)
             .Must(status => Enum.IsDefined(typeof(EnvelopeStatusEnum), status))
-            .WithMessage("Geçersiz Status: 1 (Yeni Kayıt), 2 (Evrak Biriminde), 3 (Teslim Edildi) veya 4 (Zimmet Devri) olmalıdır.");
+            .WithMessage("Geçersiz Status: 1 (Yeni Kayıt), 2 (Evrak Biriminde), 3 (Teslim Edildi), 4 (Zimmet Devri) veya 5 (Kargoya Verildi) olmalıdır.");
     }
 }

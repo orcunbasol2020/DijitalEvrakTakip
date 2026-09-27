@@ -18,7 +18,7 @@ public sealed class UpdateEnvelopeStatusCommandHandler
         UpdateEnvelopeStatusCommand request,
         CancellationToken cancellationToken)
     {
-        var envelope = await _envelopeService.GetByIdAsync(request.Id, cancellationToken);
+        var envelope = await _envelopeService.GetForUpdateAsync(request.Id, cancellationToken);
 
         if (envelope is null)
             return new MessageResponse("Zarf bulunamadı");

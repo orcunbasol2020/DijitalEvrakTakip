@@ -23,6 +23,5 @@ public sealed record UpdateOutgoingDocumentCommand
     int? PageCount,
     string? Notes,
     DateTime? DocumentDate,
-    string? CreatedUserId,
-    string? CargoPostNumber
+    string? CreatedUserId
 ) : IRequest<MessageResponse>;

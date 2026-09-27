@@ -47,6 +47,7 @@ public sealed class GetAllEnvelopeHandler
                 x.ExternalInstitutionId,
                 institutionName,
                 x.DepartmentId,
+                x.TargetDepartmentId,
                 x.UnitName,
                 x.Address,
                 x.CreatedDate,

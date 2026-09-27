@@ -8,6 +8,7 @@ public sealed record EnvelopeDto(
     Guid CreatedByUserId,
     Guid? ExternalInstitutionId,
     Guid? DepartmentId,
+    Guid? TargetDepartmentId,
     string? UnitName,
     string? Address,
     DateTime CreatedDate

@@ -1,4 +1,4 @@
-﻿using DijitalEvrakTakip.Domain.Abstractions;
+using DijitalEvrakTakip.Domain.Abstractions;
 
 namespace DijitalEvrakTakip.Domain.Entities
 {
@@ -8,7 +8,8 @@ namespace DijitalEvrakTakip.Domain.Entities
 
         public int? Type { get; set; }
 
-        public string? CargoPostNumber { get; set; }
+        // Kargoya verildi işlemi için ilgili kargo kaydı
+        public Guid? ShipmentId { get; set; }
 
         public string? UserId { get; set; }
 

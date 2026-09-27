@@ -34,7 +34,7 @@ public sealed class GetOutgoingDocumentTransactionsByDocumentIdHandler
                 TypeName = x.Type.HasValue && Enum.IsDefined(typeof(OutgoingTransactionTypeEnum), x.Type.Value)
                     ? ((OutgoingTransactionTypeEnum)x.Type.Value).GetDescription()
                     : "-",
-                CargoPostNumber = x.CargoPostNumber,
+                ShipmentId = x.ShipmentId,
                 UserId = x.UserId,
                 CreatedDate = x.CreatedDate,
                 UpdateDate = x.UpdateDate

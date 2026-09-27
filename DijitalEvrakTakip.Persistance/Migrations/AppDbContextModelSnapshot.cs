@@ -390,6 +390,9 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(1);
 
+                    b.Property<Guid?>("TargetDepartmentId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("UnitName")
                         .HasColumnType("nvarchar(max)");
 
@@ -759,14 +762,125 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.ToTable("OutgoingDocumentAllocations", (string)null);
                 });
 
-            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.OutgoingDocumentTransaction", b =>
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.OutgoingDocumentDistribution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool?>("ActionRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeliveryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DeliveryMethod")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("DepartmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ExternalInstitutionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("OutgoingDocumentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("SentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ShipmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("ExternalInstitutionId");
+
+                    b.HasIndex("OutgoingDocumentId");
+
+                    b.HasIndex("ShipmentId");
+
+                    b.ToTable("OutgoingDocumentDistributions", (string)null);
+                });
+
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.OutgoingDocumentShipment", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CargoPostNumber")
+                    b.Property<int>("CargoCompany")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Cost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeliveredDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ExternalInstitutionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("RecipientName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("SentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("SentUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("TrackingNumber")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExternalInstitutionId");
+
+                    b.HasIndex("TrackingNumber");
+
+                    b.ToTable("OutgoingDocumentShipments", (string)null);
+                });
+
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.OutgoingDocumentTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -775,6 +889,9 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                         .HasColumnType("bit");
 
                     b.Property<Guid?>("OutgoingDocumentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ShipmentId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("Type")
@@ -1203,6 +1320,48 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Navigation("ExternalInstitution");
                 });
 
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.OutgoingDocumentDistribution", b =>
+                {
+                    b.HasOne("DijitalEvrakTakip.Domain.Entities.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ExternalInstitution", "ExternalInstitution")
+                        .WithMany()
+                        .HasForeignKey("ExternalInstitutionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("DijitalEvrakTakip.Domain.Entities.OutgoingDocument", "OutgoingDocument")
+                        .WithMany("Distributions")
+                        .HasForeignKey("OutgoingDocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DijitalEvrakTakip.Domain.Entities.OutgoingDocumentShipment", "Shipment")
+                        .WithMany("Distributions")
+                        .HasForeignKey("ShipmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Department");
+
+                    b.Navigation("ExternalInstitution");
+
+                    b.Navigation("OutgoingDocument");
+
+                    b.Navigation("Shipment");
+                });
+
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.OutgoingDocumentShipment", b =>
+                {
+                    b.HasOne("ExternalInstitution", "ExternalInstitution")
+                        .WithMany()
+                        .HasForeignKey("ExternalInstitutionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ExternalInstitution");
+                });
+
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.OutgoingDocumentTransaction", b =>
                 {
                     b.HasOne("DijitalEvrakTakip.Domain.Entities.OutgoingDocument", "OutgoingDocument")
@@ -1289,6 +1448,16 @@ namespace DijitalEvrakTakip.Persistance.Migrations
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.IncomingDocument", b =>
                 {
                     b.Navigation("DocumentAssignments");
+                });
+
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.OutgoingDocument", b =>
+                {
+                    b.Navigation("Distributions");
+                });
+
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.OutgoingDocumentShipment", b =>
+                {
+                    b.Navigation("Distributions");
                 });
 
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.Role", b =>

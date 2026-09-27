@@ -47,5 +47,7 @@ namespace DijitalEvrakTakip.Domain.Entities
 
         // Evrağın hangi sistemde oluşturulduğu (AllocationSourceEnum: EvrakTakip / AtlasEbys)
         public int Source { get; set; }
+
+        public ICollection<OutgoingDocumentDistribution>? Distributions { get; set; }
     }
 }

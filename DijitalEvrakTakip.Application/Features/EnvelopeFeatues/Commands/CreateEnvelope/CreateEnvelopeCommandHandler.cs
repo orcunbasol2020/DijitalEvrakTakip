@@ -26,6 +26,7 @@ public sealed class CreateEnvelopeCommandHandler
             CreatedByUserId = request.CreatedByUserId,
             ExternalInstitutionId = request.ExternalInstitutionId,
             DepartmentId = request.DepartmentId,
+            TargetDepartmentId = request.TargetDepartmentId,
             UnitName = request.UnitName,
             Address = request.Address,
             IsClosed = false,

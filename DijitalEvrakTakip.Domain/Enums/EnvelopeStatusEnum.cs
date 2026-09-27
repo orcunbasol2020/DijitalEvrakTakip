@@ -14,5 +14,10 @@ public enum EnvelopeStatusEnum
     TeslimEdildi = 3,
 
     [Description("Zimmet Devri")]
-    ZimmetDevri = 4
+    ZimmetDevri = 4,
+
+    // Zarf kargo / posta ile gönderildi (OutgoingDocumentShipments). Kargonun
+    // kendi durumu (Yolda, Teslim Edildi, İade) kargo kaydında izlenir.
+    [Description("Kargoya Verildi")]
+    KargoyaVerildi = 5
 }

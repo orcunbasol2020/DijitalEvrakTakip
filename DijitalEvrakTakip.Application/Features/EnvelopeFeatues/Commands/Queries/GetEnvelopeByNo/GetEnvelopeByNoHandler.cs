@@ -33,6 +33,7 @@ public sealed class GetEnvelopeByNoHandler
             envelope.CreatedByUserId,
             envelope.ExternalInstitutionId,
             envelope.DepartmentId,
+            envelope.TargetDepartmentId,
             envelope.UnitName,
             envelope.Address,
             envelope.CreatedDate

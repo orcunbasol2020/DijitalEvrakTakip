@@ -39,6 +39,15 @@ public sealed class EnvelopeService : IEnvelopeService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<Envelope?> GetForUpdateAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        return await _envelopeRepository.GetByExpressionAsync(
+            x => x.Id == id && !x.IsDeleted,
+            cancellationToken);
+    }
+
     public async Task<IList<Envelope>> GetAllAsync(
         Guid? createdByUserId,
         Guid? departmentId,

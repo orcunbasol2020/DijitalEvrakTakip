@@ -18,8 +18,8 @@ public sealed class OutgoingDocumentTransactionConfiguration
 
         builder.Property(x => x.Type);
 
-        builder.Property(x => x.CargoPostNumber)
-            .HasMaxLength(100);
+        builder.Property(x => x.ShipmentId)
+            .HasColumnType("uniqueidentifier");
 
         builder.Property(x => x.UserId)
             .HasMaxLength(50);

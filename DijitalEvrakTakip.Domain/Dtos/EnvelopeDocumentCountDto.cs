@@ -9,6 +9,7 @@ public sealed record EnvelopeDocumentCountDto(
     Guid? ExternalInstitutionId,
     string? ExternalInstitutionName,
     Guid? DepartmentId,
+    Guid? TargetDepartmentId,
     string? UnitName,
     string? Address,
     DateTime CreatedDate,

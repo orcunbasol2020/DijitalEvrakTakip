@@ -17,5 +17,9 @@ public enum AllocationStatusEnum
     Arsiv = 4,
 
     [Description("Teslim Alındı")]
-    TeslimAlindi = 5
+    TeslimAlindi = 5,
+
+    // Fiziksel evrak kargoya verildi; zimmet zinciri burada kapanır
+    [Description("Kargoya Verildi")]
+    KargoyaVerildi = 6
 }

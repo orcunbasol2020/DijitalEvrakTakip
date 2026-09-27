@@ -40,6 +40,8 @@ builder.Services.AddScoped<IUnitOfWork>(srv => srv.GetRequiredService<AppDbConte
 builder.Services.AddScoped<IIncomingDocumentService, IncomingDocumentService>();
 builder.Services.AddScoped<IIncomingDocumentApplicationService, IncomingDocumentApplicationService>();
 builder.Services.AddScoped<IOutgoingDocumentService, OutgoingDocumentService>();
+builder.Services.AddScoped<IOutgoingDocumentDistributionService, OutgoingDocumentDistributionService>();
+builder.Services.AddScoped<IOutgoingDocumentShipmentService, OutgoingDocumentShipmentService>();
 builder.Services.AddScoped<IExternalInstitutionService, ExternalInstitutionService>();
 builder.Services.AddScoped<IDocumentTransactionService, DocumentTransactionService>();
 builder.Services.AddScoped<IDocumentAllocationService, DocumentAllocationService>();
@@ -86,6 +88,8 @@ builder.Services.AddScoped<IScannedDocumentRepository, ScannedDocumentRepository
 builder.Services.AddScoped<IDocumentAssignmentRepository, DocumentAssignmentRepository>();
 builder.Services.AddScoped<IIncomingDocumentRepository, IncomingDocumentRepository>();
 builder.Services.AddScoped<IOutgoingDocumentRepository, OutgoingDocumentRepository>();
+builder.Services.AddScoped<IOutgoingDocumentDistributionRepository, OutgoingDocumentDistributionRepository>();
+builder.Services.AddScoped<IOutgoingDocumentShipmentRepository, OutgoingDocumentShipmentRepository>();
 builder.Services.AddScoped<IOutgoingDocumentTransactionRepository, OutgoingDocumentTransactionRepository>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IExternalInstitutionRepository, ExternalInstitutionRepository>();
