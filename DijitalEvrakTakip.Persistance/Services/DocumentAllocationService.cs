@@ -66,6 +66,8 @@ public sealed class DocumentAllocationService : IDocumentAllocationService
 
         await _transactionRepository.AddAsync(transaction, cancellationToken);
 
+        await MarkDocumentDeliveredAsync(allocation, cancellationToken);
+
         // Tek commit
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
@@ -86,7 +88,27 @@ public sealed class DocumentAllocationService : IDocumentAllocationService
         CancellationToken cancellationToken)
     {
         _allocationRepository.Update(allocation);
+        await MarkDocumentDeliveredAsync(allocation, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    // Zimmet birimde teslim alınınca evrakın akış durumu Teslim Edildi olur
+    private async Task MarkDocumentDeliveredAsync(
+        DocumentAllocation allocation,
+        CancellationToken cancellationToken)
+    {
+        if (!allocation.IsActive || allocation.Status != (int)AllocationStatusEnum.TeslimAlindi)
+            return;
+
+        var document = await _incomingDocumentRepository
+            .GetByExpressionAsync(x => x.Id == allocation.IncomingDocumentId && !x.IsDeleted, cancellationToken);
+
+        if (document is null || document.Status == (int)DocumentStatusEnum.Teslim)
+            return;
+
+        document.Status = (int)DocumentStatusEnum.Teslim;
+        document.UpdateDate = DateTime.UtcNow;
+        _incomingDocumentRepository.Update(document);
     }
 
     public async Task<DocumentAllocation?> GetActiveByDocumentIdAsync(

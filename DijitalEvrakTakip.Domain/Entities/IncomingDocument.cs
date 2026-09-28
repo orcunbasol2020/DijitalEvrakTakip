@@ -23,7 +23,9 @@ namespace DijitalEvrakTakip.Domain.Entities
         public int? DocumentTypeId { get; set; }
         public int? DocumentDirection { get; set; }
         public int? LanguageId { get; set; }
+        // DocumentStatusEnum: evrakın akıştaki yeri (Ön Kayıt / Güncelleme / Teslim ...)
         public int? Status { get; set; }
+        // PublishStatusEnum: Atlas'a yayın (aktarım) durumu
         public int? SubmissionStatus { get; set; }
         public int? OcrStatus { get; set; }
 

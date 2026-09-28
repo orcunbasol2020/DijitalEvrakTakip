@@ -6,7 +6,7 @@ namespace DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Querie
 public sealed record GetDocumentsByStatusQuery() : IRequest<IList<IncomingDocument>>
 {
     /// <summary>
-    /// DocumentStatusEnum değeri: 1 Ön Kayıt, 2 Güncelleme, 3 Teslim, 4 Eşleştirme, 5 Ocr, 6 Yayınla.
+    /// DocumentStatusEnum değeri: 1 Ön Kayıt, 2 Güncelleme, 3 Teslim, 4 Eşleştirme, 5 Ocr. Yayın durumu Status'ta değil SubmissionStatus'ta (PublishStatusEnum) tutulur.
     /// </summary>
     public int Status { get; set; }
 

@@ -147,14 +147,17 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         if (request.Subject != null) entity.Subject = request.Subject;
         if (request.ExternalInstitutionId.HasValue) entity.ExternalInstitutionId = request.ExternalInstitutionId;
         if (request.DepartmentId.HasValue) entity.DepartmentId = request.DepartmentId;
-        if (request.Status.HasValue) entity.Status = request.Status;
+        // Yayınla akış durumu değildir: Status korunur, evrak yalnızca aktarım sırasına alınır
+        var isPublish = request.Status == (int)DocumentStatusEnum.Publish;
+        if (isPublish) entity.SubmissionStatus = (int)PublishStatusEnum.Kuyrukta;
+        else if (request.Status.HasValue) entity.Status = request.Status;
         if (request.ElectronicCopy.HasValue) entity.ElectronicCopy = request.ElectronicCopy;
         if (request.Release.HasValue) entity.Release = request.Release;
         if (request.ActionRequired.HasValue) entity.ActionRequired = request.ActionRequired;
         if (request.PageCount.HasValue) entity.PageCount = request.PageCount;
         if (request.DocumentDate.HasValue) entity.DocumentDate = request.DocumentDate;
         if (request.ReleaseDate.HasValue) entity.ReleaseDate = request.ReleaseDate;
-        if (request.SubmissionStatus.HasValue) entity.SubmissionStatus = request.SubmissionStatus;
+        if (request.SubmissionStatus.HasValue && !isPublish) entity.SubmissionStatus = request.SubmissionStatus;
         if (request.DocumentName != null) entity.DocumentName = request.DocumentName;
         if (request.Notes != null) entity.Notes = request.Notes;
 
@@ -166,7 +169,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         var transaction = new DocumentTransaction
         {
             DocumentId = entity.Id,
-            TransactionType = request.Status.HasValue && request.Status.Value == (int)DocumentStatusEnum.Publish
+            TransactionType = isPublish
                 ? (int)TransactionTypeEnum.Yayinla
                 : (int)TransactionTypeEnum.Update,
             UserId = request.UserId,
