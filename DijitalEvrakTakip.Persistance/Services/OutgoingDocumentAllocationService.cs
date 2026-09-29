@@ -32,8 +32,17 @@ public sealed class OutgoingDocumentAllocationService : IOutgoingDocumentAllocat
 
     public async Task CreateAsync(
         OutgoingDocumentAllocation allocation,
+        OutgoingDocumentAllocation? previousAllocation,
         CancellationToken cancellationToken)
     {
+        // Önceki aktif zimmet yenisiyle aynı commit'te pasife çekilir
+        if (previousAllocation is not null)
+        {
+            previousAllocation.IsActive = false;
+            previousAllocation.UpdateDate = DateTime.UtcNow;
+            _allocationRepository.Update(previousAllocation);
+        }
+
         await _allocationRepository.AddAsync(allocation, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }

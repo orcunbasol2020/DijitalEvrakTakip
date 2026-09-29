@@ -5,8 +5,10 @@ namespace DijitalEvrakTakip.Application.Services;
 
 public interface IDocumentAllocationService
 {
+    // previousAllocation verilirse yeni zimmetle aynı commit'te pasife çekilir
     Task CreateAsync(
         DocumentAllocation allocation,
+        DocumentAllocation? previousAllocation,
         CancellationToken cancellationToken);
 
     Task<IList<DocumentAllocationDto>> GetByDocumentIdAsync(
@@ -26,6 +28,10 @@ public interface IDocumentAllocationService
         CancellationToken cancellationToken);
 
     Task UpdateAsync(
+        DocumentAllocation allocation,
+        CancellationToken cancellationToken);
+
+    Task ReceiveAsync(
         DocumentAllocation allocation,
         CancellationToken cancellationToken);
 

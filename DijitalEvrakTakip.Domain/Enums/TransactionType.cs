@@ -35,5 +35,8 @@ public enum TransactionTypeEnum
     Yayinla = 10,
 
     [Description("Dosya Yükleme")]
-    FileUpload = 11
+    FileUpload = 11,
+
+    [Description("Teslim Alındı")]
+    TeslimAlindi = 12
 }

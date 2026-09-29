@@ -1,4 +1,5 @@
 ﻿using DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Commands.CreateDocumentAllocation;
+using DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Commands.ReceiveDocumentAllocation;
 using DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Queries.GetActiveAllocationsByUserId;
 using DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Queries.GetActiveByDocumentId;
 using DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Queries.GetActiveDocumentsByUserId;
@@ -19,6 +20,20 @@ public sealed class DocumentAllocationsController : ApiController
     [HttpPost("[action]")]
     public async Task<IActionResult> Create(
         CreateDocumentAllocationCommand request,
+        CancellationToken cancellationToken)
+    {
+        MessageResponse response =
+            await _mediator.Send(request, cancellationToken);
+
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Aktif zimmeti kendisinde olan kullanıcı evrağı teslim alır; evrak durumu Teslim Edildi olur.
+    /// </summary>
+    [HttpPost("[action]")]
+    public async Task<IActionResult> Receive(
+        ReceiveDocumentAllocationCommand request,
         CancellationToken cancellationToken)
     {
         MessageResponse response =

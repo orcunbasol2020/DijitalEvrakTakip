@@ -15,7 +15,7 @@ namespace DijitalEvrakTakip.Domain.Enums
         [Description("Güncelleme")]
         Update = 2,
 
-        // Aktif zimmet Teslim Alındı (AllocationStatusEnum.TeslimAlindi) olunca atanır
+        // Aktif zimmet Teslim (AllocationStatusEnum.Teslim) veya Teslim Alındı (AllocationStatusEnum.TeslimAlindi) olunca atanır
         [Description("Teslim Edildi")]
         Teslim = 3,
 

@@ -59,17 +59,37 @@
 - Yayınla butonu, `submissionStatus` 2 veya 3 iken (sırada ya da aktarılıyorken) pasif yapılabilir. Böylece aynı evrak tekrar sıraya alınmaz.
 - `GetDocumentsByStatus?status=6` sorgusu yeni kayıtlarda boş döner. Yayınlanan evrak listesi gerekiyorsa backend'e ayrı bir sorgu eklenmeli.
 
-### Teslim Edildi: zimmet teslim alınınca
+### Teslim Edildi: zimmet teslim edilince veya teslim alınınca
 
-Aktif zimmet **Teslim Alındı** (`AllocationStatusEnum` = 5) durumuna geçince evrakın `status` alanı otomatik olarak `3` (Teslim Edildi) oluyor. Önyüzün evrak durumunu ayrıca güncellemesi gerekmiyor.
+Aktif zimmet **Teslim** (`AllocationStatusEnum` = 3) veya **Teslim Alındı** (`AllocationStatusEnum` = 5) durumunda olunca evrakın `status` alanı otomatik olarak `3` (Teslim Edildi) oluyor. Önyüzün evrak durumunu ayrıca güncellemesi gerekmiyor.
 
-- Zimmet `POST api/DocumentAllocations/Create` ile `status: 5` gönderilerek oluşturulursa evrak durumu hemen Teslim Edildi olur.
+- Zimmet ekranındaki "Teslim Et" butonu `POST api/DocumentAllocations/Create` ile `status: 3` gönderir; evrak durumu hemen Teslim Edildi olur. `status: 5` ile oluşturulan zimmet için de aynısı geçerlidir.
 - Pasife çekilen eski zimmetler evrak durumunu değiştirmez.
+- Yeni zimmet açılırken eski aktif zimmetin pasife çekilmesi, yeni zimmet, transaction ve evrak durumu tek commit'te kaydedilir. Biri hata verirse hiçbiri yazılmaz; evrak aktif zimmetsiz kalmaz.
 - Teslim edilen evrak başka birime devredilirse durumu Teslim Edildi olarak kalır.
+
+### Yeni: `POST api/DocumentAllocations/Receive`
+
+"Teslim Al" butonu bu endpoint'i çağırır. Evrağın aktif zimmeti kendisinde olan kullanıcı evrağı teslim alır.
+
+```json
+{ "incomingDocumentId": "…", "userId": "…" }
+```
+
+- Aktif zimmet `Teslim Alındı (5)` olur ve evrak `status` alanı `3` (Teslim Edildi) olur.
+- `TeslimAlindi (12)` türünde yeni bir transaction yazılır.
+- Hata durumlarında da HTTP 200 döner, sonuç `message` alanında okunur:
+
+| `message` | Durum |
+|---|---|
+| Evrak teslim alındı | Başarılı |
+| Evrağın aktif zimmeti bulunamadı | Evrakın aktif zimmeti yok |
+| Evrak bu kullanıcıya zimmetli değil | Aktif zimmet başka kullanıcıda |
+| Evrak zaten teslim alınmış | Zimmet zaten Teslim Alındı durumunda |
+| Geçersiz UserId | `userId` Guid değil |
 
 ## Açık konular
 
-- **Teslim alma endpoint'i yok:** Servisteki güncelleme yolu da evrakı Teslim Edildi yapıyor ama `DocumentAllocations` controller'ında Update endpoint'i bulunmuyor. Zimmet kendisinde olan kullanıcı `Create` ile yeniden zimmet açmaya çalışırsa "Bu evrak zaten bu kullanıcıya zimmetli" hatası alır. Bu yüzden "Teslim Al" butonu için backend'e bir endpoint eklenmesi gerekiyor. Endpoint'in şekli önyüzle birlikte netleştirilmeli.
 - **Eski kayıtlar:** Daha önce `status = 6` ile kaydedilmiş evraklar için veri düzeltmesi hazırlandı ama henüz çalıştırılmadı:
   ```sql
   UPDATE IncomingDocuments SET SubmissionStatus = 2, Status = 2 WHERE Status = 6;
@@ -84,9 +104,15 @@ Aktif zimmet **Teslim Alındı** (`AllocationStatusEnum` = 5) durumuna geçince 
 - `DijitalEvrakTakip.Domain/Entities/IncomingDocument.cs`: Alan açıklamaları
 - `DijitalEvrakTakip.Persistance/Services/IncomingDocumentService.cs`: Yayınla işlemi Status yerine SubmissionStatus'u güncelliyor
 - `DijitalEvrakTakip.Persistance/Services/IncomingDocumentApplicationService.cs`: Ön kayıtta `PublishStatusEnum.Yayinlanmadi`
-- `DijitalEvrakTakip.Persistance/Services/DocumentAllocationService.cs`: Zimmet teslim alınınca evrak Teslim Edildi oluyor
+- `DijitalEvrakTakip.Persistance/Services/DocumentAllocationService.cs`: Zimmet Teslim (3) veya Teslim Alındı (5) olunca evrak Teslim Edildi oluyor; `ReceiveAsync`
+- `DijitalEvrakTakip.Application/Features/DocumentAllocationFeatures/Commands/ReceiveDocumentAllocation/` (yeni)
+- `DijitalEvrakTakip.Application/Services/IDocumentAllocationService.cs`: `ReceiveAsync`; `CreateAsync` eski aktif zimmeti de alıyor
+- `DijitalEvrakTakip.Application/Features/DocumentAllocationFeatures/Commands/CreateDocumentAllocation/CreateDocumentAllocationCommandHandler.cs`: Eski zimmeti ayrı commit'le pasife çekmiyor, `CreateAsync`'e veriyor
+- Giden evrak zimmetinde de aynı düzeltme yapıldı: `IOutgoingDocumentAllocationService.cs`, `OutgoingDocumentAllocationService.cs`, `CreateOutgoingDocumentAllocationCommandHandler.cs`
+- `DijitalEvrakTakip.Domain/Enums/TransactionType.cs`: `TeslimAlindi = 12`
+- `DijitalEvrakTakip.Presentation/Controllers/DocumentAllocationsController.cs`: `Receive` endpoint'i
 - `DijitalEvrakTakip.Application/Features/IncomingDocumentFeatures/Queries/GetDocumentsByStatus/GetDocumentsByStatusQuery.cs`: Açıklama
 
 ## Test
 
-Persistance projesi derleniyor. Uçtan uca deneme yapılmadı.
+Presentation projesi (ve bağımlı projeler) derleniyor. Uçtan uca deneme yapılmadı.

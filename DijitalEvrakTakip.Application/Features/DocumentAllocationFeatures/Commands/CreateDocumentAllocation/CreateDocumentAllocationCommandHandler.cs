@@ -31,18 +31,9 @@ public sealed class CreateDocumentAllocationCommandHandler
                 request.IncomingDocumentId,
                 cancellationToken);
 
-        // Aktif zimmet var mı?
-        if (activeAllocation != null)
-        {
-            // 1.a Aynı kişideyse engelle
-            if (activeAllocation.UserId == Guid.Parse(request.UserId))
-                return new MessageResponse("Bu evrak zaten bu kullanıcıya zimmetli");
-
-            // 1.b Başka kişideyse pasife çek
-            activeAllocation.IsActive = false;
-
-            await _allocationService.UpdateAsync(activeAllocation, cancellationToken);
-        }
+        // Aktif zimmet aynı kişideyse engelle; başka kişideyse CreateAsync pasife çeker
+        if (activeAllocation != null && activeAllocation.UserId == Guid.Parse(request.UserId))
+            return new MessageResponse("Bu evrak zaten bu kullanıcıya zimmetli");
 
         // Yeni aktif zimmet oluştur
         var allocation = new DocumentAllocation
@@ -56,7 +47,7 @@ public sealed class CreateDocumentAllocationCommandHandler
             IsActive = true
         };
 
-        await _allocationService.CreateAsync(allocation, cancellationToken);
+        await _allocationService.CreateAsync(allocation, activeAllocation, cancellationToken);
 
         return new MessageResponse("Evrak başarıyla zimmetlendi");
     }

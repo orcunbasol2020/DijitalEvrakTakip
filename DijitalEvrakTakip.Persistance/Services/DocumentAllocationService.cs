@@ -44,8 +44,17 @@ public sealed class DocumentAllocationService : IDocumentAllocationService
 
     public async Task CreateAsync(
         DocumentAllocation allocation,
+        DocumentAllocation? previousAllocation,
         CancellationToken cancellationToken)
     {
+        // Önceki aktif zimmet yenisiyle aynı commit'te pasife çekilir
+        if (previousAllocation is not null)
+        {
+            previousAllocation.IsActive = false;
+            previousAllocation.UpdateDate = DateTime.UtcNow;
+            _allocationRepository.Update(previousAllocation);
+        }
+
         // Allocation insert
         await _allocationRepository.AddAsync(allocation, cancellationToken);
 
@@ -92,12 +101,37 @@ public sealed class DocumentAllocationService : IDocumentAllocationService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    // Zimmet birimde teslim alınınca evrakın akış durumu Teslim Edildi olur
+    public async Task ReceiveAsync(
+        DocumentAllocation allocation,
+        CancellationToken cancellationToken)
+    {
+        allocation.Status = (int)AllocationStatusEnum.TeslimAlindi;
+        allocation.UpdateDate = DateTime.UtcNow;
+        _allocationRepository.Update(allocation);
+
+        await _transactionRepository.AddAsync(new DocumentTransaction
+        {
+            DocumentId = allocation.IncomingDocumentId,
+            TransactionType = (int)TransactionTypeEnum.TeslimAlindi,
+            UserId = allocation.UserId.ToString(),
+            IsActive = true,
+            CreatedDate = DateTime.UtcNow
+        }, cancellationToken);
+
+        await MarkDocumentDeliveredAsync(allocation, cancellationToken);
+
+        // Zimmet, transaction ve evrak durumu tek commit
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    // Zimmet Teslim olarak açılınca veya birimde teslim alınınca evrakın akış durumu Teslim Edildi olur
     private async Task MarkDocumentDeliveredAsync(
         DocumentAllocation allocation,
         CancellationToken cancellationToken)
     {
-        if (!allocation.IsActive || allocation.Status != (int)AllocationStatusEnum.TeslimAlindi)
+        if (!allocation.IsActive ||
+            (allocation.Status != (int)AllocationStatusEnum.Teslim &&
+             allocation.Status != (int)AllocationStatusEnum.TeslimAlindi))
             return;
 
         var document = await _incomingDocumentRepository
