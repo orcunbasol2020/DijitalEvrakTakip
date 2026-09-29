@@ -17,6 +17,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
     private readonly IIncomingDocumentRepository _incomingDocumentRepository;
     private readonly IDocumentTransactionRepository _documentTransactionRepository;
     private readonly IScannedDocumentRepository _scannedDocumentRepository;
+    private readonly IDocumentAllocationRepository _allocationRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IUserRepository _userRepository;
 
@@ -24,12 +25,14 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         IIncomingDocumentRepository incomingDocumentRepository,
         IDocumentTransactionRepository documentTransactionRepository,
         IScannedDocumentRepository scannedDocumentRepository,
+        IDocumentAllocationRepository allocationRepository,
         IUserRepository userRepository,
         IUnitOfWork unitOfWork)
     {
         _incomingDocumentRepository = incomingDocumentRepository;
         _documentTransactionRepository = documentTransactionRepository;
         _scannedDocumentRepository = scannedDocumentRepository;
+        _allocationRepository = allocationRepository;
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
     }
@@ -90,6 +93,105 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
             CreatedDate = DateTime.UtcNow
         };
         await _documentTransactionRepository.AddAsync(transaction, cancellationToken);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task AttachUploadedFileByNumberAsync(
+        string documentNumber,
+        string savedFileName,
+        string savedFullPath,
+        string originalFileName,
+        string userId,
+        CancellationToken cancellationToken)
+    {
+        var entity = await _incomingDocumentRepository
+            .GetByExpressionAsync(x => x.QrCode == documentNumber && !x.IsDeleted, cancellationToken);
+
+        // Taranmış belge eşleştirmesindeki kural: numara başka bir dosyaya bağlıysa üzerine yazılmaz
+        var numberUsedByScan = await _scannedDocumentRepository
+            .AnyAsync(x => !x.IsDeleted && x.DocumentNumber == documentNumber, cancellationToken);
+
+        if (numberUsedByScan || !string.IsNullOrWhiteSpace(entity?.DocumentName))
+            throw new Exception($"{documentNumber} numaralı evraka daha önce bir dosya bağlanmış.");
+
+        bool hasActiveAllocation;
+
+        if (entity is not null)
+        {
+            entity.DocumentName = savedFileName;
+            entity.ElectronicCopy = true;
+            entity.Status = (int)DocumentStatusEnum.Update;
+            entity.UpdateDate = DateTime.UtcNow;
+            _incomingDocumentRepository.Update(entity);
+
+            hasActiveAllocation = await _allocationRepository
+                .AnyAsync(x => x.IncomingDocumentId == entity.Id && x.IsActive && !x.IsDeleted, cancellationToken);
+        }
+        else
+        {
+            entity = new IncomingDocument
+            {
+                QrCode = documentNumber,
+                DocumentName = savedFileName,
+                ElectronicCopy = true,
+                OcrStatus = (int?)OcrStatusEnum.Wait,
+                Status = (int)DocumentStatusEnum.Update,
+                Release = false,
+                UserId = userId,
+                CreatedUserId = userId,
+                IsDeleted = false,
+                CreatedDate = DateTime.UtcNow
+            };
+            await _incomingDocumentRepository.AddAsync(entity, cancellationToken);
+
+            hasActiveAllocation = false;
+        }
+
+        // Eşleştirme bekleyenler listesinde görünmemesi için DocumentNumber dolu kayıt açılır
+        await _scannedDocumentRepository.AddAsync(new ScannedDocument
+        {
+            DocumentNumber = documentNumber,
+            FileName = savedFileName,
+            OriginalPath = originalFileName,
+            NewPath = savedFullPath,
+            IsDeleted = false,
+            CreatedDate = DateTime.UtcNow
+        }, cancellationToken);
+
+        await _documentTransactionRepository.AddAsync(new DocumentTransaction
+        {
+            DocumentId = entity.Id,
+            TransactionType = (int)TransactionTypeEnum.FileUpload,
+            UserId = userId,
+            IsActive = true,
+            CreatedDate = DateTime.UtcNow
+        }, cancellationToken);
+
+        // Evrağın aktif zimmeti yoksa yükleyen kullanıcıya zimmetlenir (DocumentAllocations/Create ile aynı kayıtlar)
+        if (!hasActiveAllocation && Guid.TryParse(userId, out var allocationUserId))
+        {
+            await _allocationRepository.AddAsync(new DocumentAllocation
+            {
+                IncomingDocumentId = entity.Id,
+                UserId = allocationUserId,
+                UserType = (int)AllocationUserTypeEnum.Internal,
+                CreatedUserId = allocationUserId,
+                Status = (int)AllocationStatusEnum.OnKayit,
+                Source = (int)AllocationSourceEnum.EvrakTakip,
+                IsActive = true
+            }, cancellationToken);
+
+            await _documentTransactionRepository.AddAsync(new DocumentTransaction
+            {
+                DocumentId = entity.Id,
+                TransactionType = (int)TransactionTypeEnum.Zimmet,
+                UserId = userId,
+                CreatedUserId = userId,
+                IsActive = true,
+                CreatedDate = DateTime.UtcNow
+            }, cancellationToken);
+        }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }

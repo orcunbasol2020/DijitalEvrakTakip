@@ -25,6 +25,19 @@ public interface IIncomingDocumentService
         string userId,
         CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Elle yüklenen PDF dosyasını evrak numarasına (QrCode) göre bağlar; bu numarada evrak yoksa oluşturur.
+    /// Evrak Status = Update (2) olur. Numara başka bir dosyaya bağlıysa istek reddedilir.
+    /// Aktif zimmeti olmayan evrak, taranmış belge eşleştirmesindeki gibi yükleyen kullanıcıya zimmetlenir.
+    /// </summary>
+    Task AttachUploadedFileByNumberAsync(
+        string documentNumber,
+        string savedFileName,
+        string savedFullPath,
+        string originalFileName,
+        string userId,
+        CancellationToken cancellationToken);
+
     Task<IList<IncomingDocument>> GetAllAsync(GetAllIncomingDocumentQuery request, CancellationToken cancellationToken);
     Task<IList<IncomingDocument>> GetAllByDirectionAsync(string? documentDirection, CancellationToken cancellationToken);
 

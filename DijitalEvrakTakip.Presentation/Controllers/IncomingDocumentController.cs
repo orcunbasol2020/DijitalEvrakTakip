@@ -1,6 +1,7 @@
 ﻿using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.CreateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.PreRegisterIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UpdateIncomingDocument;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UploadIncomingDocumentByNumber;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UploadIncomingDocumentFile;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetAllIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetDocumentsByStatus;
@@ -64,6 +65,33 @@ public sealed class IncomingDocumentsController : ApiController
 
         var command = new UploadIncomingDocumentFileCommand(
             incomingDocumentId,
+            file.FileName,
+            memoryStream.ToArray(),
+            userId);
+
+        var response = await _mediator.Send(command, cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// PDF'i evrak numarasına göre gelen evraka bağlar; bu numarada evrak yoksa oluşturur. Evrak Status = 2 olur.
+    /// </summary>
+    [HttpPost("[action]")]
+    [RequestSizeLimit(20_000_000)]
+    public async Task<IActionResult> UploadWithDocumentNumber(
+        [FromForm] string documentNumber,
+        [FromForm] IFormFile file,
+        [FromForm] string userId,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { Message = "Yüklenecek dosya boş olamaz." });
+
+        await using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream, cancellationToken);
+
+        var command = new UploadIncomingDocumentByNumberCommand(
+            documentNumber,
             file.FileName,
             memoryStream.ToArray(),
             userId);
