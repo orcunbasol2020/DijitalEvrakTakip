@@ -21,5 +21,9 @@ public enum AllocationStatusEnum
 
     // Fiziksel evrak kargoya verildi; zimmet zinciri burada kapanır
     [Description("Kargoya Verildi")]
-    KargoyaVerildi = 6
+    KargoyaVerildi = 6,
+
+    // Kurum içi Devir talebi alıcı tarafından onaylandı
+    [Description("Devir Alındı")]
+    DevirAlindi = 7
 }

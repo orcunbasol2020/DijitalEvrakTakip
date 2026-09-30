@@ -11,6 +11,15 @@ public interface IDocumentAllocationService
         DocumentAllocation? previousAllocation,
         CancellationToken cancellationToken);
 
+    // CreateAsync ile aynı kayıtları (eski zimmet pasif, yeni zimmet, transaction, evrak durumu)
+    // hazırlar ama SaveChanges çağırmaz; çağıran kendi değişiklikleriyle tek commit'te kaydeder
+    Task StageCreateAsync(
+        DocumentAllocation allocation,
+        DocumentAllocation? previousAllocation,
+        int transactionType,
+        Guid? transactionCreatedUserId,
+        CancellationToken cancellationToken);
+
     Task<IList<DocumentAllocationDto>> GetByDocumentIdAsync(
         Guid incomingDocumentId,
         CancellationToken cancellationToken);

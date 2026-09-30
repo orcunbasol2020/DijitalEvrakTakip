@@ -38,5 +38,17 @@ public enum TransactionTypeEnum
     FileUpload = 11,
 
     [Description("Teslim Alındı")]
-    TeslimAlindi = 12
+    TeslimAlindi = 12,
+
+    [Description("Zimmet Onay Talebi")]
+    ZimmetTalebi = 13,
+
+    [Description("Devir Alındı")]
+    DevirAlindi = 14,
+
+    [Description("Zimmet Talebi Reddedildi")]
+    ZimmetTalebiReddedildi = 15,
+
+    [Description("Zimmet Talebi İptal Edildi")]
+    ZimmetTalebiIptal = 16
 }

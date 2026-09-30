@@ -58,6 +58,9 @@ builder.Services.AddScoped<ILanguageService, LanguageService>();
 builder.Services.AddScoped<IAppSettingService, AppSettingService>();
 builder.Services.AddScoped<IScannedDocumentImportService, ScannedDocumentImportService>();
 builder.Services.AddHostedService<ScannedDocumentImportBackgroundService>();
+builder.Services.AddScoped<IDocumentAllocationRequestService, DocumentAllocationRequestService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddHostedService<ZimmetApprovalReminderBackgroundService>();
 builder.Services.AddSingleton<IAppVersionProvider, AssemblyAppVersionProvider>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IWetSignedDocumentStorageService>(_ =>
@@ -107,6 +110,8 @@ builder.Services.AddScoped<IOutgoingDocumentAllocationRepository, OutgoingDocume
 builder.Services.AddScoped<IAtlasZimmetChangeRepository, AtlasZimmetChangeRepository>();
 builder.Services.AddScoped<ILanguageRepository, LanguageRepository>();
 builder.Services.AddScoped<IAppSettingRepository, AppSettingRepository>();
+builder.Services.AddScoped<IDocumentAllocationRequestRepository, DocumentAllocationRequestRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 //authentication (JWT)
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));

@@ -17,13 +17,19 @@ public sealed class DocumentAllocationsController : ApiController
     public DocumentAllocationsController(IMediator mediator)
         : base(mediator) { }
 
+    /// <summary>
+    /// Kurum içi başka kullanıcıya Devir / Teslim onay talebi açar; diğer durumlarda zimmeti doğrudan oluşturur.
+    /// Token gönderilirse createdUserId token'dan alınır.
+    /// </summary>
     [HttpPost("[action]")]
     public async Task<IActionResult> Create(
         CreateDocumentAllocationCommand request,
         CancellationToken cancellationToken)
     {
         MessageResponse response =
-            await _mediator.Send(request, cancellationToken);
+            await _mediator.Send(
+                request with { CreatedUserId = ResolveUserId(request.CreatedUserId) },
+                cancellationToken);
 
         return Ok(response);
     }

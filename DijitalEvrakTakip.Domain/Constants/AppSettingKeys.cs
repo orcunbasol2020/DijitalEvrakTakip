@@ -16,6 +16,14 @@ public static class AppSettingKeys
     public const string ScanImportEnabled = "ScanImportEnabled";
     public const string ScanImportIntervalSeconds = "ScanImportIntervalSeconds";
 
+    // Gelen evrak kurum içi Devir / Teslim onayı ve hatırlatmaları
+    public const string ZimmetApprovalRequired = "ZimmetApprovalRequired";
+    public const string ZimmetReminderEnabled = "ZimmetReminderEnabled";
+    public const string ZimmetReminderIntervalHours = "ZimmetReminderIntervalHours";
+    public const string ZimmetReminderEscalateAfter = "ZimmetReminderEscalateAfter";
+    public const string ZimmetReminderWorkStartHour = "ZimmetReminderWorkStartHour";
+    public const string ZimmetReminderWorkEndHour = "ZimmetReminderWorkEndHour";
+
     public static readonly IReadOnlyList<string> All = new[]
     {
         ApplicationName,
@@ -24,6 +32,12 @@ public static class AppSettingKeys
         AnnouncementMessage,
         ScanImportFolderPath,
         ScanImportEnabled,
-        ScanImportIntervalSeconds
+        ScanImportIntervalSeconds,
+        ZimmetApprovalRequired,
+        ZimmetReminderEnabled,
+        ZimmetReminderIntervalHours,
+        ZimmetReminderEscalateAfter,
+        ZimmetReminderWorkStartHour,
+        ZimmetReminderWorkEndHour
     };
 }

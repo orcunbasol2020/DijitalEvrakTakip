@@ -47,6 +47,28 @@ public sealed class DocumentAllocationService : IDocumentAllocationService
         DocumentAllocation? previousAllocation,
         CancellationToken cancellationToken)
     {
+        int tansactionStatus = (int)TransactionTypeEnum.Zimmet;
+        if (allocation.Status == 3)
+            tansactionStatus = (int)TransactionTypeEnum.TeslimZimmet;
+
+        await StageCreateAsync(
+            allocation,
+            previousAllocation,
+            tansactionStatus,
+            allocation.CreatedUserId,
+            cancellationToken);
+
+        // Tek commit
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task StageCreateAsync(
+        DocumentAllocation allocation,
+        DocumentAllocation? previousAllocation,
+        int transactionType,
+        Guid? transactionCreatedUserId,
+        CancellationToken cancellationToken)
+    {
         // Önceki aktif zimmet yenisiyle aynı commit'te pasife çekilir
         if (previousAllocation is not null)
         {
@@ -58,17 +80,13 @@ public sealed class DocumentAllocationService : IDocumentAllocationService
         // Allocation insert
         await _allocationRepository.AddAsync(allocation, cancellationToken);
 
-        int tansactionStatus = (int)TransactionTypeEnum.Zimmet;
-        if (allocation.Status == 3)
-            tansactionStatus = (int)TransactionTypeEnum.TeslimZimmet;
-
         // Transaction insert
         var transaction = new DocumentTransaction
         {
             DocumentId = allocation.IncomingDocumentId,
-            TransactionType = tansactionStatus,
+            TransactionType = transactionType,
             UserId = allocation.UserId.ToString(),
-            CreatedUserId = allocation.CreatedUserId.ToString(),
+            CreatedUserId = transactionCreatedUserId.ToString(),
             IsActive = true,
             CreatedDate = DateTime.UtcNow
         };
@@ -76,9 +94,6 @@ public sealed class DocumentAllocationService : IDocumentAllocationService
         await _transactionRepository.AddAsync(transaction, cancellationToken);
 
         await MarkDocumentDeliveredAsync(allocation, cancellationToken);
-
-        // Tek commit
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<DocumentAllocation?> GetByIdAsync(
