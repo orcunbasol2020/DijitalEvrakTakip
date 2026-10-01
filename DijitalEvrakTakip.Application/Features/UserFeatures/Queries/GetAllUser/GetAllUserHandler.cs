@@ -22,18 +22,44 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser
             //IList<UserDto> users = await _userService.GetAllAsync(request, cancellationToken);
             //return users.OrderBy(u => u.Name).ToList();
 
-            IQueryable<User> query = _userService
-                .GetAll()
-                .Include(u => u.Department);
+            IQueryable<User> query = _userService.GetAll();
 
             if (request.DepartmentId.HasValue)
             {
                 query = query.Where(u => u.DepartmentId == request.DepartmentId.Value);
             }
 
+            if (request.RoleId.HasValue)
+            {
+                Guid roleId = request.RoleId.Value;
+                query = query.Where(u => u.UserRoles.Any(ur =>
+                    ur.RoleId == roleId && !ur.IsDeleted && !ur.Role.IsDeleted && ur.Role.IsActive));
+            }
+
+            // Roller aynı sorguda projekte edilir; kullanıcı başına ayrı sorgu atılmaz.
             var result = await query
-                .ProjectToType<UserDto>()
                 .OrderBy(u => u.Name)
+                .Select(u => new UserDto
+                {
+                    Id = u.Id.ToString(),
+                    Name = u.Name,
+                    Surname = u.Surname,
+                    Email = u.Email,
+                    UserName = u.UserName,
+                    DepartmentId = u.DepartmentId.ToString(),
+                    DepartmentName = u.Department.Name,
+                    DepartmentShortName = u.Department.ShortName,
+                    UserType = u.UserType,
+                    IsActive = u.IsActive,
+                    IsDeleted = u.IsDeleted,
+                    CreatedDate = u.CreatedDate,
+                    UpdateDate = u.UpdateDate,
+                    Roles = u.UserRoles
+                        .Where(ur => !ur.IsDeleted && !ur.Role.IsDeleted && ur.Role.IsActive)
+                        .OrderBy(ur => ur.Role.Name)
+                        .Select(ur => new RoleSummaryDto { Id = ur.Role.Id, Name = ur.Role.Name })
+                        .ToList()
+                })
                 .ToListAsync(cancellationToken);
 
             return result;

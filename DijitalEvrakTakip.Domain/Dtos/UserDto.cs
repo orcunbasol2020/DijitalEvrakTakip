@@ -15,4 +15,7 @@ public sealed record UserDto
     public bool IsDeleted { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? UpdateDate { get; set; }
+
+    // Yalnızca Users/GetAll doldurur; diğer uçlarda null döner.
+    public List<RoleSummaryDto> Roles { get; set; }
 }
