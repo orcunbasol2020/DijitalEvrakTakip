@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Dtos;
+using DijitalEvrakTakip.Domain.Enums;
 
 namespace DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Commands.UpdateDocumentAllocation;
 
@@ -31,8 +32,17 @@ public sealed class UpdateDocumentAllocationCommandHandler
         if (!string.IsNullOrWhiteSpace(request.UserId))
             allocation.UserId = Guid.Parse(request.UserId);
 
+        if (request.UserType.HasValue)
+            allocation.UserType = request.UserType.Value;
+
         if (request.Status.HasValue)
+        {
+            if (!Enum.IsDefined(typeof(AllocationStatusEnum), request.Status.Value))
+                return new MessageResponse(
+                    "Geçersiz Status: 1 (Ön Kayıt), 2 (Devir), 3 (Teslim), 4 (Arşiv) veya 5 (Teslim Alındı) olmalıdır.");
+
             allocation.Status = request.Status.Value;
+        }
 
         if (request.IsActive.HasValue)
             allocation.IsActive = request.IsActive.Value;

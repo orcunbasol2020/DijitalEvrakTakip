@@ -1,14 +1,19 @@
 ﻿using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.CreateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.PreRegisterIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UpdateIncomingDocument;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UploadIncomingDocumentByNumber;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UploadIncomingDocumentFile;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetAllIncomingDocument;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetDocumentsByStatus;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentById;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentByQrCode;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentLast30DaysStats;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentTodayStats;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetOcrQueueStats;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetPendingIncomingDocumentCount;
 using DijitalEvrakTakip.Presentation.Abstractions;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -41,6 +46,60 @@ public sealed class IncomingDocumentsController : ApiController
         return Ok(new { id });
     }
 
+    /// <summary>
+    /// Tarama gerektirmeyen evrak için PDF dosyasını elle yükler. Evrakta dosya varsa üzerine yazılır.
+    /// </summary>
+    [HttpPost("[action]")]
+    [RequestSizeLimit(20_000_000)]
+    public async Task<IActionResult> UploadFile(
+        [FromForm] Guid incomingDocumentId,
+        [FromForm] IFormFile file,
+        [FromForm] string userId,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { Message = "Yüklenecek dosya boş olamaz." });
+
+        await using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream, cancellationToken);
+
+        var command = new UploadIncomingDocumentFileCommand(
+            incomingDocumentId,
+            file.FileName,
+            memoryStream.ToArray(),
+            userId);
+
+        var response = await _mediator.Send(command, cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// PDF'i evrak numarasına göre gelen evraka bağlar; bu numarada evrak yoksa oluşturur. Evrak Status = 2 olur.
+    /// </summary>
+    [HttpPost("[action]")]
+    [RequestSizeLimit(20_000_000)]
+    public async Task<IActionResult> UploadWithDocumentNumber(
+        [FromForm] string documentNumber,
+        [FromForm] IFormFile file,
+        [FromForm] string userId,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { Message = "Yüklenecek dosya boş olamaz." });
+
+        await using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream, cancellationToken);
+
+        var command = new UploadIncomingDocumentByNumberCommand(
+            documentNumber,
+            file.FileName,
+            memoryStream.ToArray(),
+            userId);
+
+        var response = await _mediator.Send(command, cancellationToken);
+        return Ok(response);
+    }
+
     [HttpGet("[action]")]
     public async Task<IActionResult> GetByQrCode([FromQuery] string qrCode, CancellationToken cancellationToken)
     {
@@ -70,11 +129,17 @@ public sealed class IncomingDocumentsController : ApiController
 
 
     [HttpGet("[action]")]
-    public async Task<IActionResult> GetAll([FromQuery] string? Status, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] string? Status,
+        [FromQuery] string? createdUserId,
+        [FromQuery] Guid? departmentId,
+        CancellationToken cancellationToken)
     {
         var query = new GetAllIncomingDocumentQuery
         {
-            Status = Status
+            Status = Status,
+            CreatedUserId = createdUserId,
+            DepartmentId = departmentId
         };
 
         var response = await _mediator.Send(query, cancellationToken);
@@ -101,6 +166,57 @@ public sealed class IncomingDocumentsController : ApiController
     public async Task<IActionResult> GetLast30DaysStats(CancellationToken cancellationToken)
     {
         var query = new GetIncomingDocumentLast30DaysStatsQuery();
+        var response = await _mediator.Send(query, cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetPendingScanStats(CancellationToken cancellationToken)
+    {
+        var query = new GetPendingIncomingDocumentTotalCountQuery();
+        var response = await _mediator.Send(query, cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetOcrQueueStats(CancellationToken cancellationToken)
+    {
+        var query = new GetOcrQueueStatsQuery();
+        var response = await _mediator.Send(query, cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetByDirection(
+        [FromQuery] string? documentDirection,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetDocumentsByDirectionQuery
+        {
+            DocumentDirection = documentDirection
+        };
+
+        var response = await _mediator.Send(query, cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Status (DocumentStatusEnum) değerine göre evrakları getirir. Örn: status=1 => Ön Kayıt.
+    /// </summary>
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetByStatus(
+        [FromQuery] int status,
+        [FromQuery] Guid? departmentId,
+        [FromQuery] string? createdUserId,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetDocumentsByStatusQuery
+        {
+            Status = status,
+            DepartmentId = departmentId,
+            CreatedUserId = createdUserId
+        };
+
         var response = await _mediator.Send(query, cancellationToken);
         return Ok(response);
     }

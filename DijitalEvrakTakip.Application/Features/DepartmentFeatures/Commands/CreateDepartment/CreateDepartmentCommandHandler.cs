@@ -1,4 +1,4 @@
-﻿using DijitalEvrakTakip.Application.Services;
+using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
 using MediatR;
@@ -20,6 +20,13 @@ public sealed class CreateDepartmentCommandHandler
         CreateDepartmentCommand request,
         CancellationToken cancellationToken)
     {
+        if (request.ParentId.HasValue)
+        {
+            Department? parent = await _departmentService.GetByIdAsync(request.ParentId.Value, cancellationToken);
+            if (parent is null)
+                throw new ArgumentException("Üst birim bulunamadı.");
+        }
+
         Department department = request.Adapt<Department>();
 
         await _departmentService.CreateAsync(department, cancellationToken);

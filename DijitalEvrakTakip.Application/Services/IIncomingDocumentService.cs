@@ -1,6 +1,7 @@
 ﻿using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.CreateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UpdateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetAllIncomingDocument;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetDocumentsByStatus;
 using DijitalEvrakTakip.Application.Features.ScannedDocumentFeatures.Commands.UpdateScannedDocument;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
@@ -11,7 +12,39 @@ public interface IIncomingDocumentService
 
     Task UpdateAsync(UpdateIncomingDocumentCommand request, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Elle yüklenen PDF dosyasını evraka bağlar: DocumentName ve ElectronicCopy güncellenir,
+    /// eşleştirme listesinde görünmemesi için DocumentNumber dolu bir ScannedDocument kaydı açılır/güncellenir
+    /// ve DocumentTransaction eklenir.
+    /// </summary>
+    Task AttachUploadedFileAsync(
+        Guid documentId,
+        string savedFileName,
+        string savedFullPath,
+        string originalFileName,
+        string userId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Elle yüklenen PDF dosyasını evrak numarasına (QrCode) göre bağlar; bu numarada evrak yoksa oluşturur.
+    /// Evrak Status = Update (2) olur. Numara başka bir dosyaya bağlıysa istek reddedilir.
+    /// Aktif zimmeti olmayan evrak, taranmış belge eşleştirmesindeki gibi yükleyen kullanıcıya zimmetlenir.
+    /// </summary>
+    Task AttachUploadedFileByNumberAsync(
+        string documentNumber,
+        string savedFileName,
+        string savedFullPath,
+        string originalFileName,
+        string userId,
+        CancellationToken cancellationToken);
+
     Task<IList<IncomingDocument>> GetAllAsync(GetAllIncomingDocumentQuery request, CancellationToken cancellationToken);
+    Task<IList<IncomingDocument>> GetAllByDirectionAsync(string? documentDirection, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// DocumentStatusEnum (Status alanı) değerine göre evrakları getirir. Opsiyonel departman ve kullanıcı filtresi uygulanabilir.
+    /// </summary>
+    Task<IList<IncomingDocument>> GetAllByStatusAsync(GetDocumentsByStatusQuery request, CancellationToken cancellationToken);
 
     Task<IncomingDocument?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
@@ -26,5 +59,7 @@ public interface IIncomingDocumentService
     Task<int> GetPendingCountByUserIdAsync(Guid userId, CancellationToken cancellationToken);
     Task<IncomingDocumentTodayStatsDto> GetTodayStatsAsync(CancellationToken cancellationToken);
     Task<IncomingDocumentLast30DaysStatsDto> GetLast30DaysStatsAsync(CancellationToken cancellationToken);
+    Task<IncomingDocumentPendingScanStatsDto> GetPendingScanStatsAsync(CancellationToken cancellationToken);
+    Task<IncomingDocumentOcrQueueStatsDto> GetOcrQueueStatsAsync(CancellationToken cancellationToken);
 
 }

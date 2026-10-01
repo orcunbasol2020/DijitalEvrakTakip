@@ -14,4 +14,13 @@ public interface IUserService
     public IQueryable<User> GetAll();
     Task<UserLoginDto> GetUserByUserName(Expression<Func<User, bool>> predicate, CancellationToken cancellationToken);
 
+    Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+
+    /// <summary>Login için: silinmiş/pasif kullanıcıyı da döndürür, karar handler'da verilir.</summary>
+    Task<User?> GetByUserNameAsync(string userName, CancellationToken cancellationToken);
+
+    Task UpdateAsync(User user, CancellationToken cancellationToken);
+
+    Task DeleteAsync(User user, CancellationToken cancellationToken);
+
 }

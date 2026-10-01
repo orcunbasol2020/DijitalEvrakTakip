@@ -3,4 +3,4 @@ using MediatR;
 
 namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser;
 
-public sealed record GetAllUserQuery() : IRequest<IList<UserDto>>;
+public sealed record GetAllUserQuery(Guid? DepartmentId = null, Guid? RoleId = null) : IRequest<IList<UserDto>>;

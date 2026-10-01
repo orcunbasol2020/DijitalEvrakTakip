@@ -9,6 +9,7 @@ public sealed record CreateIncomingDocumentCommand
     string? OrginalNo,
     string QrCode,
     int? SecurityDegree,
+    int? UrgencyDegree,
     int? DocumentTypeId,
     int? LanguageId,
     string? Subject,
@@ -18,6 +19,7 @@ public sealed record CreateIncomingDocumentCommand
     int? Status,
     bool? ElectronicCopy,
     bool? Release,
+    bool? ActionRequired,
     int? PageCount,
     DateTime? DocumentDate,
     DateTime? ReleaseDate,
@@ -25,5 +27,6 @@ public sealed record CreateIncomingDocumentCommand
     int? SubmissionStatus,
     string UserId,
     string? DocumentName,
-    string? Notes
+    string? Notes,
+    string? CreatedUserId = null
 ) : IRequest<MessageResponse>;

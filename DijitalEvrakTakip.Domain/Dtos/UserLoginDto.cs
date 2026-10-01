@@ -1,4 +1,4 @@
-﻿namespace DijitalEvrakTakip.Domain.Dtos;
+namespace DijitalEvrakTakip.Domain.Dtos;
 
 public sealed record UserLoginDto
 {
@@ -13,4 +13,6 @@ public sealed record UserLoginDto
     public bool IsActive { get; set; }
     public bool IsDeleted { get; set; }
     public IList<string> Roles { get; set; }
+    public string Token { get; set; }
+    public DateTime? TokenExpiration { get; set; }
 }

@@ -19,23 +19,7 @@ public sealed class GetActiveDocumentAllocationByDocumentIdHandler
         GetActiveDocumentAllocationByDocumentIdQuery request,
         CancellationToken cancellationToken)
     {
-        var allocation = await _documentAllocationService
-            .GetActiveByDocumentIdAsync(request.IncomingDocumentId, cancellationToken);
-
-        // Eğer aktif kayıt yoksa null dönecek
-        if (allocation == null) return null;
-
-        return new DocumentAllocationDto
-        {
-            Id = allocation.Id,
-            IncomingDocumentId = allocation.IncomingDocumentId,
-            UserId = allocation.UserId.ToString(),
-            FullName = allocation.User.Name + " " + allocation.User.Surname, // User bilgilerini ekliyoruz
-            Status = allocation.Status,
-            IsActive = allocation.IsActive,
-            IsDeleted = allocation.IsDeleted,
-            CreatedDate = allocation.CreatedDate,
-            UpdateDate = allocation.UpdateDate
-        };
+        return await _documentAllocationService
+            .GetActiveDtoByDocumentIdAsync(request.IncomingDocumentId, cancellationToken);
     }
 }

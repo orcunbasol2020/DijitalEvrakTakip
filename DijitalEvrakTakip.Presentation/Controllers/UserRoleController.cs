@@ -1,4 +1,7 @@
-﻿using DijitalEvrakTakip.Application.Features.UserRoleFeatures.Commands.CreateUserRole;
+﻿using DijitalEvrakTakip.Application.Features.UserRoleFeatures.Commands.AssignRolesToUser;
+using DijitalEvrakTakip.Application.Features.UserRoleFeatures.Commands.CreateUserRole;
+using DijitalEvrakTakip.Application.Features.UserRoleFeatures.Commands.RemoveUserRole;
+using DijitalEvrakTakip.Application.Features.UserRoleFeatures.Queries.GetRolesByUserId;
 using DijitalEvrakTakip.Application.Features.UserRoleFeatures.Queries.GetUserRoleByUser;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Presentation.Abstractions;
@@ -26,6 +29,31 @@ public sealed class UserRoleController : ApiController
         if (response is null)
             return NotFound();
 
+        return Ok(response);
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetRolesByUserId([FromQuery] GetRolesByUserIdQuery request, CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(request, cancellationToken);
+
+        if (response is null)
+            return NotFound();
+
+        return Ok(response);
+    }
+
+    [HttpPost("[action]")]
+    public async Task<IActionResult> AssignRoles(AssignRolesToUserCommand request, CancellationToken cancellationToken)
+    {
+        MessageResponse response = await _mediator.Send(request, cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpDelete("[action]")]
+    public async Task<IActionResult> RemoveRole([FromQuery] RemoveUserRoleCommand request, CancellationToken cancellationToken)
+    {
+        MessageResponse response = await _mediator.Send(request, cancellationToken);
         return Ok(response);
     }
 }

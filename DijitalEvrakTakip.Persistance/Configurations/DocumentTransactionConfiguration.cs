@@ -16,6 +16,10 @@ public sealed class DocumentTransactionConfiguration
         builder.Property(x => x.Id)
             .ValueGeneratedNever();
 
+        builder.Property(x => x.DocumentId)
+            .IsRequired()
+            .HasColumnType("uniqueidentifier");
+
         builder.Property(x => x.TransactionType)
             .IsRequired();
 
@@ -28,11 +32,5 @@ public sealed class DocumentTransactionConfiguration
 
         builder.Property(x => x.CreatedDate)
             .IsRequired();
-
-        // FK → IncomingDocument
-        builder.HasOne<IncomingDocument>()
-            .WithMany()
-            .HasForeignKey(x => x.DocumentId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -15,7 +15,8 @@ namespace DijitalEvrakTakip.Domain.Enums
         [Description("Güncelleme")]
         Update = 2,
 
-        [Description("Teslim")]
+        // Aktif zimmet Teslim (AllocationStatusEnum.Teslim) veya Teslim Alındı (AllocationStatusEnum.TeslimAlindi) olunca atanır
+        [Description("Teslim Edildi")]
         Teslim = 3,
 
         [Description("Eşleştirme")]
@@ -24,6 +25,7 @@ namespace DijitalEvrakTakip.Domain.Enums
         [Description("Ocr")]
         Ocr = 5,
 
+        // Status'a yazılmaz; güncellemede gelirse SubmissionStatus = PublishStatusEnum.Kuyrukta yapılır
         [Description("Yayınla")]
         Publish = 6,
 

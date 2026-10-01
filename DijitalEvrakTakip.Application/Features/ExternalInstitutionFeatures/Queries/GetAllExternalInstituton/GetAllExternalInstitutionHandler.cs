@@ -25,7 +25,11 @@ public sealed class GetAllExternalInstitutionQueryHandler
             .Select(x => new ExternalInstitutionDto
             {
                 Id = x.Id,
-                Name = x.Name
+                Name = x.Name,
+                Type= x.Type,
+                Address = x.Address,
+                DetsisCode = x.DetsisCode,
+                ParentId = x.ParentId
             })
             .ToList();
     }

@@ -3,6 +3,7 @@ using DijitalEvrakTakip.Domain.Entities;
 
 public class DocumentTransaction : Entity
 {
+    // Evrağın Id'si (FK değildir)
     public Guid DocumentId { get; set; }
 
     public int? TransactionType { get; set; }
@@ -12,8 +13,4 @@ public class DocumentTransaction : Entity
     public bool? IsActive { get; set; }
 
     public string? CreatedUserId { get; set; }
-
-    // Navigation
-    public IncomingDocument IncomingDocument { get; set; }
-
 }

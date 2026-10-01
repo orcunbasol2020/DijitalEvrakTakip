@@ -6,5 +6,7 @@ namespace DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Comman
 public sealed record PreRegisterIncomingDocumentCommand
 (
     string QrCode,
-    string UserId
+    string UserId,
+    int DocumentDirection,
+    string? CreatedUserId = null
 ) : IRequest<string>;

@@ -7,6 +7,7 @@ using DijitalEvrakTakip.Persistance.Repositories;
 using GenericRepository;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace DijitalEvrakTakip.Persistance.Services;
@@ -48,7 +49,46 @@ public sealed class UserRoleService : IUserRoleService
     {
         return await _userRoleRepository
             .Where(predicate)
+            .Include(x => x.Role)
             .ToListAsync(cancellationToken);
     }
 
+    public async Task AssignRolesAsync(Guid userId, IList<Guid> roleIds, CancellationToken cancellationToken)
+    {
+        IList<UserRole> existingUserRoles = await _userRoleRepository
+            .Where(x => x.UserId == userId && roleIds.Contains(x.RoleId))
+            .ToListAsync(cancellationToken);
+
+        foreach (Guid roleId in roleIds)
+        {
+            UserRole existing = existingUserRoles.FirstOrDefault(x => x.RoleId == roleId);
+
+            if (existing is null)
+            {
+                UserRole userRole = new() { UserId = userId, RoleId = roleId };
+                await _userRoleRepository.AddAsync(userRole, cancellationToken);
+            }
+            else if (existing.IsDeleted)
+            {
+                existing.IsDeleted = false;
+                existing.UpdateDate = DateTime.UtcNow;
+            }
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RemoveRoleFromUser(Guid userId, Guid roleId, CancellationToken cancellationToken)
+    {
+        var entity = await _userRoleRepository
+            .Where(x => x.UserId == userId && x.RoleId == roleId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (entity != null)
+        {
+            entity.IsDeleted = true;              
+            entity.UpdateDate = DateTime.UtcNow;
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+    }
 }
