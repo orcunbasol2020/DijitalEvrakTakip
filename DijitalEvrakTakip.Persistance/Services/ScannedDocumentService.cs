@@ -15,6 +15,7 @@ public sealed class ScannedDocumentService : IScannedDocumentService
     private readonly IIncomingDocumentRepository _incomingDocumentRepository;
     private readonly IDocumentAllocationRepository _allocationRepository;
     private readonly IDocumentTransactionRepository _transactionRepository;
+    private readonly IAtlasDocumentNumberPoolService _atlasDocumentNumberPoolService;
     private readonly IUnitOfWork _unitOfWork;
 
     public ScannedDocumentService(
@@ -22,8 +23,10 @@ public sealed class ScannedDocumentService : IScannedDocumentService
         IIncomingDocumentRepository incomingDocumentRepository,
         IDocumentAllocationRepository allocationRepository,
         IDocumentTransactionRepository transactionRepository,
+        IAtlasDocumentNumberPoolService atlasDocumentNumberPoolService,
         IUnitOfWork unitOfWork)
     {
+        _atlasDocumentNumberPoolService = atlasDocumentNumberPoolService;
         _scannedDocumentRepository = scannedDocumentRepository;
         _incomingDocumentRepository = incomingDocumentRepository;
         _allocationRepository = allocationRepository;
@@ -124,6 +127,8 @@ public sealed class ScannedDocumentService : IScannedDocumentService
                 UserId = request.UserId,
             };
             await _incomingDocumentRepository.AddAsync(incomingDocument, cancellationToken);
+
+            await _atlasDocumentNumberPoolService.MarkUsedForIncomingDocumentAsync(incomingDocument.QrCode, incomingDocument.Id, cancellationToken);
 
             hasActiveAllocation = false;
         }

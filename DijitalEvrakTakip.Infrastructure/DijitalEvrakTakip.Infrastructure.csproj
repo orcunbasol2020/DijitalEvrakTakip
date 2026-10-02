@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DijitalEvrakTakip.Application\DijitalEvrakTakip.Application.csproj" />
+  </ItemGroup>
+
 </Project>
