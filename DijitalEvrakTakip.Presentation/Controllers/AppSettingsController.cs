@@ -37,7 +37,8 @@ public sealed class AppSettingsController : ApiController
         UpdateAppSettingCommand request,
         CancellationToken cancellationToken)
     {
-        MessageResponse response = await _mediator.Send(request, cancellationToken);
+        var command = request with { UserId = ResolveUserId(request.UserId ?? "") };
+        MessageResponse response = await _mediator.Send(command, cancellationToken);
         return Ok(response);
     }
 }
