@@ -35,8 +35,11 @@ public class DocumentAllocationRequest : Entity
     // Onaylayan, reddeden veya iptal eden kullanıcı
     public Guid? RespondedUserId { get; set; }
 
-    // Red / iptal gerekçesi
+    // Red / iptal gerekçesi; şerhli kabulde şerh açıklaması
     public string? ResponseNote { get; set; }
+
+    // Alıcı evrakı şerh koyarak kabul etti (ör. sayfa / ek eksik)
+    public bool HasDiscrepancy { get; set; }
 
     // Onayda oluşan DocumentAllocation
     public Guid? ResultAllocationId { get; set; }

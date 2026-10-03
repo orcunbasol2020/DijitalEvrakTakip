@@ -171,6 +171,8 @@ public sealed class DocumentAllocationRequestService : IDocumentAllocationReques
 
     public async Task<AllocationRequestActionResultEnum> ApproveAsync(
         DocumentAllocationRequest request,
+        bool hasDiscrepancy,
+        string? note,
         bool notifySender,
         CancellationToken cancellationToken)
     {
@@ -213,17 +215,31 @@ public sealed class DocumentAllocationRequestService : IDocumentAllocationReques
         request.RespondedDate = now;
         request.RespondedUserId = request.ToUserId;
         request.ResultAllocationId = allocation.Id;
+        request.HasDiscrepancy = hasDiscrepancy;
+        request.ResponseNote = note;
         request.NextReminderDate = null;
         _requestRepository.Update(request);
+
+        // Evrak geçmişinde şerhli kabul ayrıca görünsün
+        if (hasDiscrepancy)
+            await _transactionRepository.AddAsync(new DocumentTransaction
+            {
+                DocumentId = request.IncomingDocumentId,
+                TransactionType = (int)TransactionTypeEnum.ZimmetSerhliKabul,
+                UserId = request.ToUserId.ToString(),
+                CreatedUserId = request.ToUserId.ToString(),
+                IsActive = true,
+                CreatedDate = now
+            }, cancellationToken);
 
         await RefreshPendingNotificationAfterResolveAsync(request, now, cancellationToken);
 
         if (notifySender)
             await StageResultNotificationsAsync(
-                NotificationTypeEnum.ZimmetOnaylandi,
+                hasDiscrepancy ? NotificationTypeEnum.ZimmetSerhliKabul : NotificationTypeEnum.ZimmetOnaylandi,
                 new[] { request },
                 request.ToUserId,
-                null,
+                note,
                 cancellationToken);
 
         // Zimmet, transaction, evrak durumu, talep ve bildirimler tek commit
@@ -536,6 +552,9 @@ public sealed class DocumentAllocationRequestService : IDocumentAllocationReques
                 NotificationTypeEnum.ZimmetOnaylandi => (
                     "Zimmet onaylandı",
                     $"{actorName}, {subject} zimmetini kabul etti."),
+                NotificationTypeEnum.ZimmetSerhliKabul => (
+                    "Zimmet şerhli kabul edildi",
+                    $"{actorName}, {subject} zimmetini şerh koyarak kabul etti. Şerh: {note}"),
                 NotificationTypeEnum.ZimmetReddedildi => (
                     "Zimmet reddedildi",
                     $"{actorName}, {subject} zimmetini kabul etmedi. {(single is not null ? "Evrak" : "Evraklar")} üzerinizde kalmaya devam ediyor.{reason}"),
@@ -750,7 +769,10 @@ public sealed class DocumentAllocationRequestService : IDocumentAllocationReques
                 x.QrCode,
                 x.DocumentName,
                 x.Subject,
-                x.DocumentDate
+                x.DocumentDate,
+                x.PageCount,
+                x.HasAttachment,
+                x.AttachmentDescription
             })
             .ToDictionaryAsync(x => x.Id, cancellationToken);
 
@@ -768,6 +790,9 @@ public sealed class DocumentAllocationRequestService : IDocumentAllocationReques
                     DocumentName = document?.DocumentName,
                     Subject = document?.Subject,
                     DocumentDate = document?.DocumentDate,
+                    PageCount = document?.PageCount,
+                    HasAttachment = document?.HasAttachment,
+                    AttachmentDescription = document?.AttachmentDescription,
                     FromUserId = x.FromUserId,
                     FromUserFullName = x.FromUserId is Guid fromUserId
                         ? fullNames.GetValueOrDefault(fromUserId, string.Empty)
@@ -779,6 +804,7 @@ public sealed class DocumentAllocationRequestService : IDocumentAllocationReques
                     RequestedAllocationStatus = x.RequestedAllocationStatus,
                     Status = x.Status,
                     ResponseNote = x.ResponseNote,
+                    HasDiscrepancy = x.HasDiscrepancy,
                     RespondedDate = x.RespondedDate,
                     ResultAllocationId = x.ResultAllocationId,
                     ReminderCount = x.ReminderCount,

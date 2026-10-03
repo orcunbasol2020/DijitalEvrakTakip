@@ -13,6 +13,11 @@ public sealed class DocumentAllocationRequestDto
     public string? Subject { get; set; }
     public DateTime? DocumentDate { get; set; }
 
+    // Devredenin beyanı; alıcı onay ekranında kontrol eder (evrakın güncel değerleri)
+    public int? PageCount { get; set; }
+    public bool? HasAttachment { get; set; }
+    public string? AttachmentDescription { get; set; }
+
     public Guid? FromUserId { get; set; }
     public string FromUserFullName { get; set; } = string.Empty;
     public Guid ToUserId { get; set; }
@@ -27,6 +32,7 @@ public sealed class DocumentAllocationRequestDto
     public int Status { get; set; }
 
     public string? ResponseNote { get; set; }
+    public bool HasDiscrepancy { get; set; }
     public DateTime? RespondedDate { get; set; }
     public Guid? ResultAllocationId { get; set; }
     public int ReminderCount { get; set; }

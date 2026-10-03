@@ -39,6 +39,9 @@ public sealed class DocumentAllocationRequestConfiguration
         builder.Property(x => x.ResponseNote)
             .HasMaxLength(1000);
 
+        builder.Property(x => x.HasDiscrepancy)
+            .IsRequired();
+
         builder.Property(x => x.ReminderCount)
             .IsRequired()
             .HasDefaultValue(0);

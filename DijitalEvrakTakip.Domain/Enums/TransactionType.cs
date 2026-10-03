@@ -50,5 +50,9 @@ public enum TransactionTypeEnum
     ZimmetTalebiReddedildi = 15,
 
     [Description("Zimmet Talebi İptal Edildi")]
-    ZimmetTalebiIptal = 16
+    ZimmetTalebiIptal = 16,
+
+    // Teslim Alındı / Devir Alındı kaydının yanına yazılır; şerh metni zimmet talebinde
+    [Description("Şerhli Kabul")]
+    ZimmetSerhliKabul = 17
 }

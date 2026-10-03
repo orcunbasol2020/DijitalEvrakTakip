@@ -24,12 +24,13 @@ public static class AllocationRequestActionRunner
         Guid requestId,
         string userIdValue,
         string? note,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool hasDiscrepancy = false)
     {
         if (!Guid.TryParse(userIdValue, out var userId))
             return ToResponse(Result(requestId, AllocationRequestActionResultEnum.GecersizKullanici, action, null));
 
-        var (result, _) = await RunAsync(service, action, requestId, userId, note, notify: true, cancellationToken);
+        var (result, _) = await RunAsync(service, action, requestId, userId, note, hasDiscrepancy, notify: true, cancellationToken);
 
         return ToResponse(result);
     }
@@ -50,7 +51,8 @@ public static class AllocationRequestActionRunner
 
         foreach (var requestId in requestIds.Distinct())
         {
-            var (result, request) = await RunAsync(service, action, requestId, userId, note, notify: false, cancellationToken);
+            // Toplu onay şerhsizdir; şerh koyacak alıcı evrakı tek tek onaylar
+            var (result, request) = await RunAsync(service, action, requestId, userId, note, hasDiscrepancy: false, notify: false, cancellationToken);
 
             results.Add(result);
             if (result.Result == (int)AllocationRequestActionResultEnum.Basarili && request is not null)
@@ -83,6 +85,7 @@ public static class AllocationRequestActionRunner
         Guid requestId,
         Guid userId,
         string? note,
+        bool hasDiscrepancy,
         bool notify,
         CancellationToken cancellationToken)
     {
@@ -96,7 +99,7 @@ public static class AllocationRequestActionRunner
 
         var result = action switch
         {
-            AllocationRequestAction.Approve => await service.ApproveAsync(request!, notify, cancellationToken),
+            AllocationRequestAction.Approve => await service.ApproveAsync(request!, hasDiscrepancy, trimmedNote, notify, cancellationToken),
             AllocationRequestAction.Reject => await service.RejectAsync(request!, trimmedNote, notify, cancellationToken),
             _ => await service.CancelAsync(request!, userId, trimmedNote, notify, cancellationToken)
         };
@@ -156,9 +159,10 @@ public static class AllocationRequestActionRunner
     {
         AllocationRequestActionResultEnum.Basarili => action switch
         {
-            AllocationRequestAction.Approve => request?.RequestedAllocationStatus == (int)AllocationStatusEnum.Teslim
-                ? "Zimmet kabul edildi; evrak teslim alındı"
-                : "Zimmet kabul edildi; evrak devir alındı",
+            AllocationRequestAction.Approve => (request?.HasDiscrepancy == true ? "Zimmet şerhli olarak kabul edildi" : "Zimmet kabul edildi")
+                + (request?.RequestedAllocationStatus == (int)AllocationStatusEnum.Teslim
+                    ? "; evrak teslim alındı"
+                    : "; evrak devir alındı"),
             AllocationRequestAction.Reject => "Zimmet reddedildi; evrak devreden kullanıcıda kaldı",
             _ => "Zimmet talebi iptal edildi"
         },

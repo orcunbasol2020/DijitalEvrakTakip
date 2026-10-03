@@ -24,5 +24,9 @@ public enum NotificationTypeEnum
     ZimmetOnayGecikme = 6,
 
     [Description("Zimmet Talebi Geçersiz")]
-    ZimmetTalebiGecersiz = 7
+    ZimmetTalebiGecersiz = 7,
+
+    // Alıcı zimmeti şerh koyarak kabul etti; devredene ve işlemi yapana gider
+    [Description("Zimmet Şerhli Kabul Edildi")]
+    ZimmetSerhliKabul = 8
 }
