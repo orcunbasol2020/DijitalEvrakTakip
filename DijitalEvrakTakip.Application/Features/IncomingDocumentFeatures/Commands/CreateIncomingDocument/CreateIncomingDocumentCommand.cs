@@ -28,5 +28,7 @@ public sealed record CreateIncomingDocumentCommand
     string UserId,
     string? DocumentName,
     string? Notes,
-    string? CreatedUserId = null
+    string? CreatedUserId = null,
+    bool? HasAttachment = null,
+    string? AttachmentDescription = null
 ) : IRequest<MessageResponse>;
