@@ -9,6 +9,18 @@ public interface INotificationService
         Guid userId,
         bool onlyUnread,
         int? take,
+        string? search,
+        IReadOnlyCollection<int>? excludeTypes,
+        CancellationToken cancellationToken);
+
+    // search başlık ve mesajda Türkçe büyük/küçük harf duyarsız arar
+    Task<NotificationPagedResultDto> GetPagedByUserIdAsync(
+        Guid userId,
+        bool onlyUnread,
+        int? page,
+        int? pageSize,
+        string? search,
+        IReadOnlyCollection<int>? excludeTypes,
         CancellationToken cancellationToken);
 
     Task<int> GetUnreadCountAsync(
