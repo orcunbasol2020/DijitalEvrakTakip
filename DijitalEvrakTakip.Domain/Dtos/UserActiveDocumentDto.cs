@@ -1,9 +1,10 @@
 namespace DijitalEvrakTakip.Domain.Dtos;
 
 /// <summary>
-/// Bir kullanıcı üzerinde aktif zimmetli olan gelen ve giden evrakları tek satır tipinde temsil eder.
+/// Bir kullanıcıya zimmetlenen (aktif veya devredilmiş) gelen ve giden evrakları tek satır tipinde temsil eder.
 /// DocumentDirection: DocumentDirectionEnum (1 = Gelen, 2 = Giden).
 /// Gelen evrakta FromName = dış kurum, ToName = birim; giden evrakta FromName = birim, ToName = dış kurum.
+/// IsActive: zimmet hâlâ kullanıcıda ise true, devredildiyse false.
 /// </summary>
 public sealed class UserActiveDocumentDto
 {
@@ -18,5 +19,6 @@ public sealed class UserActiveDocumentDto
     public string? ToName { get; set; }
     public int Status { get; set; }
     public int Source { get; set; }
+    public bool IsActive { get; set; }
     public DateTime AllocatedDate { get; set; }
 }

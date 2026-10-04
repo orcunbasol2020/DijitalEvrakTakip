@@ -27,8 +27,35 @@ public sealed class UserActiveDocumentService : IUserActiveDocumentService
         _outgoingDocumentRepository = outgoingDocumentRepository;
     }
 
-    public async Task<PagedResultDto<UserActiveDocumentDto>> GetActiveByUserIdAsync(
+    public Task<PagedResultDto<UserActiveDocumentDto>> GetActiveByUserIdAsync(
         Guid userId,
+        int? documentDirection,
+        int? page,
+        int? pageSize,
+        CancellationToken cancellationToken)
+    {
+        return GetByUserIdAsync(
+            userId, onlyActive: true, excludeSelfAllocations: false,
+            documentDirection, page, pageSize, cancellationToken);
+    }
+
+    public Task<PagedResultDto<UserActiveDocumentDto>> GetReceivedByUserIdAsync(
+        Guid userId,
+        int? documentDirection,
+        int? page,
+        int? pageSize,
+        CancellationToken cancellationToken)
+    {
+        // Kullanıcının kendine yaptığı zimmetler (örn. evrak kaydı sırasında) teslim alma sayılmaz.
+        return GetByUserIdAsync(
+            userId, onlyActive: false, excludeSelfAllocations: true,
+            documentDirection, page, pageSize, cancellationToken);
+    }
+
+    private async Task<PagedResultDto<UserActiveDocumentDto>> GetByUserIdAsync(
+        Guid userId,
+        bool onlyActive,
+        bool excludeSelfAllocations,
         int? documentDirection,
         int? page,
         int? pageSize,
@@ -38,9 +65,10 @@ public sealed class UserActiveDocumentService : IUserActiveDocumentService
         // tek bir SQL (UNION ALL) olarak çalışır; sıralama ve sayfalama da veritabanında yapılır.
         IQueryable<UserActiveDocumentDto> query = documentDirection switch
         {
-            (int)DocumentDirectionEnum.Incoming => BuildIncomingQuery(userId),
-            (int)DocumentDirectionEnum.Outgoing => BuildOutgoingQuery(userId),
-            _ => BuildIncomingQuery(userId).Concat(BuildOutgoingQuery(userId))
+            (int)DocumentDirectionEnum.Incoming => BuildIncomingQuery(userId, onlyActive, excludeSelfAllocations),
+            (int)DocumentDirectionEnum.Outgoing => BuildOutgoingQuery(userId, onlyActive, excludeSelfAllocations),
+            _ => BuildIncomingQuery(userId, onlyActive, excludeSelfAllocations)
+                .Concat(BuildOutgoingQuery(userId, onlyActive, excludeSelfAllocations))
         };
 
         query = query.OrderByDescending(x => x.AllocatedDate);
@@ -78,11 +106,12 @@ public sealed class UserActiveDocumentService : IUserActiveDocumentService
     }
 
     // Gelen evrak: dış kurumdan (FromName) birime (ToName) gelir.
-    private IQueryable<UserActiveDocumentDto> BuildIncomingQuery(Guid userId)
+    private IQueryable<UserActiveDocumentDto> BuildIncomingQuery(Guid userId, bool onlyActive, bool excludeSelfAllocations)
     {
         return from allocation in _incomingAllocationRepository.GetAll()
                where allocation.UserId == userId
-                     && allocation.IsActive
+                     && (!onlyActive || allocation.IsActive)
+                     && (!excludeSelfAllocations || allocation.CreatedUserId != userId)
                      && !allocation.IsDeleted
                join document in _incomingDocumentRepository.GetAll()
                    on allocation.IncomingDocumentId equals document.Id into documents
@@ -100,17 +129,19 @@ public sealed class UserActiveDocumentService : IUserActiveDocumentService
                    ToName = document.Department!.Name,
                    Status = allocation.Status,
                    Source = allocation.Source,
+                   IsActive = allocation.IsActive,
                    AllocatedDate = allocation.CreatedDate
                };
     }
 
     // Giden evrak: birimden (FromName) dış kuruma (ToName) gider.
     // Giden evrakta ayrı bir belge adı alanı olmadığından DocumentName olarak Subject kullanılır.
-    private IQueryable<UserActiveDocumentDto> BuildOutgoingQuery(Guid userId)
+    private IQueryable<UserActiveDocumentDto> BuildOutgoingQuery(Guid userId, bool onlyActive, bool excludeSelfAllocations)
     {
         return from allocation in _outgoingAllocationRepository.GetAll()
                where allocation.UserId == userId
-                     && allocation.IsActive
+                     && (!onlyActive || allocation.IsActive)
+                     && (!excludeSelfAllocations || allocation.CreatedUserId != userId)
                      && !allocation.IsDeleted
                join document in _outgoingDocumentRepository.GetAll()
                    on allocation.OutgoingDocumentId equals document.Id into documents
@@ -128,6 +159,7 @@ public sealed class UserActiveDocumentService : IUserActiveDocumentService
                    ToName = document.ExternalInstitution!.Name,
                    Status = allocation.Status,
                    Source = allocation.Source,
+                   IsActive = allocation.IsActive,
                    AllocatedDate = allocation.CreatedDate
                };
     }
