@@ -24,7 +24,8 @@ public sealed class ApproveAllocationRequestCommandHandler
             AllocationRequestAction.Approve,
             request.RequestId,
             request.UserId,
-            null,
-            cancellationToken);
+            request.Note,
+            cancellationToken,
+            request.HasDiscrepancy);
     }
 }

@@ -24,6 +24,13 @@ public static class AppSettingKeys
     public const string ZimmetReminderWorkStartHour = "ZimmetReminderWorkStartHour";
     public const string ZimmetReminderWorkEndHour = "ZimmetReminderWorkEndHour";
 
+    // Atlas EBYS evrak numarası (QR kod) havuzu
+    public const string AtlasNumberPoolEnabled = "AtlasNumberPoolEnabled";
+    public const string AtlasNumberPoolIntervalSeconds = "AtlasNumberPoolIntervalSeconds";
+    public const string AtlasNumberPoolMinStock = "AtlasNumberPoolMinStock";
+    public const string AtlasNumberPoolBatchSize = "AtlasNumberPoolBatchSize";
+    public const string AtlasNumberPoolEnforced = "AtlasNumberPoolEnforced";
+
     public static readonly IReadOnlyList<string> All = new[]
     {
         ApplicationName,
@@ -38,6 +45,11 @@ public static class AppSettingKeys
         ZimmetReminderIntervalHours,
         ZimmetReminderEscalateAfter,
         ZimmetReminderWorkStartHour,
-        ZimmetReminderWorkEndHour
+        ZimmetReminderWorkEndHour,
+        AtlasNumberPoolEnabled,
+        AtlasNumberPoolIntervalSeconds,
+        AtlasNumberPoolMinStock,
+        AtlasNumberPoolBatchSize,
+        AtlasNumberPoolEnforced
     };
 }

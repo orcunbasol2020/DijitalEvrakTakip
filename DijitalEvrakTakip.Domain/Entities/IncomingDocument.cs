@@ -34,6 +34,10 @@ namespace DijitalEvrakTakip.Domain.Entities
         // Bilgi/Gereği: true = Gereği, false = Bilgi
         public bool? ActionRequired { get; set; }
         public int? PageCount { get; set; }
+        // Ek var / yok; null = belirtilmemiş. Zorunlu değil
+        public bool? HasAttachment { get; set; }
+        // Ekin serbest metin açıklaması (ör. "1 dergi, 1 flash disk"); ek yok denmişse boş tutulur
+        public string? AttachmentDescription { get; set; }
         public DateTime? DocumentDate { get; set; }
         public DateTime? ReleaseDate { get; set; }
 

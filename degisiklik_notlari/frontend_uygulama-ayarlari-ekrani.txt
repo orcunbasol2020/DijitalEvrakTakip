@@ -1,0 +1,88 @@
+Admin ekranı: Uygulama ayarları (AppSettings)
+
+Ayarlar veritabanındaki AppSettings tablosunda anahtar-değer olarak tutuluyor. Admin bunları ekrandan değiştirebilir.
+Değişiklik kaydedildiği an geçerli olur, uygulamayı yeniden başlatmak gerekmez. Arka plan servisleri ayarları her turda yeniden okur.
+
+
+1) Listeleme: GET api/AppSettings/GetAll
+
+Yanıt (anahtara göre sıralı dizi):
+[
+  {
+    "id": "…",
+    "key": "AtlasNumberPoolMinStock",
+    "value": "100",
+    "description": "Boştaki numara sayısı bunun altına düşünce Atlas'tan yeni numara alınır",
+    "updatedByUserId": null,
+    "updateDate": "2026-10-02T08:29:00"
+  },
+  …
+]
+
+- Bütün değerler string olarak gelir: "true", "100", null vb. Tipine göre aşağıdaki tabloya bakılsın.
+- description backend'den geliyor. Alanın altında yardım metni olarak gösterilebilir.
+- updateDate UTC. Yerel saate çevrilip "son güncelleme" olarak gösterilebilir.
+
+
+2) Güncelleme: POST api/AppSettings/Update
+
+Her ayar ayrı istekle güncellenir:
+{ "key": "AtlasNumberPoolMinStock", "value": "100", "userId": "<giriş yapan kullanıcının id'si>" }
+
+- value her zaman string gönderilsin: true/false için "true" / "false", sayılar için "100".
+- Token gönderiliyorsa güncelleyen kullanıcı token'dan alınır, body'deki userId yok sayılır. Token yoksa body'deki userId kullanılır. userId yine de gönderilsin.
+- Başarılı yanıt: { "message": "Ayar güncellendi." }
+- Backend değeri aşağıdaki tablodaki tip ve aralık kurallarına göre kontrol eder. Bilinmeyen anahtar, kurala uymayan değer, 2000 karakteri aşan değer ya da geçersiz e-posta gönderilirse HTTP 500 döner, gövdesi:
+  { "Errors": ["Value"], "StatusCode": 403 }
+  Errors içinde mesaj değil, hatalı alanın adı geliyor ("Key" veya "Value"). Bu yüzden kullanıcıya gösterilecek açıklayıcı mesaj frontend'de üretilsin.
+- Aynı kurallar frontend'de de uygulansın. Geçersiz değerle Kaydet butonu pasif olsun, kullanıcı hatayı kaydetmeden önce görsün.
+- Sayı ve true/false ayarları boş bırakılamaz. Alan silinip kaydedilirse backend reddeder.
+- Tek istisna mesai saatleri: "WorkEndHour, WorkStartHour'dan büyük olmalı" kuralını backend kontrol ETMİYOR.
+  Ayarlar tek tek kaydedildiği için bu kural sıralı güncellemeyi engellerdi. Örneğin 8-18'den 19-23'e geçerken önce başlangıç 19 yapılınca, bitiş hâlâ 18 olduğu için istek reddedilirdi.
+  Bu kontrol yalnızca frontend'de yapılsın. İki saat birlikte değiştiğinde istekler şu sırayla gönderilsin:
+  saatler ileri alınıyorsa önce WorkEndHour, geri alınıyorsa önce WorkStartHour.
+- Ekranda tek bir "Kaydet" butonu varsa yalnızca değişen ayarlar için istek gönderilsin. Biri hata verirse hangisinin kaydedilemediği gösterilsin.
+
+
+3) Ayarlar ve kuralları
+
+Ekranda gruplar halinde gösterilmesi önerilir. Kısıtlar sütunu, frontend'in uygulaması gereken kuralları gösteriyor.
+
+A) Genel bilgiler ("Hakkında" ekranı ve destek bilgisi)
+| Anahtar             | Tip    | Şu anki değer        | Kısıtlar / not |
+| ApplicationName     | metin  | Dijital Evrak Takip  | Boş bırakılmasın, en fazla 2000 karakter |
+| SupportEmail        | e-posta| (boş)                | Boş olabilir. Doluysa geçerli e-posta olmalı (backend de kontrol ediyor) |
+| SupportPhone        | metin  | (boş)                | Boş olabilir |
+| AnnouncementMessage | uzun metin (textarea) | (boş) | Boş olabilir. GET api/AppSettings/GetAppInfo yanıtında announcementMessage olarak döner |
+
+B) Taranan belgelerin klasörden otomatik aktarımı
+| ScanImportEnabled          | true/false (switch) | true | |
+| ScanImportFolderPath       | metin               | C:\EvrakTakip\belgeler\scanned | SUNUCUDAKİ klasör yolu, kullanıcının bilgisayarındaki değil. Boş bırakılmasın. Klasörün var olup olmadığını backend kontrol etmiyor; yanlış yolda aktarma sessizce durur |
+| ScanImportIntervalSeconds  | tam sayı (saniye)   | 30   | En az 10 |
+
+C) Gelen evrak zimmet onayı ve hatırlatmalar
+| ZimmetApprovalRequired       | true/false | true | Kurum içi devir/teslimde alıcının onayı gereksin mi |
+| ZimmetReminderEnabled        | true/false | true | |
+| ZimmetReminderIntervalHours  | tam sayı (saat) | 4 | En az 1 |
+| ZimmetReminderEscalateAfter  | tam sayı | 3 | 0 veya daha büyük. 0 = devredene gecikme bildirimi gönderilmez |
+| ZimmetReminderWorkStartHour  | tam sayı (saat) | 8  | 0-23 arası |
+| ZimmetReminderWorkEndHour    | tam sayı (saat) | 18 | 1-24 arası ve WorkStartHour'dan BÜYÜK olmalı. Aksi halde hiç hatırlatma gönderilmez |
+Hatırlatmalar yalnızca hafta içi ve bu saatler arasında, sunucu saatine göre gönderilir. Ekranda bunu belirten bir not olsun.
+
+D) Atlas evrak numarası (QR kod) havuzu
+| AtlasNumberPoolEnabled          | true/false | false | Havuz arka planda otomatik doldurulsun mu. ŞU AN AÇILMAMALI: Atlas bağlantısı henüz sahte, açılırsa havuza test numaraları girer. Switch'in yanında uyarı gösterilebilir |
+| AtlasNumberPoolMinStock         | tam sayı | 100 | En az 1. Boştaki numara bunun altına düşünce Atlas'tan yeni paket alınır |
+| AtlasNumberPoolBatchSize        | tam sayı | 100 | 1-1000 arası. Atlas'tan tek seferde alınan numara adedi |
+| AtlasNumberPoolIntervalSeconds  | tam sayı (saniye) | 300 | En az 30. Stok kontrol aralığı |
+| AtlasNumberPoolEnforced         | true/false | false | Açıkken gelen evrak yalnızca havuzdaki numarayla açılabilir. Geçiş tamamlanınca açılacak. Açmadan önce onay penceresi gösterilsin |
+
+- Sayı alanlarında input type="number" ile min ve max kullanılsın, ayrıca tam sayı kontrolü yapılsın.
+- true/false alanları switch ya da checkbox olsun, string olarak "true" / "false" gönderilsin.
+- Tabloda olmayan bir anahtar GetAll'dan gelirse genel metin alanı olarak gösterilsin. Yeni ayarlar eklendikçe ekran bozulmasın.
+
+
+4) Havuz ayarlarının yanında gösterilebilecek bilgi (isteğe bağlı)
+
+GET api/AtlasDocumentNumbers/GetStock
+{ "available": 192, "reserved": 0, "used": 0, "cancelled": 0, "minStock": 100 }
+Atlas havuzu grubunun üstünde "Boşta: 192 / En az: 100" gibi gösterilebilir.

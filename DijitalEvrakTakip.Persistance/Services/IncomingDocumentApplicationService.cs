@@ -12,17 +12,20 @@ public sealed class IncomingDocumentApplicationService : IIncomingDocumentApplic
     private readonly IIncomingDocumentRepository _incomingDocumentRepository;
     private readonly IDocumentAllocationRepository _documentAllocationRepository;
     private readonly IDocumentTransactionRepository _documentTransactionRepository;
+    private readonly IAtlasDocumentNumberPoolService _atlasDocumentNumberPoolService;
     private readonly IUnitOfWork _unitOfWork;
 
     public IncomingDocumentApplicationService(
         IIncomingDocumentRepository incomingDocumentRepository,
         IDocumentAllocationRepository documentAllocationRepository,
         IDocumentTransactionRepository documentTransactionRepository,
+        IAtlasDocumentNumberPoolService atlasDocumentNumberPoolService,
         IUnitOfWork unitOfWork)
     {
         _incomingDocumentRepository = incomingDocumentRepository;
         _documentAllocationRepository = documentAllocationRepository;
         _documentTransactionRepository = documentTransactionRepository;
+        _atlasDocumentNumberPoolService = atlasDocumentNumberPoolService;
         _unitOfWork = unitOfWork;
     }
 
@@ -51,6 +54,9 @@ public sealed class IncomingDocumentApplicationService : IIncomingDocumentApplic
         };
 
         await _incomingDocumentRepository.AddAsync(document, cancellationToken);
+
+        // Atlas numara havuzundaki numara evrakla aynı SaveChanges içinde Kullanıldı yapılır
+        await _atlasDocumentNumberPoolService.MarkUsedForIncomingDocumentAsync(document.QrCode, document.Id, cancellationToken);
 
         var allocation = new DocumentAllocation
         {

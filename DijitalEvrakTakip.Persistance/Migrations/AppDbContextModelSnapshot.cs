@@ -61,6 +61,66 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.ToTable("AppSettings", (string)null);
                 });
 
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.AtlasDocumentNumber", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AtlasReferenceId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CancelledByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("IncomingDocumentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("QrCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("ReservedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ReservedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IncomingDocumentId");
+
+                    b.HasIndex("QrCode")
+                        .IsUnique();
+
+                    b.HasIndex("Status", "CreatedDate");
+
+                    b.ToTable("AtlasDocumentNumbers", (string)null);
+                });
+
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.AtlasZimmetChange", b =>
                 {
                     b.Property<Guid>("Id")
@@ -149,6 +209,305 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.HasIndex("IncomingDocumentId");
 
                     b.ToTable("AtlasZimmetChanges", (string)null);
+                });
+
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.ComAgency", b =>
+                {
+                    b.Property<int>("AgencyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("AgencyCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool?>("CanSendECorrespondence")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int?>("CorrespondenceAgencyId")
+                        .HasColumnType("int")
+                        .HasComment("Dolu ise ,yazışma burada yazan birim ile yapılabilir. Seçili birim ile direkt yazışma yapılamıyor demekki.");
+
+                    b.Property<string>("CorrespondenceAgencyText")
+                        .HasColumnType("nvarchar(max)")
+                        .HasComment("Yazışma birim metni");
+
+                    b.Property<string>("CorrespondenceAgencyTextParent")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DataSourceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("DepartmentCode")
+                        .HasMaxLength(3)
+                        .HasColumnType("nchar(3)")
+                        .IsFixedLength();
+
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DistributionCode1")
+                        .HasMaxLength(1)
+                        .IsUnicode(false)
+                        .HasColumnType("char(1)")
+                        .IsFixedLength();
+
+                    b.Property<string>("DistributionCode2")
+                        .HasMaxLength(1)
+                        .IsUnicode(false)
+                        .HasColumnType("char(1)")
+                        .IsFixedLength();
+
+                    b.Property<string>("DistributionCode3")
+                        .HasMaxLength(1)
+                        .IsUnicode(false)
+                        .HasColumnType("char(1)")
+                        .IsFixedLength();
+
+                    b.Property<string>("DistributionCode4")
+                        .HasMaxLength(1)
+                        .IsUnicode(false)
+                        .HasColumnType("char(1)")
+                        .IsFixedLength();
+
+                    b.Property<string>("DistributionTitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DistributionTitleParent")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ECorrespondenceEndPoint")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ECorrespondenceName")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("ECorrespondenceType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ECorrespondenceUsage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Fax")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("FullName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("HasSubAgency")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("IsCacheable")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsLocked")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("KEPAddress")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("KurumTip")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MainCode")
+                        .HasMaxLength(2)
+                        .IsUnicode(false)
+                        .HasColumnType("char(2)")
+                        .IsFixedLength();
+
+                    b.Property<string>("MersisNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int?>("OldId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ParentAdminAgencyId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ParentAgencyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PathFlaten")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Position")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("SubAgencyCode1")
+                        .HasMaxLength(2)
+                        .IsUnicode(false)
+                        .HasColumnType("char(2)")
+                        .IsFixedLength();
+
+                    b.Property<string>("SubAgencyCode2")
+                        .HasMaxLength(2)
+                        .IsUnicode(false)
+                        .HasColumnType("char(2)")
+                        .IsFixedLength();
+
+                    b.Property<string>("SubAgencyCode3")
+                        .HasMaxLength(2)
+                        .IsUnicode(false)
+                        .HasColumnType("char(2)")
+                        .IsFixedLength();
+
+                    b.Property<string>("SubAgencyCode4")
+                        .HasMaxLength(2)
+                        .IsUnicode(false)
+                        .HasColumnType("char(2)")
+                        .IsFixedLength();
+
+                    b.Property<long?>("Test")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("TypeCode")
+                        .HasMaxLength(1)
+                        .IsUnicode(false)
+                        .HasColumnType("char(1)")
+                        .IsFixedLength();
+
+                    b.Property<bool?>("UseCorrespondenceAgencyIdAsAgencyId")
+                        .HasColumnType("bit")
+                        .HasComment("Bazı durumlarda, agencyId seçip, yazıda CorrespondenceAgency deki Name kullanılabilir.");
+
+                    b.Property<string>("WebAddress")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("AgencyId");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("ParentAgencyId");
+
+                    b.ToTable("ComAgency", (string)null);
+                });
+
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.ComDepartment", b =>
+                {
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CamLink")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("CityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(4)
+                        .IsUnicode(false)
+                        .HasColumnType("char(4)")
+                        .IsFixedLength();
+
+                    b.Property<int>("CountryId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CountyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DefaultName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("DefaultShortName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int?>("DepartmentLevel")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DepartmentTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DomisticOrganizationSortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DutyArea")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsDomisticOrganization")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("IsExternal")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ParentDepartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("RegionClass")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TransferId")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("Trash")
+                        .HasColumnType("bit");
+
+                    b.HasKey("DepartmentId");
+
+                    b.HasIndex("ParentDepartmentId");
+
+                    b.ToTable("ComDepartment", (string)null);
                 });
 
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.Department", b =>
@@ -332,6 +691,9 @@ namespace DijitalEvrakTakip.Persistance.Migrations
 
                     b.Property<Guid?>("FromUserId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("HasDiscrepancy")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("IncomingDocumentId")
                         .HasColumnType("uniqueidentifier");
@@ -565,6 +927,10 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<bool?>("ActionRequired")
                         .HasColumnType("bit");
 
+                    b.Property<string>("AttachmentDescription")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<string>("Content_Ocr")
                         .HasColumnType("nvarchar(max)");
 
@@ -601,6 +967,9 @@ namespace DijitalEvrakTakip.Persistance.Migrations
 
                     b.Property<Guid?>("ExternalInstitutionId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool?>("HasAttachment")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -1376,6 +1745,16 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.HasIndex("ExternalInstitutionId");
 
                     b.ToTable("ExternalUser", (string)null);
+                });
+
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.AtlasDocumentNumber", b =>
+                {
+                    b.HasOne("DijitalEvrakTakip.Domain.Entities.IncomingDocument", "IncomingDocument")
+                        .WithMany()
+                        .HasForeignKey("IncomingDocumentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("IncomingDocument");
                 });
 
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.AtlasZimmetChange", b =>

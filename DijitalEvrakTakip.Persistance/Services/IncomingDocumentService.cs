@@ -20,6 +20,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
     private readonly IDocumentAllocationRepository _allocationRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IUserRepository _userRepository;
+    private readonly IAtlasDocumentNumberPoolService _atlasDocumentNumberPoolService;
 
     public IncomingDocumentService(
         IIncomingDocumentRepository incomingDocumentRepository,
@@ -27,8 +28,10 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         IScannedDocumentRepository scannedDocumentRepository,
         IDocumentAllocationRepository allocationRepository,
         IUserRepository userRepository,
+        IAtlasDocumentNumberPoolService atlasDocumentNumberPoolService,
         IUnitOfWork unitOfWork)
     {
+        _atlasDocumentNumberPoolService = atlasDocumentNumberPoolService;
         _incomingDocumentRepository = incomingDocumentRepository;
         _documentTransactionRepository = documentTransactionRepository;
         _scannedDocumentRepository = scannedDocumentRepository;
@@ -145,6 +148,8 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
             };
             await _incomingDocumentRepository.AddAsync(entity, cancellationToken);
 
+            await _atlasDocumentNumberPoolService.MarkUsedForIncomingDocumentAsync(documentNumber, entity.Id, cancellationToken);
+
             hasActiveAllocation = false;
         }
 
@@ -224,6 +229,11 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
             CreatedUserId = request.CreatedUserId ?? request.UserId,
             DocumentName = request.DocumentName,
             Notes = request.Notes,
+            HasAttachment = request.HasAttachment,
+            // Ek yok denmişse açıklama tutulmaz
+            AttachmentDescription = request.HasAttachment == false
+                ? null
+                : NormalizeAttachmentDescription(request.AttachmentDescription),
             IsDeleted = false,
             CreatedDate = DateTime.UtcNow
         };
@@ -262,6 +272,10 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         if (request.SubmissionStatus.HasValue && !isPublish) entity.SubmissionStatus = request.SubmissionStatus;
         if (request.DocumentName != null) entity.DocumentName = request.DocumentName;
         if (request.Notes != null) entity.Notes = request.Notes;
+        if (request.HasAttachment.HasValue) entity.HasAttachment = request.HasAttachment;
+        // null gönderilirse mevcut açıklama korunur, boş metin açıklamayı temizler
+        if (request.AttachmentDescription != null) entity.AttachmentDescription = NormalizeAttachmentDescription(request.AttachmentDescription);
+        if (entity.HasAttachment == false) entity.AttachmentDescription = null;
 
         entity.UpdateDate = DateTime.UtcNow;
 
@@ -281,6 +295,9 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         await _documentTransactionRepository.AddAsync(transaction, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
+
+    private static string? NormalizeAttachmentDescription(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     public async Task<IncomingDocument?> GetByQrCodeAsync(string qrCode, CancellationToken cancellationToken)
     {

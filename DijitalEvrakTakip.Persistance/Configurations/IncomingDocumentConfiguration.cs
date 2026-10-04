@@ -33,6 +33,9 @@ public sealed class IncomingDocumentConfiguration
         builder.Property(x => x.Subject)
             .HasMaxLength(100);
 
+        builder.Property(x => x.AttachmentDescription)
+            .HasMaxLength(1000);
+
         builder.Property(x => x.Content_Ocr)
             .HasColumnType("nvarchar(max)");
 
@@ -57,6 +60,8 @@ public sealed class IncomingDocumentConfiguration
         builder.Property(x => x.ElectronicCopy);
 
         builder.Property(x => x.Release);
+
+        builder.Property(x => x.HasAttachment);
 
         builder.Property(x => x.ActionRequired);
 

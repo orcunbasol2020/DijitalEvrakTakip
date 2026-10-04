@@ -22,6 +22,8 @@ public sealed class GetNotificationsByUserIdHandler
             request.UserId,
             request.OnlyUnread,
             request.Take,
+            request.Search,
+            request.ExcludeTypes,
             cancellationToken);
     }
 }

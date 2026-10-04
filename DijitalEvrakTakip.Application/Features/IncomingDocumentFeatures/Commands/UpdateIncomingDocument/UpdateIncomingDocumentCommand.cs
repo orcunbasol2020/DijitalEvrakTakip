@@ -27,5 +27,7 @@ public sealed record UpdateIncomingDocumentCommand
     int? SubmissionStatus,
     string UserId,
     string? DocumentName,
-    string? Notes
-) : IRequest<MessageResponse>;
+    string? Notes,
+    bool? HasAttachment = null,
+    string? AttachmentDescription = null
+): IRequest<MessageResponse>;

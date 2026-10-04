@@ -17,4 +17,19 @@ public interface IUserActiveDocumentService
         int? page,
         int? pageSize,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Kullanıcının teslim aldığı tüm gelen ve giden evrak zimmetlerini, aktif olmasa da, tek listede döner.
+    /// Kullanıcının kendine yaptığı zimmetler (CreatedUserId == userId) dahil edilmez.
+    /// </summary>
+    /// <param name="userId">Zimmeti teslim alan kullanıcı.</param>
+    /// <param name="documentDirection">DocumentDirectionEnum; null ise gelen + giden birlikte.</param>
+    /// <param name="page">1 tabanlı sayfa numarası. pageSize verilmezse yok sayılır.</param>
+    /// <param name="pageSize">Sayfa boyutu. null ise tüm kayıtlar döner.</param>
+    Task<PagedResultDto<UserActiveDocumentDto>> GetReceivedByUserIdAsync(
+        Guid userId,
+        int? documentDirection,
+        int? page,
+        int? pageSize,
+        CancellationToken cancellationToken);
 }

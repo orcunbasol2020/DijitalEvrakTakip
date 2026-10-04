@@ -1,0 +1,67 @@
+QR kod oluşturma sayfası: belge numaraları artık backend'den (Atlas numara havuzu) alınacak
+
+Belge numaraları Atlas EBYS'den alınıyor ve backend'de bir havuzda hazır bekliyor. Numara biçimi: 2026/42679909 (yıl / 8 hane).
+QR kod sayfası numara üretmeyecek, numarayı backend'den isteyecek. Sayfada numara üreten kod varsa (sayaç, rastgele, tarih tabanlı vb.) kaldırılsın.
+
+
+1) Numara alma: POST api/AtlasDocumentNumbers/Reserve
+
+İstek:
+{ "userId": "<giriş yapan kullanıcının id'si>", "count": 10 }
+
+- count 1 ile 100 arasında olmalı. Sayfada "kaç etiket basılacak" alanı olsun, varsayılan 1.
+- Token gönderiliyorsa backend kullanıcıyı token'dan alır, userId yine de gönderilsin.
+
+Başarılı yanıt (200):
+{ "message": "10 numara ayrıldı.", "data": ["2026/42679909", "2026/42679910", ...] }
+
+- data içindeki her numara için bir QR etiket oluşturulsun. QR içeriği numaranın kendisi, "/" dahil olduğu gibi: 2026/42679909
+- Etiketin altına numara okunur şekilde yazılsın.
+- Havuzda istenenden az numara varsa data daha kısa gelir ve message bunu söyler ("10 numara istendi, havuzda yalnızca 4 numara vardı."). Bu durumda message kullanıcıya gösterilsin.
+- Havuz tamamen boşsa HTTP 500 döner: { "Message": "Havuzda boşta evrak numarası yok ...", "StatusCode": 500 }. Message kullanıcıya gösterilsin.
+- Hata yanıtındaki alan adları büyük harfle başlıyor (Message, StatusCode), başarılı yanıttakiler küçük harfle (message, data).
+
+Aynı numara iki kullanıcıya verilmez. Alınan numara başka bir isteğe bir daha verilmez. Bu yüzden:
+- "Numara Al" butonu istek sürerken pasif olsun. Çift tıklamada iki ayrı paket ayrılır.
+- Numaralar ancak kullanıcı etiket basmaya karar verince istensin. Sayfa açılırken otomatik istenmesin.
+
+
+2) Hatalı basılan etiketi iptal etme: POST api/AtlasDocumentNumbers/Cancel
+
+{ "qrCode": "2026/42679909", "userId": "<kullanıcı id>", "reason": "Etiket hatalı basıldı" }
+
+- Yazıcı hatası, yırtılan etiket gibi durumlarda kullanılır. İptal edilen numarayla evrak açılamaz.
+- reason isteğe bağlı, en fazla 500 karakter.
+- Evrakta kullanılmış numara iptal edilemez. Backend bu durumda 500 ve Message döner.
+- Öneri: Etiketleri bastıktan sonra listede her numaranın yanında bir "İptal" butonu olsun.
+
+
+3) Havuz durumu (isteğe bağlı): GET api/AtlasDocumentNumbers/GetStock
+
+{ "available": 192, "reserved": 0, "used": 0, "cancelled": 0, "minStock": 100 }
+
+Sayfada "Boşta: 192" gibi gösterilebilir. available, minStock'un altındaysa uyarı rengi kullanılabilir.
+
+
+4) Evrak kaydı (ön kayıt): frontend'de status değişikliği GEREKMİYOR
+
+POST api/IncomingDocuments/PreRegister isteği aynen kalıyor. qrCode alanına okutulan numara gönderiliyor.
+Numaranın havuzdaki durumunu backend kendisi "Kullanıldı" yapıyor ve evrakla aynı kayıtta evrağa bağlıyor. Frontend'in ayrıca bir çağrı yapmasına gerek yok.
+
+Backend aynı işlemi şu akışlarda da yapıyor, frontend tarafında değişiklik yok:
+- Numarayla PDF yükleme (POST api/IncomingDocuments/UploadWithDocumentNumber)
+- Taranmış belge eşleştirme (PUT api/ScannedDocuments/Update)
+
+Bu çağrılarda artık şu hatalar dönebilir (HTTP 500, Message alanında):
+- "2026/... numarası başka bir evrakta kullanılmış."
+- "2026/... numarası iptal edilmiş, kullanılamaz."
+- "2026/... numarası Atlas'tan alınmış bir evrak numarası değil." Bu hata yalnızca zorunluluk ayarı açılınca döner, şu an kapalı.
+Message kullanıcıya gösterilsin.
+
+
+5) "/" karakteri
+
+Numaralarda "/" var. Numara URL query parametresinde gönderilirken encodeURIComponent kullanılsın:
+GET api/IncomingDocuments/GetByQrCode?qrCode=2026%2F42679909
+GET api/OutgoingDocuments/GetByQrCode?qrCode=2026%2F42679909
+Body ve form alanlarında (PreRegister, UploadWithDocumentNumber, Cancel) olduğu gibi gönderilir.

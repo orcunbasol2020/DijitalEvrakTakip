@@ -3,6 +3,7 @@ using DijitalEvrakTakip.Application.Behaviors;
 using DijitalEvrakTakip.Application.Options;
 using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Repositories;
+using DijitalEvrakTakip.Infrastructure.Atlas;
 using DijitalEvrakTakip.Persistance.Context;
 using DijitalEvrakTakip.Persistance.Repositories;
 using DijitalEvrakTakip.Persistance.Services;
@@ -61,6 +62,10 @@ builder.Services.AddHostedService<ScannedDocumentImportBackgroundService>();
 builder.Services.AddScoped<IDocumentAllocationRequestService, DocumentAllocationRequestService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddHostedService<ZimmetApprovalReminderBackgroundService>();
+// Atlas EBYS web servis sözleşmesi netleşene kadar sahte istemci; gerçek istemci yazılınca burası değişir
+builder.Services.AddScoped<IAtlasEbysClient, FakeAtlasEbysClient>();
+builder.Services.AddScoped<IAtlasDocumentNumberPoolService, AtlasDocumentNumberPoolService>();
+builder.Services.AddHostedService<AtlasDocumentNumberPoolBackgroundService>();
 builder.Services.AddSingleton<IAppVersionProvider, AssemblyAppVersionProvider>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IWetSignedDocumentStorageService>(_ =>

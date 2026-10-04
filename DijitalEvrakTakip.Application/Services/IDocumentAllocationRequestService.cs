@@ -25,8 +25,11 @@ public interface IDocumentAllocationRequestService
 
     // Evrağın aktif zimmeti talep anındakiyle aynı değilse talep Geçersiz yapılır ve Gecersiz döner.
     // notifySender false ise sonuç bildirimi gönderilmez (toplu işlemde NotifyBulkResultAsync ile toplanır)
+    // hasDiscrepancy true ise kabul şerhlidir; note şerh açıklamasıdır
     Task<AllocationRequestActionResultEnum> ApproveAsync(
         DocumentAllocationRequest request,
+        bool hasDiscrepancy,
+        string? note,
         bool notifySender,
         CancellationToken cancellationToken);
 

@@ -5,6 +5,7 @@ using DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Queries.
 using DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Queries.GetActiveDocumentsByUserId;
 using DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Queries.GetAllocationTransferCountByUserId;
 using DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Queries.GetByDocumentId;
+using DijitalEvrakTakip.Application.Features.DocumentAllocationFeatures.Queries.GetReceivedDocumentsByUserId;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Presentation.Abstractions;
 using MediatR;
@@ -103,6 +104,27 @@ public sealed class DocumentAllocationsController : ApiController
     {
         var response = await _mediator.Send(
             new GetActiveDocumentsByUserIdQuery(userId, documentDirection, page, pageSize),
+            cancellationToken);
+
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Kullanıcının teslim aldığı tüm gelen ve giden evrak zimmetlerini, aktif olmasa da, tek listede döner.
+    /// Kullanıcının kendine yaptığı zimmetler dahil edilmez.
+    /// IsActive alanı zimmetin hâlâ kullanıcıda olup olmadığını gösterir.
+    /// documentDirection: 1 = Gelen, 2 = Giden, boş = ikisi birlikte. pageSize boşsa tüm kayıtlar döner.
+    /// </summary>
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetReceivedDocumentsByUserId(
+        Guid userId,
+        int? documentDirection,
+        int? page,
+        int? pageSize,
+        CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(
+            new GetReceivedDocumentsByUserIdQuery(userId, documentDirection, page, pageSize),
             cancellationToken);
 
         return Ok(response);
