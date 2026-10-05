@@ -48,16 +48,15 @@ namespace DijitalEvrakTakip.UnitTest
             Assert.Equal(5, errors.Count);
         }
 
+        // Yabancı misyonların DETSİS kodu yok; Atlas ekibiyle netleşene kadar zorunlu değil
         [Fact]
-        public void Validate_Fails_WhenInstitutionHasNoDetsisCode()
+        public void InstitutionWithoutDetsisCode_IsAccepted_AndLeavesSenderCodeEmpty()
         {
             var document = CreateValidDocument();
             document.ExternalInstitution!.DetsisCode = " ";
 
-            var errors = IncomingDocumentEypMapper.Validate(document);
-
-            Assert.Single(errors);
-            Assert.Contains("DETSİS", errors[0]);
+            Assert.Empty(IncomingDocumentEypMapper.Validate(document));
+            Assert.Null(IncomingDocumentEypMapper.Map(document, Recipient).OlusturanKkk);
         }
 
         [Fact]

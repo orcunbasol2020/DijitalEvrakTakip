@@ -10,8 +10,8 @@ public sealed record EypRecipient(string Kkk, string Name);
 /// <summary>
 /// Gelen evrakı EYP üstverisine çevirir. Gelen evrakta paketi oluşturan gönderen dış kurumdur,
 /// dağıtımda evrakı alan kurum (Bakanlık) bulunur.
-/// Atlas ekibiyle netleşmesi beklenen eşlemeler: BelgeNo, Kişiye Özel gizlilik derecesi ve
-/// İvedi Süreli ivedilik karşılığı.
+/// Atlas ekibiyle netleşmesi beklenen eşlemeler: BelgeNo, Kişiye Özel gizlilik derecesi,
+/// İvedi Süreli ivedilik karşılığı ve DETSİS kodu olmayan gönderenler (yabancı misyonlar, dilekçeler).
 /// </summary>
 public static class IncomingDocumentEypMapper
 {
@@ -20,7 +20,8 @@ public static class IncomingDocumentEypMapper
 
     /// <summary>
     /// EYP üretmek için eksik olan bilgileri döner; liste boşsa evrak aktarılabilir.
-    /// Gönderen kurumun DETSİS kodu ancak <see cref="IncomingDocument.ExternalInstitution"/> yüklüyse kontrol edilir.
+    /// Gönderen kurumun DETSİS kodu aranmaz: yabancı misyonların ve dilekçelerin DETSİS kodu yoktur,
+    /// bu gönderenlerin EYP'de nasıl yazılacağı Atlas ekibiyle netleşene kadar kod boş bırakılır.
     /// </summary>
     public static IReadOnlyList<string> Validate(IncomingDocument document)
     {
@@ -42,8 +43,6 @@ public static class IncomingDocumentEypMapper
 
         if (document.ExternalInstitutionId is null)
             errors.Add("Gönderen kurum seçilmemiş.");
-        else if (document.ExternalInstitution is not null && string.IsNullOrWhiteSpace(document.ExternalInstitution.DetsisCode))
-            errors.Add($"Gönderen kurumun ({document.ExternalInstitution.Name}) DETSİS kodu tanımlı değil.");
 
         return errors;
     }
@@ -75,7 +74,8 @@ public static class IncomingDocumentEypMapper
             BelgeNo = string.IsNullOrWhiteSpace(document.OrginalNo) ? document.QrCode.Trim() : document.OrginalNo.Trim(),
             MimeType = PdfMimeType,
             FileName = UstYaziFileName,
-            OlusturanKkk = institution.DetsisCode!.Trim(),
+            // DETSİS kodu olmayan gönderende (yabancı misyon, dilekçe) boş kalır; bkz. Validate
+            OlusturanKkk = string.IsNullOrWhiteSpace(institution.DetsisCode) ? null : institution.DetsisCode.Trim(),
             Sender = institution.Name,
             OlusturanAdres = string.IsNullOrWhiteSpace(institution.Address) ? null : institution.Address.Trim()
         };
