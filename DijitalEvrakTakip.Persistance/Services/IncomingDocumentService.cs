@@ -21,6 +21,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IUserRepository _userRepository;
     private readonly IAtlasDocumentNumberPoolService _atlasDocumentNumberPoolService;
+    private readonly IAtlasTransferService _atlasTransferService;
 
     public IncomingDocumentService(
         IIncomingDocumentRepository incomingDocumentRepository,
@@ -29,9 +30,11 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         IDocumentAllocationRepository allocationRepository,
         IUserRepository userRepository,
         IAtlasDocumentNumberPoolService atlasDocumentNumberPoolService,
+        IAtlasTransferService atlasTransferService,
         IUnitOfWork unitOfWork)
     {
         _atlasDocumentNumberPoolService = atlasDocumentNumberPoolService;
+        _atlasTransferService = atlasTransferService;
         _incomingDocumentRepository = incomingDocumentRepository;
         _documentTransactionRepository = documentTransactionRepository;
         _scannedDocumentRepository = scannedDocumentRepository;
@@ -224,7 +227,8 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
             DocumentDate = request.DocumentDate,
             ReleaseDate = request.ReleaseDate,
             OcrStatus = request.OcrStatus,
-            SubmissionStatus = request.SubmissionStatus,
+            // Yayın durumunu yalnızca Atlas aktarım kuyruğu değiştirir
+            SubmissionStatus = (int)PublishStatusEnum.Yayinlanmadi,
             UserId = request.UserId,
             CreatedUserId = request.CreatedUserId ?? request.UserId,
             DocumentName = request.DocumentName,
@@ -261,15 +265,13 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         if (request.DepartmentId.HasValue) entity.DepartmentId = request.DepartmentId;
         // Yayınla akış durumu değildir: Status korunur, evrak yalnızca aktarım sırasına alınır
         var isPublish = request.Status == (int)DocumentStatusEnum.Publish;
-        if (isPublish) entity.SubmissionStatus = (int)PublishStatusEnum.Kuyrukta;
-        else if (request.Status.HasValue) entity.Status = request.Status;
+        if (!isPublish && request.Status.HasValue) entity.Status = request.Status;
         if (request.ElectronicCopy.HasValue) entity.ElectronicCopy = request.ElectronicCopy;
         if (request.Release.HasValue) entity.Release = request.Release;
         if (request.ActionRequired.HasValue) entity.ActionRequired = request.ActionRequired;
         if (request.PageCount.HasValue) entity.PageCount = request.PageCount;
         if (request.DocumentDate.HasValue) entity.DocumentDate = request.DocumentDate;
         if (request.ReleaseDate.HasValue) entity.ReleaseDate = request.ReleaseDate;
-        if (request.SubmissionStatus.HasValue && !isPublish) entity.SubmissionStatus = request.SubmissionStatus;
         if (request.DocumentName != null) entity.DocumentName = request.DocumentName;
         if (request.Notes != null) entity.Notes = request.Notes;
         if (request.HasAttachment.HasValue) entity.HasAttachment = request.HasAttachment;
@@ -278,6 +280,9 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         if (entity.HasAttachment == false) entity.AttachmentDescription = null;
 
         entity.UpdateDate = DateTime.UtcNow;
+
+        // Güncel bilgilerle kontrol edilir; eksik bilgi varsa hiçbir değişiklik kaydedilmez
+        if (isPublish) await _atlasTransferService.EnqueueAsync(entity, cancellationToken);
 
         _incomingDocumentRepository.Update(entity);
 

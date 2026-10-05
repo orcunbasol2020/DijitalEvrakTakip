@@ -52,6 +52,12 @@ public sealed class IncomingDocumentConfiguration
 
         builder.Property(x => x.SubmissionStatus);
 
+        builder.Property(x => x.SubmissionUpdatedAt)
+            .HasColumnType("datetime2");
+
+        // Atlas aktarım kuyruğu Kuyrukta durumundaki evrakları bu sırayla alır
+        builder.HasIndex(x => new { x.SubmissionStatus, x.SubmissionUpdatedAt });
+
         builder.Property(x => x.OcrStatus);
 
         builder.Property(x => x.PageCount);

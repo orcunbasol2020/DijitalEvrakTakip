@@ -27,6 +27,8 @@ namespace DijitalEvrakTakip.Domain.Entities
         public int? Status { get; set; }
         // PublishStatusEnum: Atlas'a yayın (aktarım) durumu
         public int? SubmissionStatus { get; set; }
+        // SubmissionStatus'un son değiştiği zaman; aktarım kuyruğu bu sırayla işlenir
+        public DateTime? SubmissionUpdatedAt { get; set; }
         public int? OcrStatus { get; set; }
 
         public bool? ElectronicCopy { get; set; }

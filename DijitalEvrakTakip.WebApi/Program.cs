@@ -4,6 +4,7 @@ using DijitalEvrakTakip.Application.Options;
 using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Repositories;
 using DijitalEvrakTakip.Infrastructure.Atlas;
+using DijitalEvrakTakip.Infrastructure.Eyp;
 using DijitalEvrakTakip.Persistance.Context;
 using DijitalEvrakTakip.Persistance.Repositories;
 using DijitalEvrakTakip.Persistance.Services;
@@ -66,6 +67,11 @@ builder.Services.AddHostedService<ZimmetApprovalReminderBackgroundService>();
 builder.Services.AddScoped<IAtlasEbysClient, FakeAtlasEbysClient>();
 builder.Services.AddScoped<IAtlasDocumentNumberPoolService, AtlasDocumentNumberPoolService>();
 builder.Services.AddHostedService<AtlasDocumentNumberPoolBackgroundService>();
+// e-Yazışma kütüphanesi ve Atlas teslim yöntemi netleşene kadar sahte EYP servisi ve sahte gönderim istemcisi
+builder.Services.AddScoped<IEypService, FakeEypService>();
+builder.Services.AddScoped<IAtlasEypTransferClient, FakeAtlasEypTransferClient>();
+builder.Services.AddScoped<IAtlasTransferService, AtlasTransferService>();
+builder.Services.AddHostedService<AtlasTransferBackgroundService>();
 builder.Services.AddSingleton<IAppVersionProvider, AssemblyAppVersionProvider>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IWetSignedDocumentStorageService>(_ =>
@@ -89,6 +95,17 @@ builder.Services.AddScoped<IIncomingDocumentStorageService>(_ =>
         : Path.Combine(builder.Environment.ContentRootPath, configuredPath);
 
     return new IncomingDocumentStorageService(rootPath);
+});
+builder.Services.AddScoped<IEypPackageStorageService>(_ =>
+{
+    string configuredPath = builder.Configuration["FileStorage:EypPackagesPath"]
+        ?? "App_Data/EypPackages";
+
+    string rootPath = Path.IsPathRooted(configuredPath)
+        ? configuredPath
+        : Path.Combine(builder.Environment.ContentRootPath, configuredPath);
+
+    return new EypPackageStorageService(rootPath);
 });
 
 //repository

@@ -14,6 +14,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Dosyası yüklenmemiş evrakların EYP üst yazısı; Resources/fiziki_gonderim_pdf.ps1 ile üretilir -->
+    <EmbeddedResource Include="Resources\fiziki_gonderim.pdf" LogicalName="DijitalEvrakTakip.Persistance.Resources.fiziki_gonderim.pdf" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DijitalEvrakTakip.Application\DijitalEvrakTakip.Application.csproj" />
     <ProjectReference Include="..\DijitalEvrakTakip.Domain\DijitalEvrakTakip.Domain.csproj" />
   </ItemGroup>
