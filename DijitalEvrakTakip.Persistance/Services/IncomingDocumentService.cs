@@ -206,6 +206,9 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
 
     public async Task CreateAsync(CreateIncomingDocumentCommand request, CancellationToken cancellationToken)
     {
+        // İlk kayıtta Yayınla: evrak Kayıt (Güncelleme) durumunda açılır ve aktarım kuyruğuna alınır
+        var isPublish = request.Status == (int)DocumentStatusEnum.Publish;
+
         IncomingDocument incomingDocument = new()
         {
             Id = Guid.NewGuid(),
@@ -219,7 +222,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
             Content_Ocr = request.Content_Ocr,
             ExternalInstitutionId = request.ExternalInstitutionId,
             DepartmentId = request.DepartmentId,
-            Status = request.Status,
+            Status = isPublish ? (int)DocumentStatusEnum.Update : request.Status,
             ElectronicCopy = request.ElectronicCopy,
             Release = request.Release,
             ActionRequired = request.ActionRequired,
@@ -241,6 +244,21 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
             IsDeleted = false,
             CreatedDate = DateTime.UtcNow
         };
+
+        // Eksik bilgi varsa evrak hiç kaydedilmez
+        if (isPublish)
+        {
+            await _atlasTransferService.EnqueueAsync(incomingDocument, cancellationToken);
+
+            await _documentTransactionRepository.AddAsync(new DocumentTransaction
+            {
+                DocumentId = incomingDocument.Id,
+                TransactionType = (int)TransactionTypeEnum.Yayinla,
+                UserId = request.UserId,
+                IsActive = true,
+                CreatedDate = DateTime.UtcNow
+            }, cancellationToken);
+        }
 
         await _incomingDocumentRepository.AddAsync(incomingDocument, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
