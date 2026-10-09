@@ -41,6 +41,7 @@ public sealed class AtlasTransferService : IAtlasTransferService
     private readonly IAtlasEypTransferClient _transferClient;
     private readonly IEypPackageStorageService _packageStorage;
     private readonly IIncomingDocumentStorageService _documentStorage;
+    private readonly IIncomingDocumentAttachmentStorageService _attachmentStorage;
     private readonly IAppSettingService _appSettingService;
     private readonly AppDbContext _context;
     private readonly ILogger<AtlasTransferService> _logger;
@@ -50,6 +51,7 @@ public sealed class AtlasTransferService : IAtlasTransferService
         IAtlasEypTransferClient transferClient,
         IEypPackageStorageService packageStorage,
         IIncomingDocumentStorageService documentStorage,
+        IIncomingDocumentAttachmentStorageService attachmentStorage,
         IAppSettingService appSettingService,
         AppDbContext context,
         ILogger<AtlasTransferService> logger)
@@ -58,6 +60,7 @@ public sealed class AtlasTransferService : IAtlasTransferService
         _transferClient = transferClient;
         _packageStorage = packageStorage;
         _documentStorage = documentStorage;
+        _attachmentStorage = attachmentStorage;
         _appSettingService = appSettingService;
         _context = context;
         _logger = logger;
@@ -317,7 +320,8 @@ public sealed class AtlasTransferService : IAtlasTransferService
         EypRecipient recipient,
         CancellationToken cancellationToken)
     {
-        var metadata = IncomingDocumentEypMapper.Map(document, recipient);
+        var metadata = IncomingDocumentEypMapper.Map(
+            document, recipient, await LoadAttachmentsAsync(document.Id, cancellationToken));
 
         // Dosyası yüklenmemiş (güvenlik nedeniyle yalnızca bilgileri girilmiş) evrakta standart PDF kullanılır
         byte[] ustYazi;
@@ -345,6 +349,31 @@ public sealed class AtlasTransferService : IAtlasTransferService
         package.UsedPlaceholderContent = usedPlaceholder;
 
         return completed;
+    }
+
+    /// <summary>Evrakın elektronik eklerini EYP sırasıyla diskten okur; dosyası eksik ek paketi durdurur.</summary>
+    private async Task<IReadOnlyList<EypAttachment>> LoadAttachmentsAsync(Guid documentId, CancellationToken cancellationToken)
+    {
+        var attachments = await _context.Set<IncomingDocumentAttachment>()
+            .AsNoTracking()
+            .Where(x => x.IncomingDocumentId == documentId && !x.IsDeleted)
+            .OrderBy(x => x.OrderNo)
+            .ThenBy(x => x.CreatedDate)
+            .ToListAsync(cancellationToken);
+
+        var result = new List<EypAttachment>(attachments.Count);
+        foreach (var attachment in attachments)
+        {
+            if (!_attachmentStorage.Exists(attachment.StoredFileName))
+                throw new InvalidOperationException($"Ek dosyası bulunamadı: {attachment.Name}");
+
+            var content = await File.ReadAllBytesAsync(
+                _attachmentStorage.GetFullPath(attachment.StoredFileName), cancellationToken);
+
+            result.Add(new EypAttachment(attachment.Name, attachment.Description, content));
+        }
+
+        return result;
     }
 
     private async Task<TransferOutcome> FinishWithSuccessAsync(

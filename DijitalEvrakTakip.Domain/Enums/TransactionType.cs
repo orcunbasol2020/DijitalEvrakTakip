@@ -61,5 +61,11 @@ public enum TransactionTypeEnum
     AtlasAktarildi = 18,
 
     [Description("Atlas Aktarımı Hatalı")]
-    AtlasAktarimHatali = 19
+    AtlasAktarimHatali = 19,
+
+    [Description("Ek Yükleme")]
+    EkYukleme = 20,
+
+    [Description("Ek Silme")]
+    EkSilme = 21
 }

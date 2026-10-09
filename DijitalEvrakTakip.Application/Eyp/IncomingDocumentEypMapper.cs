@@ -7,6 +7,9 @@ namespace DijitalEvrakTakip.Application.Eyp;
 /// <summary>EYP dağıtım listesine yazılan, evrakı alan kurum (Bakanlık).</summary>
 public sealed record EypRecipient(string Kkk, string Name);
 
+/// <summary>Pakete içeriğiyle (DED) eklenecek elektronik ek; EYP sırasıyla verilir.</summary>
+public sealed record EypAttachment(string Name, string? Description, byte[] Content);
+
 /// <summary>
 /// Gelen evrakı EYP üstverisine çevirir. Gelen evrakta paketi oluşturan gönderen dış kurumdur,
 /// dağıtımda evrakı alan kurum (Bakanlık) bulunur.
@@ -51,8 +54,13 @@ public static class IncomingDocumentEypMapper
     /// Evrakın EYP üstverisini oluşturur. <see cref="IncomingDocument.ExternalInstitution"/> yüklü olmalıdır.
     /// Eksik bilgi varsa <see cref="InvalidOperationException"/> fırlatır.
     /// </summary>
-    public static EypMetadataDto Map(IncomingDocument document, EypRecipient recipient)
+    public static EypMetadataDto Map(
+        IncomingDocument document,
+        EypRecipient recipient,
+        IReadOnlyList<EypAttachment>? attachments = null)
     {
+        attachments ??= Array.Empty<EypAttachment>();
+
         var errors = Validate(document).ToList();
         if (document.ExternalInstitutionId is not null && document.ExternalInstitution is null)
             errors.Add("Gönderen kurum bulunamadı.");
@@ -89,19 +97,37 @@ public static class IncomingDocumentEypMapper
             IvedilikRumuz = ToIvedilikKodu(document.UrgencyDegree)
         });
 
-        // Ek dosyası sistemde tutulmuyor; ek fiziki olarak geldiği için FZK türünde, içeriksiz tanımlanır
-        if (document.HasAttachment == true)
+        // Elektronik ekler (yüklenen PDF'ler) içerikleriyle DED türünde eklenir
+        var siraNo = 0;
+        foreach (var attachment in attachments)
         {
-            var description = string.IsNullOrWhiteSpace(document.AttachmentDescription)
-                ? null
-                : document.AttachmentDescription.Trim();
+            siraNo++;
+            metadata.EkListesi.Add(new EkDto
+            {
+                Tur = "DED",
+                SiraNo = siraNo,
+                Ad = attachment.Name,
+                Aciklama = attachment.Description,
+                DosyaAdi = $"ek{siraNo}.pdf",
+                MimeTuru = PdfMimeType,
+                DosyaIcerigi = attachment.Content
+            });
+        }
 
+        // Fiziki ek dosyası tutulmaz; açıklamasıyla FZK türünde, içeriksiz ve elektronik eklerden sonra tanımlanır.
+        // "Ek var" denip açıklama girilmemişse, ek elektronik eklerden ibaret sayılır.
+        var physicalDescription = string.IsNullOrWhiteSpace(document.AttachmentDescription)
+            ? null
+            : document.AttachmentDescription.Trim();
+
+        if (document.HasAttachment == true && (physicalDescription is not null || attachments.Count == 0))
+        {
             metadata.EkListesi.Add(new EkDto
             {
                 Tur = "FZK",
-                SiraNo = 1,
-                Ad = description ?? "Fiziki ek",
-                Aciklama = description
+                SiraNo = siraNo + 1,
+                Ad = physicalDescription ?? "Fiziki ek",
+                Aciklama = physicalDescription
             });
         }
 

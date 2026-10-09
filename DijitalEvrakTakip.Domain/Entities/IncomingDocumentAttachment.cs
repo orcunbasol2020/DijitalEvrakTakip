@@ -1,22 +1,35 @@
-﻿using DijitalEvrakTakip.Domain.Abstractions;
+using System.Text.Json.Serialization;
+using DijitalEvrakTakip.Domain.Abstractions;
 
 namespace DijitalEvrakTakip.Domain.Entities
 {
+    /// <summary>
+    /// Gelen evrağın elektronik eki (PDF). Atlas'a giden EYP paketine DED türünde, içeriğiyle eklenir.
+    /// Fiziki ekler bu tabloda tutulmaz; IncomingDocument.AttachmentDescription metniyle tanımlanır.
+    /// </summary>
     public class IncomingDocumentAttachment : Entity
     {
-        public Guid DocumentId { get; set; }
+        public Guid IncomingDocumentId { get; set; }
 
-        public string? DocumentName { get; set; }
+        [JsonIgnore]
+        public IncomingDocument? IncomingDocument { get; set; }
 
-        public int PageCount { get; set; }
+        // EYP ek listesinde görünen ad
+        public string Name { get; set; } = null!;
 
-        public bool Ocr { get; set; }
+        public string? Description { get; set; }
 
-        public int? OcrStatus { get; set; }
+        // EYP'deki sıra: OrderNo, sonra yüklenme zamanına göre; fiziki ek listenin sonuna eklenir
+        public int OrderNo { get; set; }
 
-        public string? UserId { get; set; }
+        // Kullanıcının yüklediği dosyanın adı
+        public string OriginalFileName { get; set; } = null!;
 
-        // Navigation
-        public IncomingDocument? Document { get; set; }
+        // Ek klasörüne göre yolu: {IncomingDocumentId}/{guid}.pdf
+        public string StoredFileName { get; set; } = null!;
+
+        public long FileSize { get; set; }
+
+        public string? UploadedUserId { get; set; }
     }
 }

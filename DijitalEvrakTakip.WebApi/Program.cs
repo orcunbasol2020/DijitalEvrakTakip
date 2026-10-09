@@ -42,6 +42,7 @@ builder.Services.AddTransient<ErrorMiddleware>();
 builder.Services.AddScoped<IUnitOfWork>(srv => srv.GetRequiredService<AppDbContext>());
 builder.Services.AddScoped<IIncomingDocumentService, IncomingDocumentService>();
 builder.Services.AddScoped<IIncomingDocumentApplicationService, IncomingDocumentApplicationService>();
+builder.Services.AddScoped<IIncomingDocumentAttachmentService, IncomingDocumentAttachmentService>();
 builder.Services.AddScoped<IOutgoingDocumentService, OutgoingDocumentService>();
 builder.Services.AddScoped<IOutgoingDocumentDistributionService, OutgoingDocumentDistributionService>();
 builder.Services.AddScoped<IOutgoingDocumentShipmentService, OutgoingDocumentShipmentService>();
@@ -96,6 +97,18 @@ builder.Services.AddScoped<IIncomingDocumentStorageService>(_ =>
 
     return new IncomingDocumentStorageService(rootPath);
 });
+// Gelen evrak ekleri; tarama/OCR akışının izlediği IncomingDocumentsPath klasöründen ayrı olmalı
+builder.Services.AddScoped<IIncomingDocumentAttachmentStorageService>(_ =>
+{
+    string configuredPath = builder.Configuration["FileStorage:IncomingAttachmentsPath"]
+        ?? "App_Data/IncomingDocumentAttachments";
+
+    string rootPath = Path.IsPathRooted(configuredPath)
+        ? configuredPath
+        : Path.Combine(builder.Environment.ContentRootPath, configuredPath);
+
+    return new IncomingDocumentAttachmentStorageService(rootPath);
+});
 builder.Services.AddScoped<IEypPackageStorageService>(_ =>
 {
     string configuredPath = builder.Configuration["FileStorage:EypPackagesPath"]
@@ -116,6 +129,7 @@ builder.Services.AddScoped<IScannedDocumentRepository, ScannedDocumentRepository
 builder.Services.AddScoped<IDocumentAssignmentRepository, DocumentAssignmentRepository>();
 builder.Services.AddScoped<IIncomingDocumentRepository, IncomingDocumentRepository>();
 builder.Services.AddScoped<IIncomingDocumentDistributionRepository, IncomingDocumentDistributionRepository>();
+builder.Services.AddScoped<IIncomingDocumentAttachmentRepository, IncomingDocumentAttachmentRepository>();
 builder.Services.AddScoped<IOutgoingDocumentRepository, OutgoingDocumentRepository>();
 builder.Services.AddScoped<IOutgoingDocumentDistributionRepository, OutgoingDocumentDistributionRepository>();
 builder.Services.AddScoped<IOutgoingDocumentShipmentRepository, OutgoingDocumentShipmentRepository>();

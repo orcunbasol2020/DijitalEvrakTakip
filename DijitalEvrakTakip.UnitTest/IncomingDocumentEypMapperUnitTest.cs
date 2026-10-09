@@ -119,6 +119,53 @@ namespace DijitalEvrakTakip.UnitTest
         }
 
         [Fact]
+        public void Map_AddsElectronicAttachmentsInOrder_ThenPhysicalAttachment()
+        {
+            var document = CreateValidDocument();
+            document.HasAttachment = true;
+            document.AttachmentDescription = "1 dergi";
+            var first = new byte[] { 1 };
+            var second = new byte[] { 2 };
+
+            var ekler = IncomingDocumentEypMapper.Map(document, Recipient, new[]
+            {
+                new EypAttachment("Toplantı gündemi", "Taslak", first),
+                new EypAttachment("Katılımcı listesi", null, second)
+            }).EkListesi;
+
+            Assert.Equal(3, ekler.Count);
+
+            Assert.Equal("DED", ekler[0].Tur);
+            Assert.Equal(1, ekler[0].SiraNo);
+            Assert.Equal("Toplantı gündemi", ekler[0].Ad);
+            Assert.Equal("Taslak", ekler[0].Aciklama);
+            Assert.Equal("application/pdf", ekler[0].MimeTuru);
+            Assert.Same(first, ekler[0].DosyaIcerigi);
+
+            Assert.Equal("DED", ekler[1].Tur);
+            Assert.Equal(2, ekler[1].SiraNo);
+            Assert.Same(second, ekler[1].DosyaIcerigi);
+            Assert.NotEqual(ekler[0].DosyaAdi, ekler[1].DosyaAdi);
+
+            Assert.Equal("FZK", ekler[2].Tur);
+            Assert.Equal(3, ekler[2].SiraNo);
+            Assert.Equal("1 dergi", ekler[2].Ad);
+        }
+
+        // "Ek var" işareti elektronik ek yüklenince de konur; fiziki ek açıklaması yoksa FZK eklenmez
+        [Fact]
+        public void Map_SkipsPhysicalAttachment_WhenOnlyElectronicAttachmentsExist()
+        {
+            var document = CreateValidDocument();
+            document.HasAttachment = true;
+
+            var ek = Assert.Single(IncomingDocumentEypMapper.Map(
+                document, Recipient, new[] { new EypAttachment("Ek", null, new byte[] { 1 }) }).EkListesi);
+
+            Assert.Equal("DED", ek.Tur);
+        }
+
+        [Fact]
         public void Map_SetsBilgi_WhenActionIsNotRequired()
         {
             var document = CreateValidDocument();
