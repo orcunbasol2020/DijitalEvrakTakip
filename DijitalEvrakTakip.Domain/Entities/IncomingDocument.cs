@@ -46,6 +46,8 @@ namespace DijitalEvrakTakip.Domain.Entities
         public Guid? ExternalInstitutionId { get; set; }
         public ExternalInstitution? ExternalInstitution { get; set; }
 
+        // Geçiş dönemi alanı: "Nereye" artık Distributions'ta tutulur; burada
+        // ilk Gereği alıcısı (yoksa ilk alıcı) tutulur
         public Guid? DepartmentId { get; set; }
         public Department? Department { get; set; }
 
@@ -58,5 +60,8 @@ namespace DijitalEvrakTakip.Domain.Entities
 
         public ICollection<DocumentAssignment> DocumentAssignments { get; set; }
             = new List<DocumentAssignment>();
+
+        public ICollection<IncomingDocumentDistribution> Distributions { get; set; }
+            = new List<IncomingDocumentDistribution>();
     }
 }

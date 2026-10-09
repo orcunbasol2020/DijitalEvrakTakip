@@ -115,6 +115,7 @@ builder.Services.AddScoped<IEnvelopeRepository, EnvelopeRepository>();
 builder.Services.AddScoped<IScannedDocumentRepository, ScannedDocumentRepository>();
 builder.Services.AddScoped<IDocumentAssignmentRepository, DocumentAssignmentRepository>();
 builder.Services.AddScoped<IIncomingDocumentRepository, IncomingDocumentRepository>();
+builder.Services.AddScoped<IIncomingDocumentDistributionRepository, IncomingDocumentDistributionRepository>();
 builder.Services.AddScoped<IOutgoingDocumentRepository, OutgoingDocumentRepository>();
 builder.Services.AddScoped<IOutgoingDocumentDistributionRepository, OutgoingDocumentDistributionRepository>();
 builder.Services.AddScoped<IOutgoingDocumentShipmentRepository, OutgoingDocumentShipmentRepository>();

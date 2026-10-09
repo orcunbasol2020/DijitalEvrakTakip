@@ -7,6 +7,7 @@ using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.Ge
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetDocumentsByStatus;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentById;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentByQrCode;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentDistributions;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentLast30DaysStats;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentTodayStats;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetOcrQueueStats;
@@ -113,6 +114,18 @@ public sealed class IncomingDocumentsController : ApiController
     public async Task<IActionResult> GetById([FromQuery] Guid id, CancellationToken cancellationToken)
     {
         var query = new GetIncomingDocumentByIdQuery(id);
+        var response = await _mediator.Send(query, cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Evrağın "Nereye" listesini (alıcı birimler, alıcı bazında Bilgi/Gereği) getirir.
+    /// Liste Create / Update isteklerindeki Recipients alanıyla yönetilir.
+    /// </summary>
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetDistributions([FromQuery] Guid incomingDocumentId, CancellationToken cancellationToken)
+    {
+        var query = new GetIncomingDocumentDistributionsQuery(incomingDocumentId);
         var response = await _mediator.Send(query, cancellationToken);
         return Ok(response);
     }

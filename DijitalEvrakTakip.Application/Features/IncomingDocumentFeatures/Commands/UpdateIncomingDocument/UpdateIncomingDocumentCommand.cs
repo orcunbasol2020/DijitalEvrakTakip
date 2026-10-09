@@ -29,5 +29,8 @@ public sealed record UpdateIncomingDocumentCommand
     string? DocumentName,
     string? Notes,
     bool? HasAttachment = null,
-    string? AttachmentDescription = null
+    string? AttachmentDescription = null,
+    // "Nereye" listesi; gönderilirse mevcut liste bununla değiştirilir (boş liste tüm alıcıları kaldırır).
+    // null ise alıcılara dokunulmaz; yalnızca DepartmentId gönderilirse tek alıcıya indirgenir
+    IList<IncomingDocumentRecipient>? Recipients = null
 ): IRequest<MessageResponse>;

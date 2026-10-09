@@ -1248,6 +1248,43 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.ToTable("IncomingDocuments", (string)null);
                 });
 
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.IncomingDocumentDistribution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool?>("ActionRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("DepartmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("IncomingDocumentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("IncomingDocumentId");
+
+                    b.ToTable("IncomingDocumentDistributions", (string)null);
+                });
+
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.Language", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2053,6 +2090,25 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Navigation("ExternalInstitution");
                 });
 
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.IncomingDocumentDistribution", b =>
+                {
+                    b.HasOne("DijitalEvrakTakip.Domain.Entities.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DijitalEvrakTakip.Domain.Entities.IncomingDocument", "IncomingDocument")
+                        .WithMany("Distributions")
+                        .HasForeignKey("IncomingDocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+
+                    b.Navigation("IncomingDocument");
+                });
+
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.OutgoingDocument", b =>
                 {
                     b.HasOne("DijitalEvrakTakip.Domain.Entities.Department", "Department")
@@ -2202,6 +2258,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
 
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.IncomingDocument", b =>
                 {
+                    b.Navigation("Distributions");
+
                     b.Navigation("DocumentAssignments");
                 });
 

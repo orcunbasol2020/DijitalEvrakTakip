@@ -1,4 +1,5 @@
-﻿using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.CreateIncomingDocument;
+﻿using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures;
+using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.CreateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Commands.UpdateIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetAllIncomingDocument;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetDocumentsByStatus;
@@ -18,6 +19,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
     private readonly IDocumentTransactionRepository _documentTransactionRepository;
     private readonly IScannedDocumentRepository _scannedDocumentRepository;
     private readonly IDocumentAllocationRepository _allocationRepository;
+    private readonly IIncomingDocumentDistributionRepository _distributionRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IUserRepository _userRepository;
     private readonly IAtlasDocumentNumberPoolService _atlasDocumentNumberPoolService;
@@ -28,6 +30,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         IDocumentTransactionRepository documentTransactionRepository,
         IScannedDocumentRepository scannedDocumentRepository,
         IDocumentAllocationRepository allocationRepository,
+        IIncomingDocumentDistributionRepository distributionRepository,
         IUserRepository userRepository,
         IAtlasDocumentNumberPoolService atlasDocumentNumberPoolService,
         IAtlasTransferService atlasTransferService,
@@ -39,6 +42,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         _documentTransactionRepository = documentTransactionRepository;
         _scannedDocumentRepository = scannedDocumentRepository;
         _allocationRepository = allocationRepository;
+        _distributionRepository = distributionRepository;
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
     }
@@ -245,6 +249,24 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
             CreatedDate = DateTime.UtcNow
         };
 
+        // Alıcılar evrakla aynı SaveChanges'te yazılır; aktarım kuyruğu evrakı alıcısız görmez
+        var recipients = ResolveRecipients(request.Recipients, request.DepartmentId, request.ActionRequired);
+        if (recipients is not null)
+        {
+            foreach (var recipient in recipients)
+            {
+                incomingDocument.Distributions.Add(new IncomingDocumentDistribution
+                {
+                    IncomingDocumentId = incomingDocument.Id,
+                    DepartmentId = recipient.DepartmentId,
+                    ActionRequired = recipient.ActionRequired,
+                    Notes = NormalizeNotes(recipient.Notes)
+                });
+            }
+
+            SyncPrimaryRecipient(incomingDocument, incomingDocument.Distributions.ToList());
+        }
+
         // Eksik bilgi varsa evrak hiç kaydedilmez
         if (isPublish)
         {
@@ -297,6 +319,11 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         if (request.AttachmentDescription != null) entity.AttachmentDescription = NormalizeAttachmentDescription(request.AttachmentDescription);
         if (entity.HasAttachment == false) entity.AttachmentDescription = null;
 
+        var recipients = ResolveRecipients(
+            request.Recipients, request.DepartmentId, request.ActionRequired ?? entity.ActionRequired);
+        if (recipients is not null)
+            await ReplaceRecipientsAsync(entity, recipients, cancellationToken);
+
         entity.UpdateDate = DateTime.UtcNow;
 
         // Güncel bilgilerle kontrol edilir; eksik bilgi varsa hiçbir değişiklik kaydedilmez
@@ -322,6 +349,92 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
     private static string? NormalizeAttachmentDescription(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
+    private static string? NormalizeNotes(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    /// <summary>
+    /// "Nereye" listesini belirler. Recipients gönderilmişse o kullanılır; gönderilmemiş ama
+    /// eski istemciler gibi yalnızca DepartmentId gönderilmişse tek alıcılı liste olur.
+    /// İkisi de yoksa null döner ve alıcılara dokunulmaz.
+    /// </summary>
+    private static IList<IncomingDocumentRecipient>? ResolveRecipients(
+        IList<IncomingDocumentRecipient>? recipients,
+        Guid? departmentId,
+        bool? actionRequired)
+    {
+        if (recipients is not null)
+            return recipients;
+
+        return departmentId.HasValue
+            ? new List<IncomingDocumentRecipient> { new(departmentId.Value, actionRequired) }
+            : null;
+    }
+
+    /// <summary>
+    /// Mevcut alıcı listesini verilen listeyle eşitler: listede olmayan birimler silinir (soft delete),
+    /// olanların Bilgi/Gereği ve notu güncellenir, yeni birimler eklenir. SaveChanges çağırmaz.
+    /// </summary>
+    private async Task ReplaceRecipientsAsync(
+        IncomingDocument entity,
+        IList<IncomingDocumentRecipient> recipients,
+        CancellationToken cancellationToken)
+    {
+        var existing = await _distributionRepository
+            .GetAll()
+            .Where(x => x.IncomingDocumentId == entity.Id && !x.IsDeleted)
+            .ToListAsync(cancellationToken);
+
+        var active = new List<IncomingDocumentDistribution>();
+
+        foreach (var recipient in recipients)
+        {
+            var row = existing.FirstOrDefault(x => x.DepartmentId == recipient.DepartmentId);
+            if (row is null)
+            {
+                row = new IncomingDocumentDistribution
+                {
+                    IncomingDocumentId = entity.Id,
+                    DepartmentId = recipient.DepartmentId
+                };
+                await _distributionRepository.AddAsync(row, cancellationToken);
+            }
+            else
+            {
+                _distributionRepository.Update(row);
+            }
+
+            row.ActionRequired = recipient.ActionRequired;
+            row.Notes = NormalizeNotes(recipient.Notes);
+            active.Add(row);
+        }
+
+        foreach (var removed in existing.Except(active))
+        {
+            removed.IsDeleted = true;
+            _distributionRepository.Update(removed);
+        }
+
+        SyncPrimaryRecipient(entity, active);
+    }
+
+    /// <summary>
+    /// Geçiş dönemi: evraktaki tekil alanlar alıcı listesinden türetilir.
+    /// DepartmentId = ilk Gereği alıcısı (yoksa ilk alıcı). ActionRequired EYP'de evrakı alan
+    /// kurum satırına yazılır: alıcılardan biri Gereği ise Gereği, hepsi Bilgi ise Bilgi, aksi halde belirtilmemiş.
+    /// </summary>
+    private static void SyncPrimaryRecipient(IncomingDocument entity, IList<IncomingDocumentDistribution> active)
+    {
+        var primary = active.FirstOrDefault(x => x.ActionRequired == true) ?? active.FirstOrDefault();
+        entity.DepartmentId = primary?.DepartmentId;
+
+        if (active.Count == 0)
+            return;
+
+        entity.ActionRequired = active.Any(x => x.ActionRequired == true)
+            ? true
+            : active.All(x => x.ActionRequired == false) ? false : null;
+    }
+
     public async Task<IncomingDocument?> GetByQrCodeAsync(string qrCode, CancellationToken cancellationToken)
     {
         return await _incomingDocumentRepository.GetByExpressionAsync(
@@ -338,9 +451,24 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         );
     }
 
+    public async Task<IList<IncomingDocumentDistribution>> GetDistributionsAsync(
+        Guid incomingDocumentId,
+        CancellationToken cancellationToken)
+    {
+        return await _distributionRepository
+            .GetAll()
+            .Include(x => x.Department)
+            .Where(x => !x.IsDeleted && x.IncomingDocumentId == incomingDocumentId)
+            .OrderBy(x => x.CreatedDate)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IList<IncomingDocument>> GetAllAsync(GetAllIncomingDocumentQuery request, CancellationToken cancellationToken)
     {
+        // Liste ekranındaki "Nereye" sütunu için alıcı listesi (silinmemiş satırlar)
+        // evrakla birlikte döner; birim adları client'ta çözülür.
         var query = _incomingDocumentRepository.GetAll()
+            .Include(x => x.Distributions.Where(d => !d.IsDeleted))
             .Where(x => !x.IsDeleted);
 
         if (!string.IsNullOrWhiteSpace(request.Status) && request.Status != "all")
@@ -358,8 +486,9 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
         if (!string.IsNullOrEmpty(request.CreatedUserId))
             query = query.Where(x => x.CreatedUserId == request.CreatedUserId);
 
+        // Birim, evrağın alıcılarından biriyse evrak listelenir
         if (request.DepartmentId.HasValue)
-            query = query.Where(x => x.DepartmentId == request.DepartmentId.Value);
+            query = query.Where(x => x.Distributions.Any(d => !d.IsDeleted && d.DepartmentId == request.DepartmentId.Value));
 
         return await query.ToListAsync(cancellationToken);
     }
@@ -384,10 +513,12 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
     public async Task<IList<IncomingDocument>> GetAllByStatusAsync(GetDocumentsByStatusQuery request, CancellationToken cancellationToken)
     {
         var query = _incomingDocumentRepository.GetAll()
+            .Include(x => x.Distributions.Where(d => !d.IsDeleted))
             .Where(x => !x.IsDeleted && x.Status == request.Status);
 
+        // Birim, evrağın alıcılarından biriyse evrak listelenir
         if (request.DepartmentId.HasValue)
-            query = query.Where(x => x.DepartmentId == request.DepartmentId.Value);
+            query = query.Where(x => x.Distributions.Any(d => !d.IsDeleted && d.DepartmentId == request.DepartmentId.Value));
 
         // Oluşturan kullanıcı yalnızca CreatedUserId sütunundan okunur (UserId'ye düşülmez)
         if (!string.IsNullOrEmpty(request.CreatedUserId))
