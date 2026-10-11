@@ -359,7 +359,7 @@ public sealed class IncomingDocumentService : IIncomingDocumentService
     /// </summary>
     private static IList<IncomingDocumentRecipient>? ResolveRecipients(
         IList<IncomingDocumentRecipient>? recipients,
-        Guid? departmentId,
+        int? departmentId,
         bool? actionRequired)
     {
         if (recipients is not null)

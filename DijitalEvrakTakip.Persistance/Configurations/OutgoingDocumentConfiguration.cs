@@ -77,7 +77,6 @@ public sealed class OutgoingDocumentConfiguration
         // -----------------------------
 
         builder.Property(x => x.DepartmentId)
-            .HasColumnType("uniqueidentifier")
             .IsRequired(false);
 
         builder.Property(x => x.ExternalInstitutonId)

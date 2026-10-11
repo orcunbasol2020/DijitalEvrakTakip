@@ -13,7 +13,7 @@ public sealed record GetDocumentsByStatusQuery() : IRequest<IList<IncomingDocume
     /// <summary>
     /// Verilirse sadece o departmana ait kayıtlar döner.
     /// </summary>
-    public Guid? DepartmentId { get; set; }
+    public int? DepartmentId { get; set; }
 
     /// <summary>
     /// Verilirse sadece o kullanıcının oluşturduğu kayıtlar döner.

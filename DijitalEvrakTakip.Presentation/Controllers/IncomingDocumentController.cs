@@ -148,7 +148,7 @@ public sealed class IncomingDocumentsController : ApiController
     public async Task<IActionResult> GetAll(
         [FromQuery] string? Status,
         [FromQuery] string? createdUserId,
-        [FromQuery] Guid? departmentId,
+        [FromQuery] int? departmentId,
         CancellationToken cancellationToken)
     {
         var query = new GetAllIncomingDocumentQuery
@@ -222,7 +222,7 @@ public sealed class IncomingDocumentsController : ApiController
     [HttpGet("[action]")]
     public async Task<IActionResult> GetByStatus(
         [FromQuery] int status,
-        [FromQuery] Guid? departmentId,
+        [FromQuery] int? departmentId,
         [FromQuery] string? createdUserId,
         CancellationToken cancellationToken)
     {
@@ -273,7 +273,7 @@ public sealed class IncomingDocumentsController : ApiController
     [HttpGet("[action]")]
     public async Task<IActionResult> GetNotaList(
         [FromQuery] Guid? externalInstitutionId,
-        [FromQuery] Guid? departmentId,
+        [FromQuery] int? departmentId,
         [FromQuery] int? year,
         [FromQuery] int? month,
         [FromQuery] string? dateField,

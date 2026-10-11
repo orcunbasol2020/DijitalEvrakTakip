@@ -48,7 +48,7 @@ public sealed class UserLoginFlow
             UserName = user.UserName,
             Email = user.Email,
 
-            DepartmentId = user.DepartmentId.ToString(),
+            DepartmentId = user.DepartmentId,
             DepartmentName = user.Department?.Name,
             DepartmentShortName = user.Department?.ShortName,
 
@@ -66,6 +66,26 @@ public sealed class UserLoginFlow
             ipAddress, userAgent, cancellationToken);
 
         return response;
+    }
+
+    // "DOMAIN\kullanici" (Windows, ComAuthorizationUser.NTLogonName) ve "kullanici@REALM" (Linux Kerberos)
+    // -> "kullanici". Sistemdeki kullanıcı adları AD kullanıcı adıdır (sAMAccountName).
+    public static string ToUserName(string identityName)
+    {
+        if (string.IsNullOrWhiteSpace(identityName))
+            return null;
+
+        string name = identityName.Trim();
+
+        int backslash = name.LastIndexOf('\\');
+        if (backslash >= 0)
+            name = name[(backslash + 1)..];
+
+        int at = name.IndexOf('@');
+        if (at >= 0)
+            name = name[..at];
+
+        return name.Length == 0 ? null : name;
     }
 
     public async Task<UserLoginDto> FailAsync(

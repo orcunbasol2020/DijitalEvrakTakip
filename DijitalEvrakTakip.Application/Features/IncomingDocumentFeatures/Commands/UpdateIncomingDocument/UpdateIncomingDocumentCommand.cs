@@ -15,7 +15,7 @@ public sealed record UpdateIncomingDocumentCommand
     string? Subject,
     string? Content_Ocr,
     Guid? ExternalInstitutionId,
-    Guid? DepartmentId,
+    int? DepartmentId,
     int? Status,
     bool? ElectronicCopy,
     bool? Release,

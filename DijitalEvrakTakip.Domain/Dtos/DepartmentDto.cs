@@ -1,9 +1,10 @@
 namespace DijitalEvrakTakip.Domain.Dtos;
 
 public sealed record DepartmentDto(
-    Guid Id,
+    int Id,
     string Name,
     string ShortName,
-    Guid? ParentId = null,
-    int? DisnetId = null
+    int? ParentId = null,
+    // ComDepartment.DepartmentTypeId, bkz. DepartmentTypes
+    int? Type = null
 );

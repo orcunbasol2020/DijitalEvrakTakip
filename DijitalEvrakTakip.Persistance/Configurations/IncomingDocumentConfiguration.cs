@@ -97,7 +97,6 @@ public sealed class IncomingDocumentConfiguration
             .IsRequired(false);
 
         builder.Property(x => x.DepartmentId)
-            .HasColumnType("uniqueidentifier")
             .IsRequired(false);
 
         builder.HasOne(x => x.ExternalInstitution)

@@ -1,26 +1,19 @@
-﻿using DijitalEvrakTakip.Application.Features.UserFeatures.Commands.CreateUser;
-using DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser;
-using DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetUserByUsername;
-using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
-using System.Linq.Expressions;
 
 namespace DijitalEvrakTakip.Application.Services;
 
+/// <summary>
+/// Kullanıcılar yalnızca okunur (vw_Users: ComAuthorizationUser); ekleme / güncelleme kaynak sistemde yapılır.
+/// </summary>
 public interface IUserService
 {
-    Task CreateAsync(CreateUserCommand request, CancellationToken cancellationToken);
-    Task<IList<User>> GetAllAsync(GetAllUserQuery request, CancellationToken cancellationToken);
     public IQueryable<User> GetAll();
-    Task<UserLoginDto> GetUserByUserName(Expression<Func<User, bool>> predicate, CancellationToken cancellationToken);
 
     Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
-    /// <summary>Login için: silinmiş/pasif kullanıcıyı da döndürür, karar handler'da verilir.</summary>
+    /// <summary>
+    /// Login için: silinmiş/pasif kullanıcıyı da döndürür, karar handler'da verilir.
+    /// userName AD kullanıcı adıdır (sAMAccountName), "HITIT\" öneki olmadan.
+    /// </summary>
     Task<User?> GetByUserNameAsync(string userName, CancellationToken cancellationToken);
-
-    Task UpdateAsync(User user, CancellationToken cancellationToken);
-
-    Task DeleteAsync(User user, CancellationToken cancellationToken);
-
 }

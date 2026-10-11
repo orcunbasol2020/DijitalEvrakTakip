@@ -17,7 +17,7 @@ namespace DijitalEvrakTakip.Domain.Entities
         [JsonIgnore]
         public OutgoingDocument? OutgoingDocument { get; set; }
 
-        public Guid? DepartmentId { get; set; }
+        public int? DepartmentId { get; set; }
         public Department? Department { get; set; }
 
         public Guid? ExternalInstitutionId { get; set; }

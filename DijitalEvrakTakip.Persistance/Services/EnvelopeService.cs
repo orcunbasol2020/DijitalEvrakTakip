@@ -50,7 +50,7 @@ public sealed class EnvelopeService : IEnvelopeService
 
     public async Task<IList<Envelope>> GetAllAsync(
         Guid? createdByUserId,
-        Guid? departmentId,
+        int? departmentId,
         CancellationToken cancellationToken)
     {
         var query = _envelopeRepository

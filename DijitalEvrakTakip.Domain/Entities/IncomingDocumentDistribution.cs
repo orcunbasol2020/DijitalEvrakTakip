@@ -16,7 +16,7 @@ namespace DijitalEvrakTakip.Domain.Entities
         [JsonIgnore]
         public IncomingDocument? IncomingDocument { get; set; }
 
-        public Guid DepartmentId { get; set; }
+        public int DepartmentId { get; set; }
         public Department? Department { get; set; }
 
         // Bilgi/Gereği: true = Gereği, false = Bilgi

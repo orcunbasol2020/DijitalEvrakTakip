@@ -1,8 +1,6 @@
-﻿using DijitalEvrakTakip.Application.Services;
+using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
-using DijitalEvrakTakip.Domain.Repositories;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,14 +17,13 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser
 
         public async Task<IList<UserDto>> Handle(GetAllUserQuery request, CancellationToken cancellationToken)
         {
-            //IList<UserDto> users = await _userService.GetAllAsync(request, cancellationToken);
-            //return users.OrderBy(u => u.Name).ToList();
-
-            IQueryable<User> query = _userService.GetAll();
+            IQueryable<User> query = _userService.GetAll().Where(u => !u.IsDeleted);
+            bool filtered = false;
 
             if (request.DepartmentId.HasValue)
             {
                 query = query.Where(u => u.DepartmentId == request.DepartmentId.Value);
+                filtered = true;
             }
 
             if (request.RoleId.HasValue)
@@ -34,11 +31,30 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser
                 Guid roleId = request.RoleId.Value;
                 query = query.Where(u => u.UserRoles.Any(ur =>
                     ur.RoleId == roleId && !ur.IsDeleted && !ur.Role.IsDeleted && ur.Role.IsActive));
+                filtered = true;
             }
 
+            if (request.OnlyWithRoles)
+            {
+                query = query.Where(u => u.UserRoles.Any(ur =>
+                    !ur.IsDeleted && !ur.Role.IsDeleted && ur.Role.IsActive));
+                filtered = true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Search))
+            {
+                string search = request.Search.Trim();
+                query = query.Where(u =>
+                    u.Name.Contains(search) || u.Surname.Contains(search) || u.UserName.Contains(search));
+                filtered = true;
+            }
+
+            IQueryable<User> ordered = query.OrderBy(u => u.Name).ThenBy(u => u.Surname);
+            if (!filtered)
+                ordered = ordered.Take(GetAllUserQuery.MaxUnfilteredCount);
+
             // Roller aynı sorguda projekte edilir; kullanıcı başına ayrı sorgu atılmaz.
-            var result = await query
-                .OrderBy(u => u.Name)
+            var result = await ordered
                 .Select(u => new UserDto
                 {
                     Id = u.Id.ToString(),
@@ -46,14 +62,11 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser
                     Surname = u.Surname,
                     Email = u.Email,
                     UserName = u.UserName,
-                    DepartmentId = u.DepartmentId.ToString(),
+                    DepartmentId = u.DepartmentId,
                     DepartmentName = u.Department.Name,
                     DepartmentShortName = u.Department.ShortName,
-                    UserType = u.UserType,
                     IsActive = u.IsActive,
                     IsDeleted = u.IsDeleted,
-                    CreatedDate = u.CreatedDate,
-                    UpdateDate = u.UpdateDate,
                     Roles = u.UserRoles
                         .Where(ur => !ur.IsDeleted && !ur.Role.IsDeleted && ur.Role.IsActive)
                         .OrderBy(ur => ur.Role.Name)
@@ -65,6 +78,4 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser
             return result;
         }
     }
-
-
 }

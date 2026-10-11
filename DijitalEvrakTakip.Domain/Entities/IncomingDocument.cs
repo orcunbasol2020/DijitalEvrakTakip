@@ -48,7 +48,7 @@ namespace DijitalEvrakTakip.Domain.Entities
 
         // Geçiş dönemi alanı: "Nereye" artık Distributions'ta tutulur; burada
         // ilk Gereği alıcısı (yoksa ilk alıcı) tutulur
-        public Guid? DepartmentId { get; set; }
+        public int? DepartmentId { get; set; }
         public Department? Department { get; set; }
 
         public string UserId { get; set; } = null!;

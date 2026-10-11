@@ -5,7 +5,7 @@ namespace DijitalEvrakTakip.Application.Features.NotaReportFeatures.Queries.GetN
 
 public sealed record GetNotaListQuery(
     Guid? ExternalInstitutionId,
-    Guid? DepartmentId,
+    int? DepartmentId,
     int? Year,
     int? Month,
     string? DateField,

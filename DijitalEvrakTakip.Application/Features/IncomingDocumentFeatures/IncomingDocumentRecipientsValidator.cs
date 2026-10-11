@@ -8,7 +8,7 @@ public sealed class IncomingDocumentRecipientsValidator : AbstractValidator<ILis
     public IncomingDocumentRecipientsValidator()
     {
         RuleForEach(p => p)
-            .Must(r => r.DepartmentId != Guid.Empty)
+            .Must(r => r.DepartmentId > 0)
             .WithMessage("Her alıcı için birim seçilmelidir!");
 
         RuleForEach(p => p)

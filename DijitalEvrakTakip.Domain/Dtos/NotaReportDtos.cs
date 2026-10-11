@@ -25,7 +25,7 @@ public sealed record NotaSummaryDto(
 );
 
 public sealed record NotaDepartmentCountDto(
-    Guid DepartmentId,
+    int DepartmentId,
     string? DepartmentName,
     string? DepartmentShortName,
     int NotaCount,
@@ -49,7 +49,7 @@ public sealed record NotaListItemDto(
 );
 
 public sealed record NotaRecipientDto(
-    Guid DepartmentId,
+    int DepartmentId,
     string? DepartmentName,
     string? DepartmentShortName,
     bool? ActionRequired

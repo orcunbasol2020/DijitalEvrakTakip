@@ -7,8 +7,8 @@ Backend dalı: feature/atlas-transfer-queue
 
 - Yeni uç nokta: POST api/Users/WindowsLogin
   Tarayıcı, kullanıcının oturum açtığı Windows hesabının Kerberos biletini gönderir; sunucu "DOMAIN\kullanici" /
-  "kullanici@REALM" kimliğinden kullanıcı adını alır, Users tablosunda UserName ile eşleştirir (AD kullanıcı adıyla
-  aynı) ve Login ile birebir aynı cevabı (token dahil) döner. Silinmiş / pasif kontrolü ve giriş logu aynıdır.
+  "kullanici@REALM" kimliğinden kullanıcı adını alır, ComAuthorizationUser.NTLogonName ile ("HITIT\" öneki
+  atılarak) eşleştirir ve Login ile birebir aynı cevabı (token dahil) döner. Silinmiş / pasif kontrolü ve giriş logu aynıdır.
   - Kimlik doğrulanamazsa: 401 (WWW-Authenticate: Negotiate)
   - Kullanıcı sistemde yok / silinmiş / pasif: 403 (neden giriş logunda)
 - Yeni uç nokta: GET api/Users/GetLoginOptions -> { formLoginEnabled, windowsLoginEnabled }
@@ -92,7 +92,7 @@ f) İstemci (GPO)
 - Domain'deki bir bilgisayardan, PowerShell ile:
       Invoke-WebRequest https://dets-backend-route-lan-dets.apps.ocp.mfa.gov.tr/api/Users/WindowsLogin `
           -Method Post -UseDefaultCredentials
-  200 ve token dönmeli. 401 dönerse SPN / keytab / krb5.conf / GPO; 403 dönerse kullanıcı Users tablosunda yok,
+  200 ve token dönmeli. 401 dönerse SPN / keytab / krb5.conf / GPO; 403 dönerse kullanıcı ComAuthorizationUser'da yok,
   silinmiş ya da pasif (UserLoginLogs'a bakılır).
 - Local'de (Windows, Kestrel) uç nokta test edildi: kimlik gönderilmeden 401, Windows kimliğiyle doğrulamayı geçiyor.
   Pod'daki Kerberos kurulumu henüz denenmedi.

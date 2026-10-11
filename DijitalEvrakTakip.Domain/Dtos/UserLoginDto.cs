@@ -7,7 +7,7 @@ public sealed record UserLoginDto
     public string Surname { get; set; }
     public string Email { get; set; }
     public string UserName { get; set; }
-    public string DepartmentId { get; set; }
+    public int? DepartmentId { get; set; }
     public string DepartmentName { get; set; }
     public string DepartmentShortName { get; set; }
     public bool IsActive { get; set; }

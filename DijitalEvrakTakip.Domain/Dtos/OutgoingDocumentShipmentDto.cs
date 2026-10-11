@@ -27,7 +27,7 @@ public sealed record OutgoingDocumentShipmentItemDto(
     Guid OutgoingDocumentId,
     string? DocumentNumber,
     string? Subject,
-    Guid? DepartmentId,
+    int? DepartmentId,
     string? DepartmentName,
     Guid? ExternalInstitutionId,
     string? ExternalInstitutionName

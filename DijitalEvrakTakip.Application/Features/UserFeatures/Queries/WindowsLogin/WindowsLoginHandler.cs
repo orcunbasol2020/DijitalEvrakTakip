@@ -21,8 +21,7 @@ public sealed class WindowsLoginHandler : IRequestHandler<WindowsLoginQuery, Use
         WindowsLoginQuery request,
         CancellationToken cancellationToken)
     {
-        // Sistemdeki kullanıcı adları AD'deki kullanıcı adıyla (sAMAccountName) aynıdır
-        string userName = ToUserName(request.IdentityName);
+        string userName = UserLoginFlow.ToUserName(request.IdentityName);
 
         User user = string.IsNullOrEmpty(userName)
             ? null
@@ -35,24 +34,5 @@ public sealed class WindowsLoginHandler : IRequestHandler<WindowsLoginQuery, Use
 
         return await _loginFlow.CompleteAsync(
             user, userName, request.IpAddress, request.UserAgent, cancellationToken);
-    }
-
-    // "DOMAIN\kullanici" ve "kullanici@REALM" -> "kullanici"
-    private static string ToUserName(string identityName)
-    {
-        if (string.IsNullOrWhiteSpace(identityName))
-            return null;
-
-        string name = identityName.Trim();
-
-        int backslash = name.LastIndexOf('\\');
-        if (backslash >= 0)
-            name = name[(backslash + 1)..];
-
-        int at = name.IndexOf('@');
-        if (at >= 0)
-            name = name[..at];
-
-        return name.Length == 0 ? null : name;
     }
 }

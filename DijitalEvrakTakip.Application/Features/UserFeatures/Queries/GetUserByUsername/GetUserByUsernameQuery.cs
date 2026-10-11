@@ -4,9 +4,9 @@ using System.Text.Json.Serialization;
 
 namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetUserByUsername;
 
+/// <param name="UserName">AD kullanıcı adı; "HITIT\kullanici" biçimi de kabul edilir. Şifre istenmez.</param>
 public sealed record GetUserByUsernameQuery(
-    string UserName,
-    string Password
+    string UserName
     ) : IRequest<UserLoginDto>
 {
     /// <summary>İstemciden değil, controller tarafından HttpContext'ten doldurulur.</summary>

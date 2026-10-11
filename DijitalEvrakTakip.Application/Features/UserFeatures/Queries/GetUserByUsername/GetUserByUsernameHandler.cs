@@ -6,6 +6,11 @@ using MediatR;
 
 namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetUserByUsername;
 
+/// <summary>
+/// Kullanıcı adıyla ŞİFRESİZ giriş: yalnızca geliştirme ortamında başka kullanıcılarla test için
+/// (LoginSettings.FormLoginEnabled; canlıda kapalı, uç nokta 404 döner). Kaynak sistemde
+/// (ComAuthorizationUser) şifre tutulmaz; canlıda kullanıcı Windows oturumuyla girer (WindowsLogin).
+/// </summary>
 public sealed class GetUserByUsernameHandler : IRequestHandler<GetUserByUsernameQuery, UserLoginDto>
 {
     private readonly IUserService _userService;
@@ -21,21 +26,19 @@ public sealed class GetUserByUsernameHandler : IRequestHandler<GetUserByUsername
         GetUserByUsernameQuery request,
         CancellationToken cancellationToken)
     {
-        User user = await _userService.GetByUserNameAsync(request.UserName, cancellationToken);
+        // "HITIT\kullanici" da yazılabilir
+        string userName = UserLoginFlow.ToUserName(request.UserName);
+
+        User user = string.IsNullOrEmpty(userName)
+            ? null
+            : await _userService.GetByUserNameAsync(userName, cancellationToken);
 
         if (user == null)
             return await _loginFlow.FailAsync(
-                null, request.UserName, LoginFailureReasonEnum.UserNotFound,
-                request.IpAddress, request.UserAgent, cancellationToken);
-
-        // Şifre veritabanındakiyle karşılaştırılır. Bu giriş yalnızca LoginSettings.FormLoginEnabled açıkken
-        // (geliştirme ortamı) kullanılır; canlıda kullanıcı Windows oturumuyla girer (WindowsLogin).
-        if (user.Password != request.Password)
-            return await _loginFlow.FailAsync(
-                user.Id, request.UserName, LoginFailureReasonEnum.InvalidPassword,
+                null, userName ?? request.UserName, LoginFailureReasonEnum.UserNotFound,
                 request.IpAddress, request.UserAgent, cancellationToken);
 
         return await _loginFlow.CompleteAsync(
-            user, request.UserName, request.IpAddress, request.UserAgent, cancellationToken);
+            user, userName, request.IpAddress, request.UserAgent, cancellationToken);
     }
 }

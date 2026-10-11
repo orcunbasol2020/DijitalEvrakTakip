@@ -180,7 +180,7 @@ public sealed class NotaReportService : INotaReportService
 
         if (request.DepartmentId.HasValue)
         {
-            Guid departmentId = request.DepartmentId.Value;
+            int departmentId = request.DepartmentId.Value;
             query = query.Where(x => x.Distributions.Any(d => !d.IsDeleted && d.DepartmentId == departmentId));
         }
 
@@ -308,5 +308,5 @@ public sealed class NotaReportService : INotaReportService
         DateTime? DocumentDate,
         List<NotaRecipientRow> Recipients);
 
-    private sealed record NotaRecipientRow(Guid DepartmentId, bool? ActionRequired);
+    private sealed record NotaRecipientRow(int DepartmentId, bool? ActionRequired);
 }

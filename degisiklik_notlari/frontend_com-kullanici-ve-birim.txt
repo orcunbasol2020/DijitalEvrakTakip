@@ -1,0 +1,60 @@
+Kullanıcılar ve birimler kaynak sistemden (ComAuthorizationUser / ComDepartment): ön yüz notu
+
+Backend dalı: feature/atlas-transfer-queue
+Durum: geliştirme veritabanına (192.168.1.12) 2026-10-11'de uygulandı. Eski test kullanıcıları ve birimleri artık
+yok; giriş gerçek AD kullanıcı adlarıyla yapılır. Ön yüz bu nottaki değişiklikler yapılana kadar birim seçen ve
+birim gösteren ekranlarda hata verir (Guid bekleyip sayı alır).
+
+Geliştirme veritabanındaki gerçek sayılar: 616 merkez birim (temsilciliklerle 924), 5.803 aktif kullanıcı.
+Kimsenin rolü yok: ilk yönetici rolü backend notundaki SQL ile verilir, sonrası rol atama ekranından.
+
+
+1) BİRİM ID'LERİ ARTIK SAYI (Guid değil)
+
+Bütün departmentId / targetDepartmentId alanları ve parametreleri string Guid yerine sayı (int):
+- GET api/Departments/GetAll -> [{ id: 11084875, name, shortName, parentId: number|null, type: number|null }]
+  (disnetId alanı kalktı, type eklendi)
+- Kullanıcı cevapları (Users/GetAll, GetById, GetByParentDepartment, GetDepartmentUsersLoginStatus, Login,
+  WindowsLogin): departmentId: number | null
+- Token'daki "departmentId" claim'i string'tir ama içinde sayı vardır ("11084875"); boş da olabilir.
+  Birim listesiyle karşılaştırırken Number(...) ile çevrilmeli.
+- Gelen / giden evrak, dağıtım, zarf, nota raporu istek ve cevaplarında departmentId, targetDepartmentId ve
+  recipients[].departmentId sayı.
+- Query parametreleri: ?departmentId=11084875
+
+Ön yüzde Guid varsayan yerler (tip tanımları, boş Guid kontrolleri, '00000000-...' varsayılanları) güncellenmeli.
+Kullanıcı id'leri değişmedi, hâlâ Guid.
+
+
+2) Birim listesi
+
+- GET api/Departments/GetAll: varsayılan olarak yalnızca MERKEZ birimler (~600).
+- GET api/Departments/GetAll?includeMissions=true: yurt dışı temsilciliklerimiz de (büyükelçilik, başkonsolosluk,
+  daimi temsilcilik, fahri konsolosluk ...). type alanı: 30006 merkez, 30001 büyükelçilik, 30002 başkonsolosluk,
+  30003 daimi temsilcilik, 30004 ticaret ofisi, 30005 fahri konsolosluk.
+- Kullanıcıların yarısından fazlası temsilciliklerde; kullanıcı / birim gösteren ekranlarda birim adı bulunamazsa
+  includeMissions=true listesine bakılmalı.
+- Bazı kullanıcıların birimi yok (departmentId null); "Birimi tanımsız" gösterilsin.
+
+
+3) Kullanıcılar
+
+- Kullanıcı ekleme / güncelleme / silme KALKTI (Users/Create, Update, Delete). Ad, e-posta, birim, aktiflik kaynak
+  sistemden gelir; ekranlarda salt okunur gösterilmeli. Rol atama (api/UserRole/AssignRoles, RemoveRole) aynen kalıyor.
+- GET api/Users/GetAll yeni parametreler:
+    search=...         ad, soyad ya da kullanıcı adında arama
+    onlyWithRoles=true yalnızca bu sistemde rolü olanlar (kullanıcı yönetimi ekranı için önerilir)
+    departmentId, roleId eskisi gibi (departmentId artık sayı)
+  Hiç süzgeç verilmezse en fazla 200 kullanıcı döner (kaynakta ~10.000 kullanıcı var). Kişi seçicilerde
+  arama ile çağrılmalı.
+- Silinmiş kullanıcılar listede gelmez. isActive=false olanlar: pasif, girişi engellenmiş ya da kurumdan ayrılmış.
+- Cevaptan kalkan alanlar: userType, createdDate, updateDate.
+- userName artık AD kullanıcı adı (ör. "ayse.yilmaz"), "HITIT\" öneki yok.
+
+
+4) Giriş
+
+- Canlı: değişiklik yok, Windows oturumuyla otomatik giriş (bkz. frontend_windows-oturumu-ile-giris.txt).
+- Local (formLoginEnabled true): POST api/Users/Login artık ŞİFRESİZ: { "userName": "ayse.yilmaz" }
+  ("HITIT\ayse.yilmaz" de olur). password gönderilirse yok sayılır. Giriş formundaki şifre alanı kaldırılabilir;
+  geliştirme için kullanıcı adı yazılan ya da Users/GetAll?search= ile aranıp seçilen bir alan yeterli.

@@ -1,7 +1,7 @@
 using DijitalEvrakTakip.Application.Services;
+using DijitalEvrakTakip.Domain.Constants;
 using DijitalEvrakTakip.Domain.Entities;
 using DijitalEvrakTakip.Domain.Repositories;
-using GenericRepository;
 using Microsoft.EntityFrameworkCore;
 
 namespace DijitalEvrakTakip.Persistance.Services;
@@ -9,34 +9,26 @@ namespace DijitalEvrakTakip.Persistance.Services;
 public sealed class DepartmentService : IDepartmentService
 {
     private readonly IDepartmentRepository _departmentRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
     public DepartmentService(
-        IDepartmentRepository departmentRepository,
-        IUnitOfWork unitOfWork)
+        IDepartmentRepository departmentRepository)
     {
         _departmentRepository = departmentRepository;
-        _unitOfWork = unitOfWork;
-    }
-
-    public async Task CreateAsync(
-        Department department,
-        CancellationToken cancellationToken)
-    {
-        await _departmentRepository.AddAsync(department, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<IList<Department>> GetAllAsync(
+        bool includeMissions,
         CancellationToken cancellationToken)
     {
         return await _departmentRepository
             .GetAll()
-            .Where(x => !x.IsDeleted)
+            .AsNoTracking()
+            .Where(x => !x.IsDeleted && (includeMissions || x.Type == DepartmentTypes.Central))
+            .OrderBy(x => x.Name)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<Department?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<Department?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         return await _departmentRepository
             .GetAll()
@@ -44,12 +36,12 @@ public sealed class DepartmentService : IDepartmentService
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<IList<Guid>> GetDescendantIdsAsync(
-        Guid departmentId,
+    public async Task<IList<int>> GetDescendantIdsAsync(
+        int departmentId,
         bool includeSelf,
         CancellationToken cancellationToken)
     {
-        // Departman sayısı az olduğu için tüm liste bir kez çekilip hiyerarşi bellekte gezilir.
+        // Birim sayısı küçük (~1000) olduğu için tüm liste bir kez çekilip hiyerarşi bellekte gezilir.
         var departments = await _departmentRepository
             .GetAll()
             .AsNoTracking()
@@ -58,24 +50,24 @@ public sealed class DepartmentService : IDepartmentService
             .ToListAsync(cancellationToken);
 
         if (!departments.Any(x => x.Id == departmentId))
-            return new List<Guid>();
+            return new List<int>();
 
         var childrenByParent = departments
             .Where(x => x.ParentId.HasValue)
             .ToLookup(x => x.ParentId!.Value, x => x.Id);
 
-        var result = new List<Guid>();
-        var visited = new HashSet<Guid> { departmentId };
+        var result = new List<int>();
+        var visited = new HashSet<int> { departmentId };
         if (includeSelf)
             result.Add(departmentId);
 
-        var stack = new Stack<Guid>();
+        var stack = new Stack<int>();
         stack.Push(departmentId);
 
         while (stack.Count > 0)
         {
-            Guid parentId = stack.Pop();
-            foreach (Guid childId in childrenByParent[parentId])
+            int parentId = stack.Pop();
+            foreach (int childId in childrenByParent[parentId])
             {
                 // Döngüsel veri (A->B->A) durumunda sonsuz döngüye girmemek için ziyaret kontrolü.
                 if (!visited.Add(childId))

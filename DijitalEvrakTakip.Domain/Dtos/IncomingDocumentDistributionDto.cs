@@ -3,7 +3,7 @@ namespace DijitalEvrakTakip.Domain.Dtos;
 public sealed record IncomingDocumentDistributionDto(
     Guid Id,
     Guid IncomingDocumentId,
-    Guid DepartmentId,
+    int DepartmentId,
     string? DepartmentName,
     bool? ActionRequired,
     string? Notes,

@@ -9,8 +9,8 @@ namespace DijitalEvrakTakip.Domain.Entities
         public Guid CreatedByUserId { get; set; }
 
         public Guid? ExternalInstitutionId { get; set; }
-        public Guid? DepartmentId { get; set; }
-        public Guid? TargetDepartmentId { get; set; }
+        public int? DepartmentId { get; set; }
+        public int? TargetDepartmentId { get; set; }
         public string? UnitName { get; set; }
 
         public string? Address { get; set; }

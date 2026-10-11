@@ -621,26 +621,17 @@ namespace DijitalEvrakTakip.Persistance.Migrations
 
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.Department", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("DisnetId")
+                    b.Property<int>("Id")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("ParentId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
 
                     b.Property<string>("ShortName")
                         .HasColumnType("nvarchar(max)");
@@ -648,14 +639,13 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<int?>("Type")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("datetime2");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ParentId");
 
-                    b.ToTable("Departments", (string)null);
+                    b.ToTable((string)null);
+
+                    b.ToView("vw_Departments", (string)null);
                 });
 
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.Document", b =>
@@ -921,8 +911,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("DepartmentId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("int");
 
                     b.Property<string>("EnvelopeNo")
                         .IsRequired()
@@ -943,8 +933,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(1);
 
-                    b.Property<Guid?>("TargetDepartmentId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("TargetDepartmentId")
+                        .HasColumnType("int");
 
                     b.Property<string>("UnitName")
                         .HasColumnType("nvarchar(max)");
@@ -1156,8 +1146,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<Guid?>("CurrentAssignmentUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("DepartmentId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("DocumentDate")
                         .HasColumnType("datetime2");
@@ -1314,8 +1304,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("DepartmentId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("IncomingDocumentId")
                         .HasColumnType("uniqueidentifier");
@@ -1441,8 +1431,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<Guid?>("DepartmentId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("DocumentDate")
                         .HasColumnType("datetime2");
@@ -1589,8 +1579,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<int?>("DeliveryMethod")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("DepartmentId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("int");
 
                     b.Property<Guid?>("ExternalInstitutionId")
                         .HasColumnType("uniqueidentifier");
@@ -1810,17 +1800,10 @@ namespace DijitalEvrakTakip.Persistance.Migrations
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("AutType")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("DepartmentId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
@@ -1834,26 +1817,19 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Password")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Surname")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("UserName")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserType")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("DepartmentId");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable((string)null);
+
+                    b.ToView("vw_Users", (string)null);
                 });
 
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.UserLoginLog", b =>
@@ -2077,8 +2053,7 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                 {
                     b.HasOne("DijitalEvrakTakip.Domain.Entities.Department", "Parent")
                         .WithMany("Children")
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("ParentId");
 
                     b.Navigation("Parent");
                 });
@@ -2247,9 +2222,7 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                 {
                     b.HasOne("DijitalEvrakTakip.Domain.Entities.Department", "Department")
                         .WithMany("Users")
-                        .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("DepartmentId");
 
                     b.Navigation("Department");
                 });

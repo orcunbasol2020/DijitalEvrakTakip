@@ -1,4 +1,4 @@
-﻿using DijitalEvrakTakip.Application.Services;
+using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Dtos;
 using MediatR;
 
@@ -18,16 +18,15 @@ public sealed class GetAllDepartmentHandler
         GetAllDepartmentQuery request,
         CancellationToken cancellationToken)
     {
-        var departments = await _departmentService.GetAllAsync(cancellationToken);
+        var departments = await _departmentService.GetAllAsync(request.IncludeMissions, cancellationToken);
 
         return departments
-            .Where(x => !x.IsDeleted)
             .Select(x => new DepartmentDto(
                 x.Id,
                 x.Name,
                 x.ShortName,
                 x.ParentId,
-                x.DisnetId
+                x.Type
             ))
             .ToList();
     }

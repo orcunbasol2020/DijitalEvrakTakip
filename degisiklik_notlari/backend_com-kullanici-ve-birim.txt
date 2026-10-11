@@ -1,0 +1,84 @@
+Kullanıcılar ComAuthorizationUser'dan, birimler ComDepartment'tan: backend ve veritabanı notu
+
+Backend dalı: feature/atlas-transfer-queue
+Migration: 20261011173320_UseComTablesForUsersAndDepartments
+
+
+1) Ne değişti
+
+- Kullanıcılar artık kaynak sistemin kopyası olan ComAuthorizationUser'dan, birimler ComDepartment'tan okunur.
+  Uygulama bunları iki view üzerinden görür:
+    vw_Users       = ComAuthorizationUser + kullanıcının ComAgency kaydındaki DepartmentId
+    vw_Departments = ComDepartment
+- Eski Users ve Departments tabloları SİLİNİR (içindeki test kullanıcıları / birimleri gider).
+- Kullanıcı id'si değişmedi: Guid (ComAuthorizationUser.UserId). Evraklardaki kullanıcı kolonları aynı kalır.
+- Birim id'si Guid'den int'e döndü (ComDepartment.DepartmentId). Değişen kolonlar:
+    IncomingDocuments.DepartmentId, IncomingDocumentDistributions.DepartmentId, OutgoingDocuments.DepartmentId,
+    OutgoingDocumentDistributions.DepartmentId, Envelopes.DepartmentId / TargetDepartmentId
+- Kullanıcı ve birim kayıtları bizde yalnızca okunur. Kaldırılan uç noktalar:
+    POST api/Users/Create, api/Users/Update, api/Users/Delete, POST api/Departments/Create
+  Bizde yönetilen tek şey rol atamasıdır (api/UserRole/..., UserRoles tablosu ComAuthorizationUser.UserId'yi gösterir).
+- View'a bağlı ilişkiler için veritabanında FK yoktur (UserRoles -> kullanıcı, evrak -> birim). Com tabloları
+  kaynaktan silinip yeniden doldurulabilsin diye bilerek böyle.
+
+
+2) Kurallar
+
+- Kullanıcı adı: NTLogonName'in "HITIT\" öneki atılmış hali (AD sAMAccountName). Windows girişi ve geliştirme
+  girişi bununla eşleşir; "HITIT\kullanici" yazılırsa önek atılır.
+- Aktif kullanıcı: ComAuthorizationUser.IsActive = 1, LoginBlocked = 0 ve LeaveDate boş (ya da ileri tarihli).
+  Kurumdan ayrılmış (LeaveDate dolu) kullanıcılar giriş yapamaz.
+- Kullanıcının birimi: ComAuthorizationUser.AgencyId -> ComAgency.DepartmentId -> ComDepartment.
+  Geliştirme veritabanında aktif kullanıcıların ~180'inin birimi yok (ComAgency'de DepartmentId boş ya da
+  ComDepartment'ta karşılığı yok); bunlar birimsiz görünür (departmentId null).
+- Merkez birim: DepartmentTypeId = 30006 (Domain/Constants/DepartmentTypes.cs). Yurt dışı temsilciliklerimiz:
+  30001 büyükelçilik, 30002 başkonsolosluk, 30003 daimi temsilcilik, 30004 ticaret ofisi, 30005 fahri konsolosluk.
+  Kullanıcının birimi her türden olabilir; GET api/Departments/GetAll varsayılan olarak yalnızca merkez birimleri
+  döner, includeMissions=true ile temsilcilikler de gelir.
+- Geliştirme girişi (api/Users/Login) ŞİFRESİZDİR: ComAuthorizationUser'da şifre yok. Yalnızca
+  Authentication:FormLoginEnabled = true iken açıktır (local'de launchSettings.json); canlıda 404.
+
+
+3) Migration'ı uygulamadan önce
+
+- Migration, evrak tablolarında birim bilgisi dolu kayıt varsa hata verip durur:
+    "Evraklarda eski birim (Departments) bağları var; ComDepartment eşlemesi yapılmadan bu migration uygulanamaz."
+  Geliştirme veritabanında (192.168.1.12) evrak yok, sorunsuz geçer. Test / canlı veritabanında evrak varsa önce
+  eski Departments.Id -> ComDepartment.DepartmentId eşleme tablosu hazırlanmalı; bu migration o durumda
+  kullanılmamalı.
+- Envelopes'taki birim bilgisi (geliştirme veritabanında 29 kayıt) boşaltılır.
+- ComAuthorizationUser, ComAgency ve ComDepartment dolu olmalı (geliştirme veritabanında dolu).
+- Eski kullanıcılara verilmiş rol atamaları (UserRoles, 20 kayıt) Com kullanıcılarıyla eşleşmediği için
+  sahipsiz kalır; zararsızdır ama kimse rol sahibi olmaz. İlk yönetici SQL ile atanır:
+
+    INSERT INTO UserRoles (Id, UserId, RoleId, IsDeleted, CreatedDate)
+    SELECT NEWID(), u.UserId, r.Id, 0, GETUTCDATE()
+    FROM ComAuthorizationUser u CROSS JOIN Roles r
+    WHERE u.NTLogonName = N'HITIT\<kullanici>' AND r.Name = N'Admin'
+      AND NOT EXISTS (SELECT 1 FROM UserRoles x WHERE x.UserId = u.UserId AND x.RoleId = r.Id);
+
+  Sonrası ön yüzdeki rol atama ekranından yapılır.
+- Idempotent betik: dotnet ef migrations script 20261008185405_AddIncomingDocumentAttachments
+  UseComTablesForUsersAndDepartments --idempotent (view'lar EXEC ile oluşturulur, IF bloğu içinde çalışır).
+
+
+4) Test
+
+- Tüm migration zinciri boş bir LocalDB veritabanında baştan sona uygulandı.
+- Uydurma Com verisiyle (birim hiyerarşisi, temsilcilik, ayrılmış / engelli / birimsiz kullanıcı) denendi:
+  birim listesi (merkez / temsilcilik dahil), kullanıcı arama ve birime göre süzme, alt birimlerdeki kullanıcılar,
+  birim oturum durumu, şifresiz geliştirme girişi ("HITIT\..." ve kısa ad), pasif kullanıcının reddi, token'daki
+  departmentId, rol atama ve girişte rollerin gelmesi, giriş logları.
+- Birim testleri (79) geçti.
+- 2026-10-11: geliştirme veritabanına (192.168.1.12) UYGULANDI. Sonrasında gerçek veriyle: 924 birim (616 merkez),
+  10.414 kullanıcı kaydı (5.803 aktif; 178'inin birimi ComDepartment'ta bulunamıyor), şifresiz giriş, arama,
+  alt birim kullanıcıları, birim oturum durumu denendi.
+- Kaynakta aynı kullanıcı adı eski (silinmiş / pasif) kayıtlarda da geçebiliyor (aktif kayıtlar arasında tekrar yok);
+  giriş her zaman geçerli kaydı seçer.
+- Evrak ekranları (gelen / giden / zarf) yeni birim id'leriyle uçtan uca denenmedi (veritabanında evrak yok).
+
+
+5) Sonraki adım
+
+- Dış kurumlar ve yabancı misyonlar: ExternalInstitutions -> ComAgency (DataSourceId 1 / 2 / 3). Nota raporundaki
+  misyon kuralı da o adımda ComAgency'ye çevrilecek.

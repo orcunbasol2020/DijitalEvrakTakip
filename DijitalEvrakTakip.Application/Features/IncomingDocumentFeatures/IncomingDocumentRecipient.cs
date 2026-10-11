@@ -5,7 +5,7 @@ namespace DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures;
 /// true = Gereği, false = Bilgi, null = belirtilmemiş (EYP'de Gereği sayılır).
 /// </summary>
 public sealed record IncomingDocumentRecipient(
-    Guid DepartmentId,
+    int DepartmentId,
     bool? ActionRequired,
     string? Notes = null
 );

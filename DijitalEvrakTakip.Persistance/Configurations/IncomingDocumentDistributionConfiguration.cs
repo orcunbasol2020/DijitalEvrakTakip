@@ -17,7 +17,6 @@ public sealed class IncomingDocumentDistributionConfiguration
             .IsRequired();
 
         builder.Property(x => x.DepartmentId)
-            .HasColumnType("uniqueidentifier")
             .IsRequired();
 
         builder.Property(x => x.Notes)
