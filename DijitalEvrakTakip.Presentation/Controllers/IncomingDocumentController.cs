@@ -12,6 +12,9 @@ using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.Ge
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetIncomingDocumentTodayStats;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetOcrQueueStats;
 using DijitalEvrakTakip.Application.Features.IncomingDocumentFeatures.Queries.GetPendingIncomingDocumentCount;
+using DijitalEvrakTakip.Application.Features.NotaReportFeatures.Queries.GetNotaList;
+using DijitalEvrakTakip.Application.Features.NotaReportFeatures.Queries.GetNotaSenders;
+using DijitalEvrakTakip.Application.Features.NotaReportFeatures.Queries.GetNotaSummary;
 using DijitalEvrakTakip.Presentation.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -230,6 +233,55 @@ public sealed class IncomingDocumentsController : ApiController
             CreatedUserId = createdUserId
         };
 
+        var response = await _mediator.Send(query, cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// En az bir nota göndermiş misyonlar (misyondan gelen her evrak notadır), nota sayısına göre azalan.
+    /// dateField: created (varsayılan) ya da document.
+    /// </summary>
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetNotaSenders(
+        [FromQuery] int? year,
+        [FromQuery] string? dateField,
+        CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(new GetNotaSendersQuery(year, dateField), cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Seçilen misyonun notalarının alıcı birim dağılımı, aylık seyri ve yılları.
+    /// </summary>
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetNotaSummary(
+        [FromQuery] Guid? externalInstitutionId,
+        [FromQuery] int? year,
+        [FromQuery] int? month,
+        [FromQuery] string? dateField,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetNotaSummaryQuery(externalInstitutionId, year, month, dateField);
+        var response = await _mediator.Send(query, cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Seçilen misyonun notaları (isteğe bağlı olarak yalnızca bir birimin alıcı olduğu notalar), sayfalı.
+    /// </summary>
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetNotaList(
+        [FromQuery] Guid? externalInstitutionId,
+        [FromQuery] Guid? departmentId,
+        [FromQuery] int? year,
+        [FromQuery] int? month,
+        [FromQuery] string? dateField,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetNotaListQuery(externalInstitutionId, departmentId, year, month, dateField, page, pageSize);
         var response = await _mediator.Send(query, cancellationToken);
         return Ok(response);
     }

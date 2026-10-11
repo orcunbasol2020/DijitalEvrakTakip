@@ -1,0 +1,112 @@
+Konu: Nota Raporları ekranı için özet endpoint'leri (gelen nota, misyon -> birim dağılımı)
+
+Şu anki durum: Gelen evrakta misyona (externalInstitutionId) ya da evrak türüne (documentTypeId) göre süzen bir uç
+nokta yok. GetAll yalnızca Status / createdUserId / departmentId alıyor. Bu yüzden ön yüz "Amerika hangi birimlere kaç
+nota göndermiş" sorusunu cevaplamak için tüm gelen evrakları indirip tarayıcıda saymak zorunda kalıyor; ekran yavaş ve
+veri büyüdükçe kullanılamaz hale geliyor.
+
+İstenen ekran akışı: Kullanıcı önce bir yabancı misyon seçer, ardından o misyonun hangi birime kaç nota gönderdiği
+gösterilir; birime tıklanınca o birimin notaları listelenir. Sayım sunucuda yapılsın, ön yüze yalnızca özet insin.
+
+Ortak kurallar (üç uç nokta için de):
+- Nota = gelen evrakta documentTypeId 7 (Nota) veya 11 (e-Nota). Silinmiş evraklar (IsDeleted) sayılmaz.
+- Alıcı birimler IncomingDocumentDistributions'tan (silinmemiş satırlar) okunur. Bir nota birden fazla birime
+  gidebildiğinden birim sayıları toplamı nota sayısından büyük olabilir; bu beklenen davranış.
+- Gereği / Bilgi alıcı bazındadır: actionRequired false ise Bilgi, true ya da null ise Gereği sayılır
+  (null Atlas'a Gereği olarak gittiği için).
+- Tarih alanı: dateField=created (varsayılan, CreatedDate) ya da dateField=document (DocumentDate).
+  year / month bu alana göre süzer. month 1-12; month verilip year verilmezse tüm yılların o ayı.
+- Yetki: GetAll ile aynı. (Ön yüz ekranı Birim Evrak Sorumlusu, Birim Yöneticisi ve Ön Kayıt rollerine göstermiyor.)
+- Hatalar mevcut biçimde: { "Message": "...", "StatusCode": ... } ya da doğrulamada { "Errors": [...] }.
+
+
+1) Nota gönderen misyonlar (misyon seçici ve "en çok gönderenler" için)
+
+GET api/IncomingDocuments/GetNotaSenders?year=2026&dateField=created
+
+- year isteğe bağlı; yoksa tüm zamanlar.
+- En az bir nota göndermiş gönderenler (externalInstitutionId dolu olanlar), notaCount'a göre azalan, eşitlikte ada göre.
+- Gönderen kurumu silinmiş ya da evrakta gönderen boşsa o notalar listeye girmez.
+
+Cevap:
+[
+  {
+    "externalInstitutionId": "6b1c...",
+    "name": "Amerika Birleşik Devletleri Ankara Büyükelçiliği",
+    "type": 1,                       // ExternalInstitutionType (1 Misyon, 2 Kurum, 3 Şahıs)
+    "notaCount": 42,
+    "lastNotaDate": "2026-10-07T14:20:00"
+  }
+]
+
+
+2) Seçilen misyonun özeti: birim dağılımı ve aylık seyir (ekranın ana içeriği)
+
+GET api/IncomingDocuments/GetNotaSummary?externalInstitutionId=6b1c...&year=2026&month=&dateField=created
+
+- externalInstitutionId zorunlu. year ve month isteğe bağlı.
+- departments: notaCount'a göre azalan. Alıcısı olmayan notalar departments'a girmez, noRecipientCount'ta sayılır.
+- months: seçili dönemdeki aylar. year verilmişse o yılın 12 ayı (notası olmayan aylar 0 ile), year verilmemişse
+  ilk ve son nota arasındaki tüm aylar (boşluksuz).
+- years: dönem süzgecinden BAĞIMSIZ, misyonun nota gönderdiği tüm yıllar (ekrandaki yıl seçici için), yıla göre azalan.
+
+Cevap:
+{
+  "externalInstitutionId": "6b1c...",
+  "name": "Amerika Birleşik Devletleri Ankara Büyükelçiliği",
+  "notaCount": 42,
+  "eNotaCount": 30,
+  "noRecipientCount": 1,
+  "lastNotaDate": "2026-10-07T14:20:00",
+  "departments": [
+    {
+      "departmentId": "3f2c...",
+      "departmentName": "Kuzey Amerika Genel Müdürlüğü",
+      "departmentShortName": "KAGY",
+      "notaCount": 18,
+      "geregiCount": 15,
+      "bilgiCount": 3
+    }
+  ],
+  "months": [ { "year": 2026, "month": 1, "notaCount": 4 } ],
+  "years":  [ { "year": 2026, "notaCount": 42 }, { "year": 2025, "notaCount": 51 } ]
+}
+
+
+3) Notaların listesi (birime tıklanınca açılan liste; sayfalı)
+
+GET api/IncomingDocuments/GetNotaList?externalInstitutionId=6b1c...&departmentId=3f2c...&year=2026&month=&dateField=created&page=1&pageSize=20
+
+- externalInstitutionId zorunlu; departmentId isteğe bağlı (verilirse yalnızca o birimin alıcı olduğu notalar).
+- Sayfalama pageing.txt'teki gibi: page 1'den başlar (varsayılan 1), pageSize varsayılan 20, üst sınır 100.
+- Sıralama: dateField'a göre yeniden eskiye, eşitlikte Id.
+- recipients: notanın tüm alıcıları (yalnızca süzülen birim değil), eklenme sırasıyla.
+
+Cevap:
+{
+  "items": [
+    {
+      "id": "...",
+      "qrCode": "E-2026-001234",
+      "orginalNo": "No. 123/2026",
+      "subject": "...",
+      "documentTypeId": 11,
+      "createdDate": "2026-10-07T14:20:00",
+      "documentDate": "2026-10-06T00:00:00",
+      "recipients": [
+        { "departmentId": "3f2c...", "departmentName": "Kuzey Amerika Genel Müdürlüğü",
+          "departmentShortName": "KAGY", "actionRequired": true }
+      ]
+    }
+  ],
+  "totalCount": 18,
+  "page": 1,
+  "pageSize": 20
+}
+
+---
+
+Ön yüz bu sözleşmeye göre hazırlandı (Raporlar > Nota Raporları). Uç noktalar gelene kadar ekran misyon listesini
+dış kurum listesinden gösterir, misyon seçilince "sunucu güncellemesi bekleniyor" uyarısı verir; tüm gelen evrakları
+indirmez. 1 numaralı uç nokta gelmezse ekran yine çalışır (misyon listesi sayısız gösterilir); 2 zorunlu, 3 birime
+tıklanınca açılan liste için gerekli.

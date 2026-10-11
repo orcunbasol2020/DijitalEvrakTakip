@@ -43,6 +43,7 @@ builder.Services.AddScoped<IUnitOfWork>(srv => srv.GetRequiredService<AppDbConte
 builder.Services.AddScoped<IIncomingDocumentService, IncomingDocumentService>();
 builder.Services.AddScoped<IIncomingDocumentApplicationService, IncomingDocumentApplicationService>();
 builder.Services.AddScoped<IIncomingDocumentAttachmentService, IncomingDocumentAttachmentService>();
+builder.Services.AddScoped<INotaReportService, NotaReportService>();
 builder.Services.AddScoped<IOutgoingDocumentService, OutgoingDocumentService>();
 builder.Services.AddScoped<IOutgoingDocumentDistributionService, OutgoingDocumentDistributionService>();
 builder.Services.AddScoped<IOutgoingDocumentShipmentService, OutgoingDocumentShipmentService>();
