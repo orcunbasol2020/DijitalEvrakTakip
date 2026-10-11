@@ -1,4 +1,5 @@
 using DijitalEvrakTakip.Application.Services;
+using DijitalEvrakTakip.Domain.Constants;
 using DijitalEvrakTakip.Domain.Entities;
 using DijitalEvrakTakip.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,15 @@ public sealed class UserService : IUserService
     public IQueryable<User> GetAll()
     {
         return _userRepository.GetAll();
+    }
+
+    public IQueryable<User> Search(IQueryable<User> query, string search)
+    {
+        string term = search.Trim();
+        return query.Where(u =>
+            EF.Functions.Collate(u.Name, SqlCollations.Turkish).Contains(term)
+            || EF.Functions.Collate(u.Surname, SqlCollations.Turkish).Contains(term)
+            || EF.Functions.Collate(u.UserName, SqlCollations.Turkish).Contains(term));
     }
 
     public async Task<User?> GetByUserNameAsync(string userName, CancellationToken cancellationToken)

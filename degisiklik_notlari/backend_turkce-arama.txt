@@ -1,0 +1,81 @@
+Konu: Aramalar büyük / küçük harfe duyarsız olmalı (Türkçe i/İ, ı/I)
+
+DURUM (2026-10-11): UYGULANDI, geliştirme veritabanında denendi.
+- Turkish_CI_AS sabiti Domain/Constants/SqlCollations.cs'e taşındı (NotificationService de onu kullanıyor).
+- Uygulanan aramalar: ExternalInstitutionService (kurum / misyon), Users/GetAll?search= (ad, soyad, kullanıcı adı;
+  arama UserService.Search'e taşındı, Collate EF'in ilişkisel paketinde olduğu için Application katmanında yok),
+  UserLoginLogService (kullanıcı adı).
+- Kontrol sonuçları (GET api/ExternalInstitutions/GetAll):
+    type=2: valiliği = VALİLİĞİ = Valiliği = 82, bakanlığı = BAKANLIĞI = 55, milli eğitim = MİLLİ EĞİTİM = 200 (take)
+    type=1: büyükelçiliği = BÜYÜKELÇİLİĞİ = 157, birleşik = BİRLEŞİK = 4, istanbul = İSTANBUL = 197
+    Users/GetAll?search=: küçük / büyük harf aynı sonucu veriyor.
+- Düzeltme: 2) bölümündeki "AYVALI da gelmeye devam eder" beklentisi Türkçe kuralda geçerli değil: "vali" (noktalı i)
+  ile "AYVALI" (noktasız I) eşleşmez; "Ayvalı" doğru yazımla noktasız ı içerdiği için bu doğru davranıştır.
+  "vali" artık valilikleri ve "HAVALİMANI" gibi noktalı İ içeren adları getiriyor.
+- 3) Ek gözlem de uygulandı (migration 20261011193736_TrimExternalInstitutionNames): vw_ExternalInstitutions'ta ad
+  baştaki / sondaki boşluk, sekme ve satır sonlarından arındırılır (7 ad; bazıları boşluk değil sekme / satır sonu
+  ile başlıyordu). Ad kullanan bütün cevaplar düzelir.
+
+Şu anki durum: Kurum ve kullanıcı aramaları yalnızca İngilizce harflerde büyük / küçük harf farkını gözetmiyor. Veritabanının
+varsayılan karşılaştırma kuralı (collation) Türkçe olmadığı için "i" ile "İ", "ı" ile "I" farklı harf sayılıyor. DETSİS
+kurumları büyük harfle ("ADANA VALİLİĞİ"), misyonlar karma ("A.B.D. Başkonsolosluğu - İstanbul") kayıtlı olduğundan
+içinde i / ı geçen hemen her arama takılıyor; ekranda "Kurum" sekmesi ve kurum seçicileri boş geliyor.
+
+Geliştirme veritabanında denendi (2026-10-11, GET api/ExternalInstitutions/GetAll):
+
+    type=2 search=valiliği        -> 0       search=VALİLİĞİ       -> 82
+    type=2 search=bakanlığı       -> 0       search=BAKANLIĞI      -> 55
+    type=2 search=milli eğitim    -> 0       search=MİLLİ EĞİTİM   -> 200 (take sınırı)
+    type=1 search=büyükelçiliği   -> 157     search=BÜYÜKELÇİLİĞİ  -> 0
+    type=1 search=birleşik        -> 4       search=BİRLEŞİK       -> 0
+    type=2 search=vali            -> 152, ama ilk sonuç "1591 SAYILI AYVALI TARIM KREDİ KOOPERATİFİ" (noktasız I ile
+                                     yanlış eşleşme), "VALİLİĞİ"ler değil
+
+Yani kullanıcı küçük harfle yazınca DETSİS kurumları, büyük harfle yazınca misyonlar gelmiyor.
+Not: frontend_comagency-dis-kurumlar.txt'teki "Türkçe karakterle: 'valiliği'" araması bu yüzden şu an çalışmıyor.
+
+
+1) Düzeltme: Turkish_CI_AS ile karşılaştır
+
+Projede aynı sorunun çözümü zaten var: NotificationService.cs (satır 113-117)
+
+    // Turkish_CI_AS: I/ı ve İ/i eşleşmesi Türkçe kurallarıyla yapılır
+    EF.Functions.Collate(x.Title, TurkishCollation).Contains(term)
+
+Aynısı ad araması yapan şu sorgulara uygulanmalı:
+
+a) Persistance/Services/ExternalInstitutionService.cs, satır 33 (dış kurum / misyon araması)
+       query = query.Where(x => x.Name.Contains(term) || x.DetsisCode == term);
+   ->  query = query.Where(x => EF.Functions.Collate(x.Name, TurkishCollation).Contains(term) || x.DetsisCode == term);
+
+b) Application/Features/UserFeatures/Queries/GetAllUser/GetAllUserHandler.cs, satır 48 (Users/GetAll?search=)
+       u.Name.Contains(search) || u.Surname.Contains(search) || u.UserName.Contains(search)
+   ->  her üç alan EF.Functions.Collate(..., "Turkish_CI_AS").Contains(search)
+   Aynı sorun burada da var: "şükrü" / "ŞÜKRÜ" eşleşir ama "ismail" / "İSMAİL", "ılgaz" / "ILGAZ" eşleşmez.
+   Ön yüzde Kullanıcılar ekranındaki arama ve rol vermek için kişi bulma buna bağlı.
+
+c) Persistance/Services/UserLoginLogService.cs, satır 111 (giriş logu araması, UserName)
+   Kullanıcı adları AD'den geldiği için çoğunlukla ASCII; yine de tutarlılık için aynı kural önerilir.
+
+"Turkish_CI_AS" sabiti NotificationService'te private; ortak bir yere (ör. Domain/Constants) taşınıp üç yerde
+kullanılabilir.
+
+
+2) Kontrol
+
+Düzeltmeden sonra şu çiftler aynı sayıyı döndürmeli:
+    type=2: valiliği = VALİLİĞİ = Valiliği (82), bakanlığı = BAKANLIĞI (55)
+    type=1: büyükelçiliği = BÜYÜKELÇİLİĞİ (157), birleşik = BİRLEŞİK (4), istanbul = İSTANBUL
+    Users/GetAll?search=: aynı kişinin adı küçük ve büyük harfle aynı sonucu vermeli
+"vali" araması artık "VALİLİĞİ"leri de getirmeli ("AYVALI" da gelmeye devam eder; doğru, adda "vali" geçiyor).
+
+Not: Collate sütunun dizinini kullandırmaz; ama Contains zaten LIKE '%...%' olduğu için şu an da tam tarama
+yapılıyor, performans değişmez (view araması ~120 ms ölçülmüştü).
+
+
+3) Ek gözlem (ayrı konu)
+
+Bazı DETSİS kurum adları boşlukla başlıyor (ör. id 50248867 "    YASAMA"). OrderBy(x => x.Name) bunları listenin
+başına koyuyor; aramada sorun yok ama listede ilk sıralarda tuhaf görünüyor. View'da ad LTRIM/RTRIM ile verilebilir.
+
+Ön yüzde değişiklik gerekmiyor: arama metni olduğu gibi gönderiliyor.

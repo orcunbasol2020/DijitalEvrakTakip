@@ -23,7 +23,9 @@ artık yok; geliştirme veritabanında 840 misyon, 159.596 kurum, 59 uluslararas
     type 3 = Dilekçe / Talep (tek kayıt, id -1)
     type 4 = Uluslararası kuruluş (59) -> tamamı döner
     type boş = tüm türler, take sınırıyla
-  search: adda geçen metin (Türkçe karakterle: "valiliği") ya da tam DETSİS numarası.
+  search: adda geçen metin ya da tam DETSİS numarası. Türkçe kurala göre büyük / küçük harfe duyarsızdır:
+          "valiliği" = "VALİLİĞİ", "büyükelçiliği" = "BÜYÜKELÇİLİĞİ" (Users/GetAll?search= de aynı). Arama metni
+          olduğu gibi gönderilmeli; ön yüzde büyük harfe çevirmeye gerek yok.
 - Gönderen kurum seçimi bir arama kutusu (typeahead) olmalı: kullanıcı 2-3 harf yazınca search ile çağrılır.
   Misyonlar ayrı bir sekme / filtre olarak tamamı yüklenebilir.
 - Yeni tür 4 (uluslararası kuruluş): tür etiketlerine eklenmeli. Nota sayılmaz.

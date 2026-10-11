@@ -1,4 +1,5 @@
 using DijitalEvrakTakip.Application.Services;
+using DijitalEvrakTakip.Domain.Constants;
 using DijitalEvrakTakip.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,7 +31,9 @@ public sealed class ExternalInstitutionService : IExternalInstitutionService
         if (!string.IsNullOrWhiteSpace(search))
         {
             string term = search.Trim();
-            query = query.Where(x => x.Name.Contains(term) || x.DetsisCode == term);
+            // Türkçe kuralla: "valiliği" = "VALİLİĞİ"
+            query = query.Where(x =>
+                EF.Functions.Collate(x.Name, SqlCollations.Turkish).Contains(term) || x.DetsisCode == term);
         }
 
         query = query.OrderBy(x => x.Name);

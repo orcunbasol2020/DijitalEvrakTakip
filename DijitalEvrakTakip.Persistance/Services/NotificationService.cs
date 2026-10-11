@@ -1,4 +1,5 @@
 using DijitalEvrakTakip.Application.Services;
+using DijitalEvrakTakip.Domain.Constants;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
 using DijitalEvrakTakip.Domain.Enums;
@@ -12,7 +13,6 @@ public sealed class NotificationService : INotificationService
 {
     private const int DefaultPageSize = 20;
     private const int MaxPageSize = 100;
-    private const string TurkishCollation = "Turkish_CI_AS";
 
     // Bu türler bildirim olarak değil bekleyen onay listesinde gösterildiği için
     // sayfalı listedeki okunmamış sayısına katılmaz
@@ -113,8 +113,8 @@ public sealed class NotificationService : INotificationService
             // Turkish_CI_AS: I/ı ve İ/i eşleşmesi Türkçe kurallarıyla yapılır
             string term = search.Trim();
             query = query.Where(x =>
-                EF.Functions.Collate(x.Title, TurkishCollation).Contains(term)
-                || EF.Functions.Collate(x.Message, TurkishCollation).Contains(term));
+                EF.Functions.Collate(x.Title, SqlCollations.Turkish).Contains(term)
+                || EF.Functions.Collate(x.Message, SqlCollations.Turkish).Contains(term));
         }
 
         return query

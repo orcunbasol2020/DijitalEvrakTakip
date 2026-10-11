@@ -9,6 +9,12 @@ public interface IUserService
 {
     public IQueryable<User> GetAll();
 
+    /// <summary>
+    /// Ad, soyad ya da kullanıcı adında geçen metne göre süzer; Türkçe büyük / küçük harf kuralıyla
+    /// ("ismail" = "İSMAİL", "ılgaz" = "ILGAZ").
+    /// </summary>
+    IQueryable<User> Search(IQueryable<User> query, string search);
+
     Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
     /// <summary>

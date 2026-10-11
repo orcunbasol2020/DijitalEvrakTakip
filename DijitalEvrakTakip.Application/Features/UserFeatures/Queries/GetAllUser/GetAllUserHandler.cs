@@ -43,9 +43,7 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser
 
             if (!string.IsNullOrWhiteSpace(request.Search))
             {
-                string search = request.Search.Trim();
-                query = query.Where(u =>
-                    u.Name.Contains(search) || u.Surname.Contains(search) || u.UserName.Contains(search));
+                query = _userService.Search(query, request.Search);
                 filtered = true;
             }
 
