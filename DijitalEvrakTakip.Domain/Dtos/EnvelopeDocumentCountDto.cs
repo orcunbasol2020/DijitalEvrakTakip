@@ -6,7 +6,7 @@ public sealed record EnvelopeDocumentCountDto(
     bool IsClosed,
     int Status,
     Guid CreatedByUserId,
-    Guid? ExternalInstitutionId,
+    int? ExternalInstitutionId,
     string? ExternalInstitutionName,
     int? DepartmentId,
     int? TargetDepartmentId,

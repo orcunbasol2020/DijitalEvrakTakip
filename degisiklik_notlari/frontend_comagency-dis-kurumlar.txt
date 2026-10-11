@@ -1,0 +1,53 @@
+Dış kurumlar ve yabancı misyonlar kaynak sistemden (ComAgency): ön yüz notu
+
+Backend dalı: feature/atlas-transfer-queue
+Önceki not: frontend_com-kullanici-ve-birim.txt (birim id'leri sayı oldu); bu not aynı değişikliği dış kurumlar için yapar.
+
+
+1) KURUM ID'LERİ ARTIK SAYI (Guid değil)
+
+- externalInstitutionId (gelen evrak, giden dağıtım, gönderim, zarf, dış kurum personeli, nota raporu) ve giden
+  evraktaki externalInstitutonId: string Guid yerine sayı. Ör. 1000000001 (misyon), 22222222 (DETSİS kurumu).
+- "Dilekçe / Talep" göndereninin id'si -1 (negatif). "Seçilmedi" kontrolü 0 / null ile yapılmalı, < 0 ile değil.
+- Query parametreleri: ?externalInstitutionId=1000000001
+
+
+2) Kurum listesi
+
+- Kurumlar artık ~160.000 kayıt; hepsini çeken dropdown ÇALIŞMAZ.
+- GET api/ExternalInstitutions/GetAll?type=&search=&take=
+    type 1 = Misyon (~840)            -> tamamı döner, misyon seçicilerde (nota raporu dahil) type=1 kullanılsın
+    type 2 = Kurum (DETSİS, ~160.000) -> en fazla take (varsayılan 50, en fazla 200); search ile arama yapılmalı
+    type 3 = Dilekçe / Talep (tek kayıt, id -1)
+    type 4 = Uluslararası kuruluş (59) -> tamamı döner
+    type boş = tüm türler, take sınırıyla
+  search: adda geçen metin (Türkçe karakterle: "valiliği") ya da tam DETSİS numarası.
+- Gönderen kurum seçimi bir arama kutusu (typeahead) olmalı: kullanıcı 2-3 harf yazınca search ile çağrılır.
+  Misyonlar ayrı bir sekme / filtre olarak tamamı yüklenebilir.
+- Yeni tür 4 (uluslararası kuruluş): tür etiketlerine eklenmeli. Nota sayılmaz.
+- Kurum ekleme / güncelleme / silme KALKTI (ExternalInstitutions/Create, Update, Delete). Kurum yönetim ekranı
+  kaldırılmalı ya da salt okunur arama ekranına dönmeli.
+- Cevap: { id: number, name, type, address: string|null, detsisCode: string|null, parentId: number|null }
+
+
+3) Kurum adı artık cevaplarda: externalInstitutionName
+
+- Ön yüz kurum adını tüm kurum listesini çekip eşleyerek GÖSTERMEMELİ (160.000 kurum). Bunun yerine cevaptaki
+  externalInstitutionName kullanılmalı. Bu alan şu uç noktalarda dolu gelir:
+    IncomingDocuments: GetAll, GetDocumentsByDirection, GetDocumentsByStatus, GetById, GetByQrCode
+    OutgoingDocuments: GetAll, GetById, GetByQrCode (giden evrakta id alanının adı externalInstitutonId)
+    Envelopes: GetAll, GetById, GetByNo
+  Giden dağıtım, gönderim ve "üzerimdeki evraklar" cevaplarında kurum adı zaten vardı.
+- externalInstitution (nesne) alanı eskisi gibi null gelir; kullanılmamalı.
+- Kaynakta kapatılmış bir kurumun adı da gelir (eski evraklar için); ama o kurum seçim listelerinde çıkmaz.
+
+
+4) Dış kurum personeli (ExternalUsers)
+
+- Değişmedi, yalnızca externalInstitutionId sayı. Mevcut 20 test kaydı migration ile silinir; kişiler ComAgency
+  kurumlarına bağlı olarak yeniden girilmeli.
+
+
+5) Nota raporları
+
+- Sözleşme değişmedi, yalnızca externalInstitutionId sayı. Misyon seçici GetNotaSenders'tan dolmaya devam eder.

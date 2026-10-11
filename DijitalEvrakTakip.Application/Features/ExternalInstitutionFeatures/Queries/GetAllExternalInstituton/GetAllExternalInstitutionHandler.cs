@@ -1,4 +1,5 @@
-﻿using DijitalEvrakTakip.Application.Services;
+using DijitalEvrakTakip.Application.Services;
+using DijitalEvrakTakip.Domain.Constants;
 using DijitalEvrakTakip.Domain.Dtos;
 using MediatR;
 
@@ -18,15 +19,19 @@ public sealed class GetAllExternalInstitutionQueryHandler
         GetAllExternalInstitutionQuery request,
         CancellationToken cancellationToken)
     {
-        var entities = await _service.GetAllAsync(cancellationToken);
+        bool large = request.Type is null or ExternalInstitutionTypes.Institution;
+        int? take = large
+            ? Math.Clamp(request.Take ?? GetAllExternalInstitutionQuery.DefaultTake, 1, GetAllExternalInstitutionQuery.MaxTake)
+            : null;
+
+        var entities = await _service.GetAllAsync(request.Type, request.Search, take, cancellationToken);
 
         return entities
-            .Where(x => !x.IsDeleted)
             .Select(x => new ExternalInstitutionDto
             {
                 Id = x.Id,
                 Name = x.Name,
-                Type= x.Type,
+                Type = x.Type,
                 Address = x.Address,
                 DetsisCode = x.DetsisCode,
                 ParentId = x.ParentId

@@ -13,5 +13,5 @@ public sealed record UpdateEnvelopeCommand(
     Guid Id,
     string? UnitName,
     string? Address,
-    Guid? ExternalInstitutionId = null
+    int? ExternalInstitutionId = null
 ) : IRequest<MessageResponse>;

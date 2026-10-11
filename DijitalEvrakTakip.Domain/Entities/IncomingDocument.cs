@@ -43,8 +43,11 @@ namespace DijitalEvrakTakip.Domain.Entities
         public DateTime? DocumentDate { get; set; }
         public DateTime? ReleaseDate { get; set; }
 
-        public Guid? ExternalInstitutionId { get; set; }
+        public int? ExternalInstitutionId { get; set; }
         public ExternalInstitution? ExternalInstitution { get; set; }
+
+        /// <summary>Gönderen / alıcı kurumun adı; veritabanında tutulmaz, cevaplarda doldurulur (ExternalInstitutionNames).</summary>
+        public string? ExternalInstitutionName { get; set; }
 
         // Geçiş dönemi alanı: "Nereye" artık Distributions'ta tutulur; burada
         // ilk Gereği alıcısı (yoksa ilk alıcı) tutulur

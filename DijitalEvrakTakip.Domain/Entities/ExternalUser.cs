@@ -9,7 +9,7 @@ public sealed class ExternalUser : Entity
     public string? IdentityNo { get; set; }
     public int UserType { get; set; }
 
-    public Guid ExternalInstitutionId { get; set; }
+    public int ExternalInstitutionId { get; set; }
 
     public ExternalInstitution ExternalInstitution { get; set; }
 

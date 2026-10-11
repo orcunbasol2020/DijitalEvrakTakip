@@ -20,7 +20,7 @@ namespace DijitalEvrakTakip.Domain.Entities
         public int? DepartmentId { get; set; }
         public Department? Department { get; set; }
 
-        public Guid? ExternalInstitutionId { get; set; }
+        public int? ExternalInstitutionId { get; set; }
         public ExternalInstitution? ExternalInstitution { get; set; }
 
         // Bilgi/Gereği: true = Gereği, false = Bilgi

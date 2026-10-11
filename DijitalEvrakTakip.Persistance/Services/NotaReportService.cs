@@ -74,7 +74,7 @@ public sealed class NotaReportService : INotaReportService
         GetNotaSummaryQuery request,
         CancellationToken cancellationToken)
     {
-        Guid externalInstitutionId = request.ExternalInstitutionId!.Value;
+        int externalInstitutionId = request.ExternalInstitutionId!.Value;
         bool useDocumentDate = NotaReportPeriodRules.UseDocumentDate(request.DateField);
 
         var institution = await _externalInstitutionRepository
@@ -171,7 +171,7 @@ public sealed class NotaReportService : INotaReportService
         GetNotaListQuery request,
         CancellationToken cancellationToken)
     {
-        Guid externalInstitutionId = request.ExternalInstitutionId!.Value;
+        int externalInstitutionId = request.ExternalInstitutionId!.Value;
         bool useDocumentDate = NotaReportPeriodRules.UseDocumentDate(request.DateField);
 
         var query = ApplyPeriod(

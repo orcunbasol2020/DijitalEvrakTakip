@@ -33,7 +33,6 @@ public sealed class OutgoingDocumentShipmentConfiguration
             .IsRequired();
 
         builder.Property(x => x.ExternalInstitutionId)
-            .HasColumnType("uniqueidentifier")
             .IsRequired(false);
 
         builder.Property(x => x.RecipientName)

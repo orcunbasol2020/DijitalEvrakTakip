@@ -4,7 +4,7 @@ using MediatR;
 namespace DijitalEvrakTakip.Application.Features.NotaReportFeatures.Queries.GetNotaSummary;
 
 public sealed record GetNotaSummaryQuery(
-    Guid? ExternalInstitutionId,
+    int? ExternalInstitutionId,
     int? Year,
     int? Month,
     string? DateField

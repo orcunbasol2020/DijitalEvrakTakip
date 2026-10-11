@@ -30,7 +30,7 @@ public sealed class UpdateEnvelopeCommandHandler
             envelope.Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim();
 
         // Hedef tek olmalı: dış kurum seçildiyse kurum içi hedef temizlenir.
-        if (request.ExternalInstitutionId.HasValue && request.ExternalInstitutionId.Value != Guid.Empty)
+        if (request.ExternalInstitutionId.HasValue && request.ExternalInstitutionId.Value != 0)
         {
             envelope.ExternalInstitutionId = request.ExternalInstitutionId.Value;
             envelope.TargetDepartmentId = null;

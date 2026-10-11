@@ -20,7 +20,6 @@ public sealed class OutgoingDocumentDistributionConfiguration
             .IsRequired(false);
 
         builder.Property(x => x.ExternalInstitutionId)
-            .HasColumnType("uniqueidentifier")
             .IsRequired(false);
 
         builder.Property(x => x.DeliveryMethod);

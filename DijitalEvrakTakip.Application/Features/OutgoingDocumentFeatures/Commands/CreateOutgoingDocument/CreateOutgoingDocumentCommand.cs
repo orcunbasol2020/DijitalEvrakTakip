@@ -15,7 +15,7 @@ public sealed record CreateOutgoingDocumentCommand
     string? Content_Ocr,
     int? Status,
     int? DepartmentId,
-    Guid? ExternalInstitutonId,
+    int? ExternalInstitutonId,
     bool? ElectronicCopy,
     bool? EbysTransfer,
     bool? ActionRequired,

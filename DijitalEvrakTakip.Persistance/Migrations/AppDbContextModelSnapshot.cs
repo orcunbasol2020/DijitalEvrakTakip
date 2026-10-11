@@ -919,8 +919,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<Guid?>("ExternalInstitutionId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("ExternalInstitutionId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsClosed")
                         .HasColumnType("bit");
@@ -1165,8 +1165,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<bool?>("ElectronicCopy")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("ExternalInstitutionId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("ExternalInstitutionId")
+                        .HasColumnType("int");
 
                     b.Property<bool?>("HasAttachment")
                         .HasColumnType("bit");
@@ -1443,8 +1443,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<bool?>("ElectronicCopy")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("ExternalInstitutonId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("ExternalInstitutonId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -1582,8 +1582,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<int?>("DepartmentId")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("ExternalInstitutionId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("ExternalInstitutionId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -1634,8 +1634,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<DateTime?>("DeliveredDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("ExternalInstitutionId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("ExternalInstitutionId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -1947,43 +1947,34 @@ namespace DijitalEvrakTakip.Persistance.Migrations
 
             modelBuilder.Entity("ExternalInstitution", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
 
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("DetsisCode")
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("ParentId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("datetime2");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("DetsisCode");
 
                     b.HasIndex("ParentId");
 
-                    b.ToTable("ExternalInstitutions", (string)null);
+                    b.ToTable((string)null);
+
+                    b.ToView("vw_ExternalInstitutions", (string)null);
                 });
 
             modelBuilder.Entity("ExternalUser", b =>
@@ -1998,8 +1989,8 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("ExternalInstitutionId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("ExternalInstitutionId")
+                        .HasColumnType("int");
 
                     b.Property<string>("IdentityNo")
                         .HasColumnType("nvarchar(max)");
@@ -2260,8 +2251,7 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                 {
                     b.HasOne("ExternalInstitution", "Parent")
                         .WithMany("Children")
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("ParentId");
 
                     b.Navigation("Parent");
                 });

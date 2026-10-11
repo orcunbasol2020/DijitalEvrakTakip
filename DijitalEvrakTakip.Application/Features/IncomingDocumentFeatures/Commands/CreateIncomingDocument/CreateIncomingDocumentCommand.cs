@@ -14,7 +14,7 @@ public sealed record CreateIncomingDocumentCommand
     int? LanguageId,
     string? Subject,
     string? Content_Ocr,
-    Guid? ExternalInstitutionId,
+    int? ExternalInstitutionId,
     int? DepartmentId,
     int? Status,
     bool? ElectronicCopy,

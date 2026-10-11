@@ -1,7 +1,7 @@
 namespace DijitalEvrakTakip.Domain.Dtos;
 
 public sealed record NotaSenderDto(
-    Guid ExternalInstitutionId,
+    int ExternalInstitutionId,
     string Name,
     // ExternalInstitution.Type
     int Type,
@@ -11,7 +11,7 @@ public sealed record NotaSenderDto(
 );
 
 public sealed record NotaSummaryDto(
-    Guid ExternalInstitutionId,
+    int ExternalInstitutionId,
     string Name,
     int NotaCount,
     int ENotaCount,

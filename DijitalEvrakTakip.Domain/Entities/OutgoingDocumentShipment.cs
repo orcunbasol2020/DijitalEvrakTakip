@@ -20,7 +20,7 @@ namespace DijitalEvrakTakip.Domain.Entities
         // Kargoya veren kişi (zimmetli kullanıcı, User tablosuna ait, FK değildir)
         public Guid SentUserId { get; set; }
 
-        public Guid? ExternalInstitutionId { get; set; }
+        public int? ExternalInstitutionId { get; set; }
         public ExternalInstitution? ExternalInstitution { get; set; }
 
         // Paket üzerindeki alıcı adı

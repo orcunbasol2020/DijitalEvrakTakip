@@ -5,7 +5,7 @@ namespace DijitalEvrakTakip.Application.Features.EnvelopeFeatures.Commands.Creat
 {
     public sealed record CreateEnvelopeCommand(
         Guid CreatedByUserId,
-        Guid? ExternalInstitutionId,
+        int? ExternalInstitutionId,
         int? DepartmentId,
         int? TargetDepartmentId,
         string? UnitName,

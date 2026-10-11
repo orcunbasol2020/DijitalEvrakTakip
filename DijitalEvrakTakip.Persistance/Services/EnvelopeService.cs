@@ -96,7 +96,7 @@ public sealed class EnvelopeService : IEnvelopeService
     }
 
     public async Task<ExternalInstitution?> GetExternalInstitutionByIdAsync(
-    Guid id, CancellationToken cancellationToken)
+    int id, CancellationToken cancellationToken)
     {
         return await _externalInstitutionRepository
             .GetAll()

@@ -4,7 +4,7 @@ using MediatR;
 namespace DijitalEvrakTakip.Application.Features.NotaReportFeatures.Queries.GetNotaList;
 
 public sealed record GetNotaListQuery(
-    Guid? ExternalInstitutionId,
+    int? ExternalInstitutionId,
     int? DepartmentId,
     int? Year,
     int? Month,

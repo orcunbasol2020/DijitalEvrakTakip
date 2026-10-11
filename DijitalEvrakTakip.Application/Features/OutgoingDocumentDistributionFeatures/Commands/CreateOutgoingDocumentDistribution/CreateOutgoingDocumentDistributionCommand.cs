@@ -10,7 +10,7 @@ public sealed record CreateOutgoingDocumentDistributionCommand(
 
 public sealed record OutgoingDocumentDistributionRecipient(
     int? DepartmentId,
-    Guid? ExternalInstitutionId,
+    int? ExternalInstitutionId,
     bool? ActionRequired,
     DateTime? SentDate,
     DateTime? DeliveryDate,

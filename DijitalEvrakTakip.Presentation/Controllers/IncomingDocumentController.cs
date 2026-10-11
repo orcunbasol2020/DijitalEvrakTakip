@@ -256,7 +256,7 @@ public sealed class IncomingDocumentsController : ApiController
     /// </summary>
     [HttpGet("[action]")]
     public async Task<IActionResult> GetNotaSummary(
-        [FromQuery] Guid? externalInstitutionId,
+        [FromQuery] int? externalInstitutionId,
         [FromQuery] int? year,
         [FromQuery] int? month,
         [FromQuery] string? dateField,
@@ -272,7 +272,7 @@ public sealed class IncomingDocumentsController : ApiController
     /// </summary>
     [HttpGet("[action]")]
     public async Task<IActionResult> GetNotaList(
-        [FromQuery] Guid? externalInstitutionId,
+        [FromQuery] int? externalInstitutionId,
         [FromQuery] int? departmentId,
         [FromQuery] int? year,
         [FromQuery] int? month,

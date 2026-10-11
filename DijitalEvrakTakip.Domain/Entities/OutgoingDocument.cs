@@ -27,8 +27,11 @@ namespace DijitalEvrakTakip.Domain.Entities
         public int? DepartmentId { get; set; }
         public Department? Department { get; set; }
 
-        public Guid? ExternalInstitutonId { get; set; }
+        public int? ExternalInstitutonId { get; set; }
         public ExternalInstitution? ExternalInstitution { get; set; }
+
+        /// <summary>Gönderen / alıcı kurumun adı; veritabanında tutulmaz, cevaplarda doldurulur (ExternalInstitutionNames).</summary>
+        public string? ExternalInstitutionName { get; set; }
 
         public bool? ElectronicCopy { get; set; }
 

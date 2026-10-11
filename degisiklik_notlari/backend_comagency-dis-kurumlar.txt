@@ -1,0 +1,85 @@
+Dış kurumlar ve yabancı misyonlar ComAgency'den: backend ve veritabanı notu
+
+Backend dalı: feature/atlas-transfer-queue
+Migration: 20261011175932_UseComAgencyForExternalInstitutions
+Önceki adım: backend_com-kullanici-ve-birim.txt (kullanıcılar ve birimler)
+
+
+1) Ne değişti
+
+- Dış kurumlar artık ComAgency'den okunur, view: vw_ExternalInstitutions. Eski ExternalInstitutions tablosu
+  (147 kayıt) SİLİNİR.
+- Kurum id'si Guid'den int'e döndü (ComAgency.AgencyId). Değişen kolonlar:
+    IncomingDocuments.ExternalInstitutionId, OutgoingDocuments.ExternalInstitutonId (ad yazım hatasıyla aynen kaldı),
+    OutgoingDocumentDistributions.ExternalInstitutionId, OutgoingDocumentShipments.ExternalInstitutionId,
+    Envelopes.ExternalInstitutionId, ExternalUser.ExternalInstitutionId
+- Kurum ekleme / güncelleme / silme kaldırıldı (api/ExternalInstitutions/Create, Update, Delete).
+- Dış kurum personeli (ExternalUser) bizde kalır ve yönetilir; artık ComAgency kurumuna bağlanır.
+
+
+2) Kurallar (vw_ExternalInstitutions)
+
+- Tür (ExternalInstitutionTypes) ComAgency.DataSourceId'den:
+    1 Misyon               = DataSourceId 2 (Diplomatik Portal, Türkiye'deki yabancı misyonlar; ~840 aktif)
+    2 Kurum                = DataSourceId 1 (DETSİS, Türk kamu kurumları; ~160.000 aktif)
+    3 Dilekçe / Talep      = sabit tek kayıt, Id = -1 (ComAgency'de yok)
+    4 Uluslararası kuruluş = DataSourceId 3 (BM ajansları, NATO, AGİT ...; 59). Nota SAYILMAZ.
+- Dışarıda kalanlar:
+    - Dışişleri Bakanlığı (AgencyId 24305112) ve altındaki tüm birimler (~675): bizim birimlerimiz ComDepartment'tan gelir.
+    - Diplomatik Portal'daki grup düğümleri (alt kaydı olan DataSourceId 2 kayıtları: "Diplomatik Portal Yabancı
+      Misyonlar", "Tüm Yabancı Misyonlar", "Büyükelçilikler", "Başkonsolosluklar", "Uluslararası Kuruluşlar").
+  Not: ComAgency.DepartmentId yabancı misyonlarda da dolu (muhtemelen ilgili masa birimi), bu yüzden
+  "DepartmentId dolu = Dışişleri birimi" sayılmadı; Dışişleri ağacı AgencyId'den gezilir.
+- DetsisCode: DETSİS kaynaklı kurumlarda 8 haneli AgencyId. AgencyCode DETSİS numarası DEĞİL (22 karakterlik eski
+  kurum kodu, yarısında boş). EYP paketindeki gönderen KKK'sı (OlusturanKkk) bu DetsisCode'dur; misyon, uluslararası
+  kuruluş ve dilekçede boş kalır (öncekiyle aynı). DETSİS numarasının AgencyId olduğu varsayımı Atlas/EYP
+  tarafında ilk gerçek aktarımda doğrulanmalı.
+- Kaynakta silinmiş ya da pasif kurum view'da kalır (IsDeleted = 1), listelerde süzülür; eski evraklarda gönderen
+  adı görünsün diye silinmiş kurumlar için global süzgeç kaldırıldı.
+- Nota kuralı değişmedi: gönderenin türü Misyon (1) olan her gelen evrak notadır. Tür artık view'dan geldiği için
+  nota raporu ComAgency'deki misyonlarla çalışır.
+
+
+3) Uç noktalar
+
+- GET api/ExternalInstitutions/GetAll?type=&search=&take=
+    type: 1 misyon, 2 kurum, 3 dilekçe, 4 uluslararası kuruluş; boşsa tümü
+    search: adda geçen metin ya da tam DETSİS numarası
+    take: tür boşsa ya da 2 ise en fazla take kayıt (varsayılan 50, en fazla 200). Misyon / dilekçe / uluslararası
+          kuruluş listeleri küçük olduğu için tamamı döner.
+- GET api/ExternalInstitutions/GetById?id=1000000001 (int). Dışişleri birimleri ve silinmişler 404.
+- Cevap: { id: int, name, type, address, detsisCode, parentId: int|null }
+
+
+4) Migration'ı uygulamadan önce
+
+- Evraklarda (gelen, giden, giden dağıtım) kurum bilgisi dolu kayıt varsa migration hata verip durur. Geliştirme
+  veritabanında evrak yok.
+- Zarflardaki (20) ve gönderimlerdeki (3) kurum bilgisi boşaltılır.
+- Dış kurum personeli (ExternalUser, 20 kayıt) SİLİNİR; ComAgency kurumlarına bağlı olarak yeniden girilir.
+  Bu kişilere ait zimmet yok (DocumentAllocations / OutgoingDocumentAllocations boş).
+
+
+5) Test
+
+- Tüm migration zinciri boş LocalDB'de uygulandı; uydurma ComAgency verisiyle (Dışişleri ağacı ve DepartmentId'si
+  boş alt birimi, grup düğümleri, DepartmentId'si dolu misyon, kapanmış kurum, uluslararası kuruluş) view denendi.
+- API: tür süzgeci, Türkçe karakterli arama, DETSİS numarasıyla arama, take sınırı, dilekçe (-1), Dışişleri
+  biriminin 404 dönmesi, dış kurum personeli ekleme / listeleme, misyondan / kurumdan / dilekçeden gelen evrak
+  oluşturma, nota gönderenleri / özet / liste (yalnızca misyon evrakı nota sayıldı), dilekçe gönderenli zarf.
+- View sorgusu geliştirme veritabanında salt okunur denendi: ~270 ms (tamamı), ~120 ms (arama).
+- Birim testleri (79) geçti.
+- 2026-10-11: geliştirme veritabanına (192.168.1.12) UYGULANDI: 840 misyon, 159.596 kurum, 59 uluslararası
+  kuruluş, dilekçe; eski ExternalInstitutions tablosu ve 20 dış kurum personeli kaldırıldı.
+
+
+6) Kurum adı cevaplarda
+
+- Gelen / giden evrak cevaplarına externalInstitutionName eklendi (veritabanında tutulmaz; sonuçtaki kurumlar için
+  tek ek sorguyla doldurulur, Application/Features/ExternalInstitutionFeatures/ExternalInstitutionNames.cs):
+    IncomingDocuments: GetAll, GetDocumentsByDirection, GetDocumentsByStatus, GetById, GetByQrCode
+    OutgoingDocuments: GetAll, GetById, GetByQrCode
+- Zarf detayı (Envelopes/GetById, GetByNo) da externalInstitutionName döner; zarf listesi zaten dönüyordu, artık
+  zarf başına ayrı sorgu atmıyor.
+- Kaynakta silinmiş / pasif kurumun adı da gelir (eski evraklar için).
+- Uydurma veriyle LocalDB'de denendi: misyon, kurum, dilekçe ve sonradan kapatılmış kurum adları doğru geldi.

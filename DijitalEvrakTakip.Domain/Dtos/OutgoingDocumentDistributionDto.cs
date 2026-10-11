@@ -5,7 +5,7 @@ public sealed record OutgoingDocumentDistributionDto(
     Guid OutgoingDocumentId,
     int? DepartmentId,
     string? DepartmentName,
-    Guid? ExternalInstitutionId,
+    int? ExternalInstitutionId,
     string? ExternalInstitutionName,
     bool? ActionRequired,
     int? DeliveryMethod,
