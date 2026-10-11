@@ -26,7 +26,9 @@ public sealed class GetAllDepartmentHandler
                 x.Name,
                 x.ShortName,
                 x.ParentId,
-                x.Type
+                x.Type,
+                x.Level,
+                x.SortOrder
             ))
             .ToList();
     }

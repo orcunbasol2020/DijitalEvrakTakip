@@ -96,6 +96,21 @@ Migration: 20261011173320_UseComTablesForUsersAndDepartments
     WHERE DepartmentId IN (1107014, 11082940, 1110012);
 
 
+- Makam sırası ve Bakan kökü (migration 20261011190529_AddDepartmentLevelAndMinisterRoot):
+    - vw_Departments'a Level (ComDepartment.DepartmentLevel: 1 Bakan, 2 Bakan Yardımcılığı / makam birimleri,
+      3 Müsteşar Yrd. / Müşavirlik, 4 GM, 5 GMY, 6 Daire Bşk., 7+ alt birimler) ve SortOrder
+      (DomisticOrganizationSortOrder; merkez birimlerin yalnızca 45'inde dolu) eklendi.
+    - Departments/GetAll artık Level, SortOrder, ad sırasıyla döner (boşlar sonda); cevapta level ve sortOrder var.
+    - Kaynakta üst birimi boş olan 2. seviye merkez birimler "Bakan" biriminin (11082872) altına bağlanır (21 birim:
+      8 Bakan Yardımcılığı, Özel Kalem, Sözcülük, Özel Müşavirlikler, Müsteşar ...). Kaynakta yalnızca 2 Bakan
+      Yardımcılığı Bakan'a bağlıydı; bu bizim tarafta yapılan bir yorumdur, kaynak sistemi bilen biri onaylamalı.
+    - Geliştirme veritabanında uygulandı: Bakan altında 23 doğrudan birim, Bakan ağacı 226 birim, 5 seviye; kopuk
+      bağ yok. Kökte kalan 252 merkez birimin çoğu kaynakta üst birimi eksik / silinmiş GM, GMY ve Daire
+      Başkanlıkları; hangi Bakan Yardımcılığına bağlı oldukları veriden çıkarılamadığı için dokunulmadı.
+    - Kaynakta 1. seviyede Bakan dışında eski / dış kayıtlar da var (Avrupa Birliği Bakanlığı, Ekonomi Bakanlığı,
+      TÜBİTAK, Başdanışmanlıklar ...); düz listede Bakan'ın ardından gelirler, ağaçta ayrı köktürler.
+
+
 6) Sonraki adım
 
 - Dış kurumlar ve yabancı misyonlar: ExternalInstitutions -> ComAgency (DataSourceId 1 / 2 / 3). Nota raporundaki

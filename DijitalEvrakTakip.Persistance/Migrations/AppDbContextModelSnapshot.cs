@@ -627,6 +627,9 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("Level")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
@@ -635,6 +638,9 @@ namespace DijitalEvrakTakip.Persistance.Migrations
 
                     b.Property<string>("ShortName")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SortOrder")
+                        .HasColumnType("int");
 
                     b.Property<int?>("Type")
                         .HasColumnType("int");

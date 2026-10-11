@@ -24,7 +24,13 @@ public sealed class DepartmentService : IDepartmentService
             .GetAll()
             .AsNoTracking()
             .Where(x => !x.IsDeleted && (includeMissions || x.Type == DepartmentTypes.Central))
-            .OrderBy(x => x.Name)
+            // Makam sırası: önce seviye (Bakan, Bakan Yardımcılığı, GM ...), sonra seviyedeki sıra, sonra ad;
+            // seviyesi / sırası boş olanlar sona
+            .OrderBy(x => x.Level == null)
+            .ThenBy(x => x.Level)
+            .ThenBy(x => x.SortOrder == null)
+            .ThenBy(x => x.SortOrder)
+            .ThenBy(x => x.Name)
             .ToListAsync(cancellationToken);
     }
 

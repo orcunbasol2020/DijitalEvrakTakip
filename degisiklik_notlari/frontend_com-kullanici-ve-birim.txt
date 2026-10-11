@@ -40,8 +40,18 @@ Kullanıcı id'leri değişmedi, hâlâ Guid.
   Ağaç parentId ile güvenle kurulabilir:
     - Varsayılan liste (merkez birimler, 616) kendi içinde kapalıdır: her merkez birimin üstü yine merkez birimdir.
     - includeMissions=true listesinde 10 temsilcilik bir merkez birimin altındadır; çoğu temsilcilik köktür.
-  Tek bir "Bakanlık" kökü yok; en üst seviyede Bakan Yardımcılıkları ve üst birimi olmayan birimler (~520 kök,
-  çoğu temsilcilik) bulunur.
+- Makam sırası: GET api/Departments/GetAll cevabında level ve sortOrder alanları var ve liste zaten makam sırasıyla
+  gelir (önce Bakan, sonra Bakan Yardımcılıkları ve makam birimleri, sonra Genel Müdürlükler ...).
+    level: 1 Bakan, 2 Bakan Yardımcılığı / Özel Kalem / Sözcülük, 3 Müsteşar Yrd. / Müşavirlik, 4 Genel Müdürlük,
+           5 Genel Müdür Yardımcılığı, 6 Daire Başkanlığı, 7+ alt birimler; bazılarında null
+    sortOrder: aynı seviyede sıra; çoğunda null
+  Ağaçta aynı üst birimin altındaki birimler de bu sırayla dizilmeli: level (null sonda), sortOrder (null sonda), ad.
+  Gelen sıra korunarak gruplanırsa ek sıralama gerekmez.
+- "Bakan" birimi (id 11082872) ağacın tepesindedir: Bakan Yardımcılıkları, Özel Kalem, Sözcülük, Müşavirlikler ve
+  onların altındaki Genel Müdürlükler Bakan'ın altına düşer (226 birim).
+  Bunun dışında kökte kalan birimler var: üst birimi kaynakta eksik / silinmiş bazı GM, GMY ve Daire Başkanlıkları ile
+  1. seviyedeki eski / dış kayıtlar (Avrupa Birliği Bakanlığı, Ekonomi Bakanlığı, TÜBİTAK ...). Ağaç görünümünde
+  bunlar Bakan'ın yanında ayrı kökler olarak görünür; düz listede Bakan'ın hemen ardından gelirler.
 
 
 3) Kullanıcılar

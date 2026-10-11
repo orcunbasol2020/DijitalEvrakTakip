@@ -5,7 +5,7 @@ namespace DijitalEvrakTakip.Application.Services;
 public interface IDepartmentService
 {
     /// <summary>
-    /// Silinmemiş birimler, ada göre. includeMissions=false ise yalnızca merkez birimler
+    /// Silinmemiş birimler, makam sırasıyla (seviye, seviyedeki sıra, ad). includeMissions=false ise yalnızca merkez birimler
     /// (DepartmentTypes.Central); true ise yurt dışı temsilciliklerimiz de.
     /// </summary>
     Task<IList<Department>> GetAllAsync(bool includeMissions, CancellationToken cancellationToken);

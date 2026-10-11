@@ -17,6 +17,16 @@ namespace DijitalEvrakTakip.Domain.Entities
         public string Name { get; set; }
         public string ShortName { get; set; }
         public int? Type { get; set; }
+
+        /// <summary>
+        /// Makam seviyesi (ComDepartment.DepartmentLevel): 1 Bakan, 2 Bakan Yardımcılığı / makam birimleri,
+        /// 4 Genel Müdürlük, 5 Genel Müdür Yardımcılığı, 6 Daire Başkanlığı, 7+ alt birimler. Bazı birimlerde boş.
+        /// </summary>
+        public int? Level { get; set; }
+
+        /// <summary>Aynı seviyedeki birimlerin sırası (ComDepartment.DomisticOrganizationSortOrder); çoğunda boş.</summary>
+        public int? SortOrder { get; set; }
+
         public bool IsDeleted { get; set; }
 
         public ICollection<User> Users { get; set; }
