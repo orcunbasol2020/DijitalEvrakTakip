@@ -1,5 +1,6 @@
 using DijitalEvrakTakip.WebApi.BackgroundServices;
 using DijitalEvrakTakip.Application.Behaviors;
+using DijitalEvrakTakip.Application.Features.UserFeatures;
 using DijitalEvrakTakip.Application.Options;
 using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Repositories;
@@ -20,11 +21,17 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 //services 
+// WindowsLogin tarayıcının Windows kimliğini gönderdiği (withCredentials) bir istek; bu tür isteklerde
+// AllowAnyOrigin kullanılamaz, ön yüzün adresleri Cors:AllowedOrigins'te açıkça verilmeli.
+string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
     {
-        builder.AllowAnyOrigin();
+        if (allowedOrigins.Length > 0)
+            builder.WithOrigins(allowedOrigins).AllowCredentials();
+        else
+            builder.AllowAnyOrigin();
         builder.AllowAnyMethod();
         builder.AllowAnyHeader();
     });
@@ -34,6 +41,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 builder.Services.AddScoped<IUserLoginLogService, UserLoginLogService>();
+builder.Services.AddScoped<UserLoginFlow>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
@@ -173,8 +181,13 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
             ClockSkew = TimeSpan.FromMinutes(1)
         };
-    });
+    })
+    // Yalnızca api/Users/WindowsLogin bu şemayı kullanır; diğer uç noktalar JWT ile çalışır.
+    // Linux'ta (pod) Kerberos için keytab ve krb5.conf gerekir.
+    .AddNegotiate(LoginSettings.WindowsScheme, _ => { });
 builder.Services.AddAuthorization();
+
+builder.Services.Configure<LoginSettings>(builder.Configuration.GetSection(LoginSettings.SectionName));
 
 string connectionString = builder.Configuration.GetConnectionString("SqlServer");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));

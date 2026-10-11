@@ -1,0 +1,101 @@
+Windows oturumu ile otomatik giriş (Kerberos): backend ve deploy notu
+
+Backend dalı: feature/atlas-transfer-queue
+
+
+1) Ne değişti
+
+- Yeni uç nokta: POST api/Users/WindowsLogin
+  Tarayıcı, kullanıcının oturum açtığı Windows hesabının Kerberos biletini gönderir; sunucu "DOMAIN\kullanici" /
+  "kullanici@REALM" kimliğinden kullanıcı adını alır, Users tablosunda UserName ile eşleştirir (AD kullanıcı adıyla
+  aynı) ve Login ile birebir aynı cevabı (token dahil) döner. Silinmiş / pasif kontrolü ve giriş logu aynıdır.
+  - Kimlik doğrulanamazsa: 401 (WWW-Authenticate: Negotiate)
+  - Kullanıcı sistemde yok / silinmiş / pasif: 403 (neden giriş logunda)
+- Yeni uç nokta: GET api/Users/GetLoginOptions -> { formLoginEnabled, windowsLoginEnabled }
+- POST api/Users/Login (kullanıcı adı + şifre) artık yalnızca Authentication:FormLoginEnabled = true ise çalışır,
+  değilse 404 döner.
+- Diğer bütün uç noktalar eskisi gibi JWT (Bearer) ile çalışır; yetki ve roller değişmedi.
+- Veritabanı değişikliği / migration yok.
+
+
+2) Ayarlar (appsettings / ConfigMap)
+
+    "Authentication": {
+      "WindowsLoginEnabled": true,
+      "FormLoginEnabled": false
+    },
+    "Cors": {
+      "AllowedOrigins": [ "https://<ön yüzün adresi>" ]
+    }
+
+- Ayar verilmezse varsayılan: WindowsLoginEnabled = true, FormLoginEnabled = false. Yani canlıda form login'i açmak
+  için bilerek true yazmak gerekir.
+- Bu ayarlar ortam adına (ASPNETCORE_ENVIRONMENT) bağlı DEĞİL. Not: canlı pod şu an ASPNETCORE_ENVIRONMENT=development
+  ile çalışıyor (Dockerfile'da Production yazıyor ama pod tanımı eziyor); bu ayrıca düzeltilmeli, ama giriş
+  güvenliği buna bağlı değil.
+- Local geliştirme: launchSettings.json'da Authentication__FormLoginEnabled=true var; Visual Studio / dotnet run ile
+  hem form login (her kullanıcıyla test) hem Windows login açık. launchSettings konteynere girmez.
+- Cors:AllowedOrigins ZORUNLU: ön yüz backend'e farklı adresten (dets-backend-route-lan-dets.apps.ocp.mfa.gov.tr)
+  eriştiği ve WindowsLogin kimlik bilgisiyle (withCredentials) çağrıldığı için "her adrese izin" kullanılamaz.
+  Liste boş bırakılırsa CORS eskisi gibi her adrese açık olur ama tarayıcıdan WindowsLogin çalışmaz.
+  Yalnızca kendi ön yüz adres(ler)imiz yazılmalı; joker / her adres yazılırsa başka bir site kullanıcının Windows
+  kimliğiyle token alabilir.
+
+
+3) Altyapıdan gerekenler (sistem / AD ekibi)
+
+a) Servis hesabı ve SPN
+   - AD'de bir servis hesabı (ör. svc_dets), şifresi süresiz.
+   - Backend'e tarayıcının eriştiği adres için SPN:
+       setspn -S HTTP/dets-backend-route-lan-dets.apps.ocp.mfa.gov.tr svc_dets
+   - Adres IP değil DNS adı olmalı. Tarayıcı bileti, adres CNAME ise çözülmüş (kanonik) ada göre ister; *.apps.ocp
+     kaydı CNAME ise SPN kanonik ada da verilmeli (ya da DNS A kaydı olmalı).
+   - İleride özel bir adres (ör. ets.mfa.gov.tr) kullanılırsa SPN o ad için de eklenmeli.
+
+b) Keytab
+       ktpass -princ HTTP/dets-backend-route-lan-dets.apps.ocp.mfa.gov.tr@<REALM> -mapuser <DOMAIN>\svc_dets
+              -crypto AES256-SHA1 -ptype KRB5_NT_PRINCIPAL -pass * -out dets.keytab
+   - OpenShift Secret olarak pod'a mount edilir (ör. /etc/krb5/dets.keytab) ve ortam değişkeni verilir:
+       KRB5_KTNAME=/etc/krb5/dets.keytab
+
+c) krb5.conf
+   - ConfigMap olarak /etc/krb5.conf'a mount edilir; en azından:
+       [libdefaults]
+           default_realm = <REALM>
+           dns_lookup_kdc = true
+           rdns = false
+   - Pod'dan domain controller'lara (KDC, 88/tcp-udp) erişim olmalı.
+
+d) Docker imajı (runtime aşaması)
+   - Linux'ta Kerberos için GSSAPI kütüphanesi gerekir. Runtime aşamasında apt kaynakları silindiği için kaynak dosyası
+     orada da kopyalanmalı:
+       COPY ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources
+       RUN apt-get update \
+           && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+           && rm -rf /var/lib/apt/lists/*
+
+e) OpenShift route
+   - Authorization başlığı backend'e olduğu gibi iletilmeli (varsayılan route bunu yapar).
+   - Yalnızca Kerberos desteklenir; NTLM bağlantı bazlı olduğu için router / çoklu pod arkasında çalışmaz.
+
+f) İstemci (GPO)
+   - Backend adresi tarayıcıda "Yerel İntranet" bölgesine eklenmeli; Edge / Chrome için ayrıca
+     AuthServerAllowlist = *.apps.ocp.mfa.gov.tr (ya da tam adres) politikası verilmeli.
+   - Bu yapılmazsa tarayıcı bileti göndermez, kullanıcı adı / şifre penceresi çıkar.
+   - Kullanıcının bilgisayarı domain'e bağlı ve domain hesabıyla oturum açılmış olmalı.
+
+
+4) Kontrol
+
+- GET api/Users/GetLoginOptions -> {"formLoginEnabled":false,"windowsLoginEnabled":true}
+- POST api/Users/Login -> 404
+- Domain'deki bir bilgisayardan, PowerShell ile:
+      Invoke-WebRequest https://dets-backend-route-lan-dets.apps.ocp.mfa.gov.tr/api/Users/WindowsLogin `
+          -Method Post -UseDefaultCredentials
+  200 ve token dönmeli. 401 dönerse SPN / keytab / krb5.conf / GPO; 403 dönerse kullanıcı Users tablosunda yok,
+  silinmiş ya da pasif (UserLoginLogs'a bakılır).
+- Local'de (Windows, Kestrel) uç nokta test edildi: kimlik gönderilmeden 401, Windows kimliğiyle doğrulamayı geçiyor.
+  Pod'daki Kerberos kurulumu henüz denenmedi.
+
+Keycloak geldiğinde: ön yüz Keycloak'a (OIDC) yönlendirilir, Kerberos işini Keycloak üstlenir; bu uç nokta ve
+keytab kaldırılabilir. Rol / yetki yapısı JWT'de kaldığı için ekranlar etkilenmez.

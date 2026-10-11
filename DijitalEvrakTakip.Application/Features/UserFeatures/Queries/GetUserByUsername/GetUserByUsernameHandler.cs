@@ -9,20 +9,12 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetUserByU
 public sealed class GetUserByUsernameHandler : IRequestHandler<GetUserByUsernameQuery, UserLoginDto>
 {
     private readonly IUserService _userService;
-    private readonly IUserRoleService _roleService;
-    private readonly IJwtProvider _jwtProvider;
-    private readonly IUserLoginLogService _loginLogService;
+    private readonly UserLoginFlow _loginFlow;
 
-    public GetUserByUsernameHandler(
-        IUserService userService,
-        IUserRoleService userRoleService,
-        IJwtProvider jwtProvider,
-        IUserLoginLogService loginLogService)
+    public GetUserByUsernameHandler(IUserService userService, UserLoginFlow loginFlow)
     {
         _userService = userService;
-        _roleService = userRoleService;
-        _jwtProvider = jwtProvider;
-        _loginLogService = loginLogService;
+        _loginFlow = loginFlow;
     }
 
     public async Task<UserLoginDto> Handle(
@@ -32,59 +24,18 @@ public sealed class GetUserByUsernameHandler : IRequestHandler<GetUserByUsername
         User user = await _userService.GetByUserNameAsync(request.UserName, cancellationToken);
 
         if (user == null)
-            return await FailAsync(null, request, LoginFailureReasonEnum.UserNotFound, cancellationToken);
+            return await _loginFlow.FailAsync(
+                null, request.UserName, LoginFailureReasonEnum.UserNotFound,
+                request.IpAddress, request.UserAgent, cancellationToken);
 
-        // NOT: Şifre karşılaştırması ileride LDAP bind ile değiştirilecek.
-        // Aşağıdaki IsDeleted/IsActive kontrolü, loglama ve token üretimi LDAP'tan bağımsızdır.
+        // Şifre veritabanındakiyle karşılaştırılır. Bu giriş yalnızca LoginSettings.FormLoginEnabled açıkken
+        // (geliştirme ortamı) kullanılır; canlıda kullanıcı Windows oturumuyla girer (WindowsLogin).
         if (user.Password != request.Password)
-            return await FailAsync(user.Id, request, LoginFailureReasonEnum.InvalidPassword, cancellationToken);
+            return await _loginFlow.FailAsync(
+                user.Id, request.UserName, LoginFailureReasonEnum.InvalidPassword,
+                request.IpAddress, request.UserAgent, cancellationToken);
 
-        if (user.IsDeleted)
-            return await FailAsync(user.Id, request, LoginFailureReasonEnum.UserDeleted, cancellationToken);
-
-        if (!user.IsActive)
-            return await FailAsync(user.Id, request, LoginFailureReasonEnum.UserInactive, cancellationToken);
-
-        IList<string> roles = await _roleService.GetRolesByUserIdAsync(user.Id, cancellationToken);
-
-        UserLoginDto response = new()
-        {
-            Id = user.Id,
-            Name = user.Name,
-            Surname = user.Surname,
-            UserName = user.UserName,
-            Email = user.Email,
-
-            DepartmentId = user.DepartmentId.ToString(),
-            DepartmentName = user.Department?.Name,
-            DepartmentShortName = user.Department?.ShortName,
-
-            IsDeleted = user.IsDeleted,
-            IsActive = user.IsActive,
-            Roles = roles
-        };
-
-        (string token, DateTime expiration) = _jwtProvider.CreateToken(response);
-        response.Token = token;
-        response.TokenExpiration = expiration;
-
-        await _loginLogService.LogAsync(
-            user.Id, request.UserName, isSuccess: true, failureReason: null,
-            request.IpAddress, request.UserAgent, cancellationToken);
-
-        return response;
-    }
-
-    private async Task<UserLoginDto> FailAsync(
-        Guid? userId,
-        GetUserByUsernameQuery request,
-        LoginFailureReasonEnum reason,
-        CancellationToken cancellationToken)
-    {
-        await _loginLogService.LogAsync(
-            userId, request.UserName, isSuccess: false, reason,
-            request.IpAddress, request.UserAgent, cancellationToken);
-
-        return null;
+        return await _loginFlow.CompleteAsync(
+            user, request.UserName, request.IpAddress, request.UserAgent, cancellationToken);
     }
 }
