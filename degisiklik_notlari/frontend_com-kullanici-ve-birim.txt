@@ -35,6 +35,13 @@ Kullanıcı id'leri değişmedi, hâlâ Guid.
 - Kullanıcıların yarısından fazlası temsilciliklerde; kullanıcı / birim gösteren ekranlarda birim adı bulunamazsa
   includeMissions=true listesine bakılmalı.
 - Bazı kullanıcıların birimi yok (departmentId null); "Birimi tanımsız" gösterilsin.
+- Hiyerarşi (parentId): parentId null olanlar köktür; dolu olanların üst birimi her zaman aynı listede ve
+  silinmemiştir (backend kopuk / silinmiş üst birimleri en yakın geçerli üst birime bağlar ya da kökü yapar).
+  Ağaç parentId ile güvenle kurulabilir:
+    - Varsayılan liste (merkez birimler, 616) kendi içinde kapalıdır: her merkez birimin üstü yine merkez birimdir.
+    - includeMissions=true listesinde 10 temsilcilik bir merkez birimin altındadır; çoğu temsilcilik köktür.
+  Tek bir "Bakanlık" kökü yok; en üst seviyede Bakan Yardımcılıkları ve üst birimi olmayan birimler (~520 kök,
+  çoğu temsilcilik) bulunur.
 
 
 3) Kullanıcılar

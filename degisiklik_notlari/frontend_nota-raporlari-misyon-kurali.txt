@@ -8,11 +8,12 @@ Bu not frontend_nota-raporlari.txt'teki "2) Ortak kurallar" altındaki nota tan�
 1) Yeni kural
 
 - Yabancı bir misyondan gelen her evrak, türü ne olursa olsun, notadır.
-  Misyon = dış kurum türü (ExternalInstitution.Type) 1. Kurum (2) ve Şahıs (3) nota sayılmaz.
+  Misyon = dış kurum türü (ExternalInstitution.Type) 1. Kurum (2), Dilekçe / Talep (3) ve uluslararası kuruluş (4)
+  nota sayılmaz. [Güncel tür listesi: frontend_comagency-dis-kurumlar.txt]
 - Eski kural (documentTypeId 7 = Nota / 11 = e-Nota) kaldırıldı. Gerçek veride misyon evrakları çoğunlukla Yazı (1)
   gibi başka türlerle kaydedildiği için rapor bugüne kadar boş dönüyordu; düzeltmeden sonra dolu gelmeli.
-- Misyon = 1 değeri backend'de sabit olarak yazıldı (Domain/Constants/ExternalInstitutionTypes.cs). Ön yüzdeki dış kurum
-  türü listesinde bu değer değişirse backend'e haber verilsin, yoksa rapor sessizce boş döner.
+- Tür artık ön yüzden değil, kaynaktan gelir: kurumlar ComAgency'den okunur ve türü backend'de belirlenir
+  (Diplomatik Portal kayıtları = 1 misyon). Ön yüz türü yalnızca gösterir.
 
 
 2) Ekrana etkisi
@@ -38,5 +39,7 @@ Bu not frontend_nota-raporlari.txt'teki "2) Ortak kurallar" altındaki nota tan�
 
 4) Kontrol (test veritabanı)
 
-- GetNotaSenders en az şu satırları döndürmeli: Almanya Federasyonu Büyükelçiliği (7), Afganistan Büyükelçiliği (3),
-  Fransa ve Hindistan (2'şer), Çin Halk Cumhuriyeti Büyükelçiliği (1, türü 9 = Nato Hizmete Özel Yazı).
+- [GEÇERSİZ] Aşağıdaki beklenen sayılar eski dış kurum kayıtlarına (ExternalInstitutions) bağlı evraklar içindi; o
+  tablo ComAgency geçişiyle kaldırıldı ve geliştirme veritabanında evrak yok. Kontrol için ComAgency'deki bir
+  misyondan (type=1) gelen evrak girilip GetNotaSenders'ta görünmesi beklenmeli.
+  (Eski: Almanya Federasyonu Büyükelçiliği 7, Afganistan Büyükelçiliği 3, Fransa / Hindistan 2'şer, Çin 1.)

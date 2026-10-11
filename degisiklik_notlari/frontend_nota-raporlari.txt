@@ -70,7 +70,9 @@ sayılar şüpheli görünürse (özellikle Gereği/Bilgi ve aylık seyir) backe
   doğrulama hatası döner. Mevcut doğrulama biçimiyle aynı: HTTP 500, gövde
   { "Errors": ["ExternalInstitutionId"], "StatusCode": 403 }. Errors yalnızca hatalı alanın adını içerir (mesaj yok);
   ekranda alan adına göre mesaj gösterilsin. Normalde ekran bu değerleri kendisi ürettiği için bu hata görülmemeli.
-- Geçersiz biçimde guid (ör. externalInstitutionId=abc) gönderilirse ASP.NET'in kendi 400 cevabı döner (ProblemDetails).
+- externalInstitutionId ve departmentId artık sayı (bkz. frontend_comagency-dis-kurumlar.txt,
+  frontend_com-kullanici-ve-birim.txt). Sayı olmayan değer (ör. externalInstitutionId=abc) gönderilirse ASP.NET'in
+  kendi 400 cevabı döner (ProblemDetails).
 
 
 7) Yetki

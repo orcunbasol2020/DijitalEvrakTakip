@@ -2,7 +2,8 @@ Windows oturumu ile otomatik giriş: ön yüz notu
 
 Backend dalı: feature/atlas-transfer-queue
 Canlıda kullanıcı giriş ekranı görmeden, bilgisayarda açık olan Windows (AD) hesabıyla otomatik giriş yapacak.
-Geliştirme ortamında bugünkü kullanıcı adı / şifre ekranı aynen kalıyor (her kullanıcıyla test için).
+Geliştirme ortamında giriş formu kalıyor (her kullanıcıyla test için); ama artık ŞİFRESİZ, yalnızca kullanıcı adı
+istenir (bkz. frontend_com-kullanici-ve-birim.txt, "4) Giriş").
 
 
 1) Yeni uç noktalar

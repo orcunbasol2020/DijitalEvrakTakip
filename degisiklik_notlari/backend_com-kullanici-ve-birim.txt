@@ -78,7 +78,25 @@ Migration: 20261011173320_UseComTablesForUsersAndDepartments
 - Evrak ekranları (gelen / giden / zarf) yeni birim id'leriyle uçtan uca denenmedi (veritabanında evrak yok).
 
 
-5) Sonraki adım
+5) Birim hiyerarşisi (migration 20261011184936_NormalizeDepartmentHierarchy)
+
+- ComDepartment.ParentDepartmentId ile üst / alt birim hiyerarşisi kurulur (en fazla 4 seviye; tek bir "Bakanlık"
+  kökü yok, en üstte Bakan Yardımcılıkları ve üst birimi boş bırakılmış birimler var).
+- Kaynakta üst birim için FK yok ve veride kopukluk vardı: 159 birimin üst birimi ComDepartment'ta hiç yoktu (42 farklı
+  id, ör. 1107014, 11082940, 1110012), 20'sinin üst birimi silinmişti; bunlarla birlikte 344 birime köklerden
+  ulaşılamıyor, "birim ve alt birimleri" sorguları eksik kalıyordu.
+- vw_Departments.ParentId artık silinmemiş en yakın üst birimdir: üst birim silinmişse zincirde yukarı çıkılır, hiç
+  yoksa birim kök olur (silinmiş birimler arasındaki döngüler dahil). Ham değer ComDepartment'ta kalır.
+- Geliştirme veritabanında uygulandı: 924 birimin hepsine köklerden ulaşılıyor; 520 kök, 179 birimin üstü değişti
+  (178 kök oldu, 1'i silinmiş üst biriminin üstüne bağlandı). View sorgusu ~35 ms.
+- Açık: 42 eksik üst birimin kaynakta olup olmadığı bilinmiyor; kopya eksik aktarıldıysa ComDepartment yeniden
+  aktarılmalı. Kaynakta kontrol:
+    SELECT COUNT(*) FROM EGovernmentCmsCommon.dbo.ComDepartment;   -- bizde 2.552
+    SELECT DepartmentId, DefaultName, IsDeleted FROM EGovernmentCmsCommon.dbo.ComDepartment
+    WHERE DepartmentId IN (1107014, 11082940, 1110012);
+
+
+6) Sonraki adım
 
 - Dış kurumlar ve yabancı misyonlar: ExternalInstitutions -> ComAgency (DataSourceId 1 / 2 / 3). Nota raporundaki
   misyon kuralı da o adımda ComAgency'ye çevrilecek.

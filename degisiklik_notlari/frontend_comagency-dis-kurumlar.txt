@@ -2,6 +2,8 @@ Dış kurumlar ve yabancı misyonlar kaynak sistemden (ComAgency): ön yüz notu
 
 Backend dalı: feature/atlas-transfer-queue
 Önceki not: frontend_com-kullanici-ve-birim.txt (birim id'leri sayı oldu); bu not aynı değişikliği dış kurumlar için yapar.
+Durum: geliştirme veritabanına (192.168.1.12) 2026-10-11'de uygulandı. Eski 147 dış kurum ve 20 dış kurum personeli
+artık yok; geliştirme veritabanında 840 misyon, 159.596 kurum, 59 uluslararası kuruluş ve dilekçe kaydı var.
 
 
 1) KURUM ID'LERİ ARTIK SAYI (Guid değil)
@@ -39,13 +41,16 @@ Backend dalı: feature/atlas-transfer-queue
     Envelopes: GetAll, GetById, GetByNo
   Giden dağıtım, gönderim ve "üzerimdeki evraklar" cevaplarında kurum adı zaten vardı.
 - externalInstitution (nesne) alanı eskisi gibi null gelir; kullanılmamalı.
-- Kaynakta kapatılmış bir kurumun adı da gelir (eski evraklar için); ama o kurum seçim listelerinde çıkmaz.
+- Kaynakta kapatılmış bir kurumun adı da gelir (eski evraklar için); ama o kurum seçim listelerinde çıkmaz ve
+  ExternalInstitutions/GetById onun için 404 döner. Evrakta gösterilecek ad için GetById değil, cevaptaki
+  externalInstitutionName kullanılmalı.
+- Zarf oluşturma cevabı (Envelopes/Create) da externalInstitutionName döner.
 
 
 4) Dış kurum personeli (ExternalUsers)
 
-- Değişmedi, yalnızca externalInstitutionId sayı. Mevcut 20 test kaydı migration ile silinir; kişiler ComAgency
-  kurumlarına bağlı olarak yeniden girilmeli.
+- Değişmedi, yalnızca externalInstitutionId sayı. Eski 20 test kaydı migration ile silindi; kişiler ComAgency
+  kurumlarına bağlı olarak yeniden girilmeli (kurum seçimi yukarıdaki arama ile).
 
 
 5) Nota raporları
