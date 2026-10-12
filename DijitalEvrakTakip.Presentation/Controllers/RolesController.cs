@@ -1,4 +1,5 @@
 ﻿using DijitalEvrakTakip.Application.Features.RoleFeatures.Commands.CreateRole;
+using DijitalEvrakTakip.Application.Features.RoleFeatures.Commands.UpdateRole;
 using DijitalEvrakTakip.Application.Features.RoleFeatures.Queries.GetAllRole;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
@@ -18,6 +19,14 @@ public sealed class RolesController : ApiController
         MessageResponse response = await _mediator.Send(request, cancellationToken);
         return Ok(response);
     }
+
+    [HttpPost("[action]")]
+    public async Task<IActionResult> Update(UpdateRoleCommand request, CancellationToken cancellationToken)
+    {
+        MessageResponse response = await _mediator.Send(request, cancellationToken);
+        return Ok(response);
+    }
+
     [HttpGet("[action]")]
     public async Task<IActionResult> GetAll([FromQuery] GetAllRoleQuery request, CancellationToken cancellationToken)
     {
