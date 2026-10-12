@@ -9,10 +9,12 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser
     public sealed class GetAllUserHandler : IRequestHandler<GetAllUserQuery, IList<UserDto>>
     {
         private readonly IUserService _userService;
+        private readonly IDepartmentService _departmentService;
 
-        public GetAllUserHandler(IUserService userService)
+        public GetAllUserHandler(IUserService userService, IDepartmentService departmentService)
         {
             _userService = userService;
+            _departmentService = departmentService;
         }
 
         public async Task<IList<UserDto>> Handle(GetAllUserQuery request, CancellationToken cancellationToken)
@@ -22,7 +24,17 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser
 
             if (request.DepartmentId.HasValue)
             {
-                query = query.Where(u => u.DepartmentId == request.DepartmentId.Value);
+                if (request.IncludeSubDepartments)
+                {
+                    // Birim ağacı tek sorguda çekilir; alt birimler için ayrı sorgu atılmaz.
+                    IList<int> departmentIds = await _departmentService.GetDescendantIdsAsync(
+                        request.DepartmentId.Value, includeSelf: true, cancellationToken);
+                    query = query.Where(u => u.DepartmentId.HasValue && departmentIds.Contains(u.DepartmentId.Value));
+                }
+                else
+                {
+                    query = query.Where(u => u.DepartmentId == request.DepartmentId.Value);
+                }
                 filtered = true;
             }
 
