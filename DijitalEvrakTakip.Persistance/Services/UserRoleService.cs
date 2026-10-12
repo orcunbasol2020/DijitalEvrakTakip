@@ -73,6 +73,8 @@ public sealed class UserRoleService : IUserRoleService
             {
                 existing.IsDeleted = false;
                 existing.UpdateDate = DateTime.UtcNow;
+                // Where() takipsiz okur; Update olmadan değişiklik kaydedilmez.
+                _userRoleRepository.Update(existing);
             }
         }
 
@@ -89,6 +91,7 @@ public sealed class UserRoleService : IUserRoleService
         {
             entity.IsDeleted = true;              
             entity.UpdateDate = DateTime.UtcNow;
+            _userRoleRepository.Update(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }

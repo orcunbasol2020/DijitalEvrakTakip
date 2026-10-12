@@ -45,6 +45,8 @@ namespace DijitalEvrakTakip.Persistance.Services
             role.Name = request.Name.Trim();
             role.IsActive = request.IsActive;
             role.UpdateDate = DateTime.UtcNow;
+            // Where() takipsiz okur; Update olmadan değişiklik kaydedilmez.
+            _roleRepository.Update(role);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
