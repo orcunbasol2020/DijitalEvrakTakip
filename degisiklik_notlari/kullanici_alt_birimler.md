@@ -44,7 +44,7 @@ GET api/Users/GetAll?departmentId=1100212&includeSubDepartments=true&search=ahme
 
 - [x] **Misyonlar:** Birim ağacında misyonlar da var (`Departments/GetAll?includeMissions=true`). Bir birime bağlı misyonların personeli de gelsin mi? Frontend önerisi: hayır, yalnızca merkez birimler. → Kaynakta misyonlar merkez birimlerin `parentId` zincirinde yer almıyor; ek süzgeç gerekmedi.
 - [ ] **Sonuç sınırı:** Üst düzey bir birimde (ör. Bakan) sonuç binlerce kişi olabilir. Süzgeçli istekte sınır yok; gerekirse bir üst sınır ya da sayfalama konmalı.
-- [ ] **Kimlere açılacağı (frontend kararı):** Alt birim listesi yalnızca bazı kullanıcılara açılacak. Hangi kullanıcıların (rol, ayar ...) göreceğine frontend karar verecek.
+- [x] **Kimlere açılacağı (frontend kararı):** Alt birim listesi yalnızca bazı kullanıcılara açılacak. Hangi kullanıcıların (rol, ayar ...) göreceğine frontend karar verecek. → Yalnızca **Yönetici** rolü. Gelen Evrak rolünde Birimim yalnızca kendi birimini getirir.
 
 ## Frontend tarafı
 
@@ -58,5 +58,6 @@ GET api/Users/GetAll?departmentId=1100212&includeSubDepartments=true&search=ahme
 
 - [x] Backend ekibine iletildi
 - [x] Backend düzeltmesi yapıldı (`GetAllUserHandler`, alt birimler `IDepartmentService.GetDescendantIdsAsync` ile bulunur)
-- [ ] Frontend parametresi eklendi
+- [x] Frontend parametresi eklendi (2026-10-12): `users.ts` Yönetici rolünde Birimim açıkken `includeSubDepartments=true` gönderir; `UserListFilter`'a alan eklendi
+- [ ] API doğrulandı (2026-10-12'de denenemedi: `localhost:7056` yanıt vermiyordu)
 - [ ] Kullanıcılar sayfasında doğrulandı
