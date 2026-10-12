@@ -1,4 +1,5 @@
 ﻿using DijitalEvrakTakip.Application.Features.RoleFeatures.Commands.CreateRole;
+using DijitalEvrakTakip.Application.Features.RoleFeatures.Commands.DeleteRole;
 using DijitalEvrakTakip.Application.Features.RoleFeatures.Commands.UpdateRole;
 using DijitalEvrakTakip.Application.Features.RoleFeatures.Queries.GetAllRole;
 using DijitalEvrakTakip.Application.Services;
@@ -14,11 +15,13 @@ namespace DijitalEvrakTakip.Persistance.Services
     public sealed class RoleService : IRoleService
     {
         private readonly IRoleRepository _roleRepository;
+        private readonly IUserRoleRepository _userRoleRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public RoleService(IRoleRepository roleRepository, IUnitOfWork unitOfWork)
+        public RoleService(IRoleRepository roleRepository, IUserRoleRepository userRoleRepository, IUnitOfWork unitOfWork)
         {
             _roleRepository = roleRepository;
+            _userRoleRepository = userRoleRepository;
             _unitOfWork = unitOfWork;
         }
 
@@ -46,6 +49,27 @@ namespace DijitalEvrakTakip.Persistance.Services
             role.IsActive = request.IsActive;
             role.UpdateDate = DateTime.UtcNow;
             // Where() takipsiz okur; Update olmadan değişiklik kaydedilmez.
+            _roleRepository.Update(role);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task DeleteAsync(DeleteRoleCommand request, CancellationToken cancellationToken)
+        {
+            Role role = await _roleRepository
+                .Where(x => x.Id == request.Id && !x.IsDeleted)
+                .FirstOrDefaultAsync(cancellationToken)
+                ?? throw new Exception("Rol bulunamadı.");
+
+            // Atanmış rol silinirse kullanıcılar haber verilmeden yetki kaybeder; önce atamalar kaldırılmalı.
+            int assignedCount = await _userRoleRepository
+                .Where(x => x.RoleId == role.Id && !x.IsDeleted)
+                .CountAsync(cancellationToken);
+
+            if (assignedCount > 0)
+                throw new Exception($"\"{role.Name}\" rolü {assignedCount} kullanıcıda atanmış; önce rolü kullanıcılardan kaldırın.");
+
+            role.IsDeleted = true;
+            role.UpdateDate = DateTime.UtcNow;
             _roleRepository.Update(role);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
