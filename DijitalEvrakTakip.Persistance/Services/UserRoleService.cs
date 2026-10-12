@@ -35,9 +35,10 @@ public sealed class UserRoleService : IUserRoleService
         Guid userId,
         CancellationToken cancellationToken)
     {
+        // Token'a bu roller yazılır: kullanıcıdan alınmış atamalar, silinmiş ve pasif roller yetki vermez
+        // (Users/GetAll'daki rol listesiyle aynı süzgeç).
         return await _userRoleRepository
-            .Where(x => x.UserId == userId)
-            .Include(x => x.Role)
+            .Where(x => x.UserId == userId && !x.IsDeleted && !x.Role.IsDeleted && x.Role.IsActive)
             .Select(x => x.Role.Name)
             .ToListAsync(cancellationToken);
     }
