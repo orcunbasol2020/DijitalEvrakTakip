@@ -22,11 +22,15 @@ public sealed class UserService : IUserService
 
     public IQueryable<User> Search(IQueryable<User> query, string search)
     {
-        string term = search.Trim();
-        return query.Where(u =>
-            EF.Functions.Collate(u.Name, SqlCollations.Turkish).Contains(term)
-            || EF.Functions.Collate(u.Surname, SqlCollations.Turkish).Contains(term)
-            || EF.Functions.Collate(u.UserName, SqlCollations.Turkish).Contains(term));
+        // Her kelime ad, soyad ya da kullanıcı adından en az birinde geçmeli: "ahmet çelikkaya", "çelikkaya ahmet".
+        foreach (string term in search.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        {
+            query = query.Where(u =>
+                EF.Functions.Collate(u.Name, SqlCollations.Turkish).Contains(term)
+                || EF.Functions.Collate(u.Surname, SqlCollations.Turkish).Contains(term)
+                || EF.Functions.Collate(u.UserName, SqlCollations.Turkish).Contains(term));
+        }
+        return query;
     }
 
     public async Task<User?> GetByUserNameAsync(string userName, CancellationToken cancellationToken)
