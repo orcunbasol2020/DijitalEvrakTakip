@@ -2,7 +2,7 @@
 
 **Tarih:** 2026-10-13
 **Backend dalı:** feature/atlas-transfer-queue
-**Durum:** Geliştirme veritabanına (192.168.1.3) uygulandı; unvan verisi yüklü.
+**Durum:** Geliştirme veritabanına (192.168.1.3) uygulandı; kaynak unvan tablosu (1.809 unvan) yüklü.
 **Sorumlu taraf:** Frontend — yalnızca gösterim, mevcut akışı bozan değişiklik yok
 
 ## Ne değişti
@@ -32,12 +32,13 @@ Kullanıcı dönen uçlara yeni alan: **`titleName: string | null`**, kişinin u
 - Token'a unvan eklenmedi. Giriş sonrası gerekiyorsa Login / WindowsLogin cevabından saklanmalı.
 - Unvana göre süzme ya da arama yok; yalnızca gösterim için.
 
-## Boş unvan (null) normal
+## Boş unvan (null)
 
-Unvan adları kaynak sistemin unvan tablosu gelene kadar geçici olarak DISNET dökümlerinden dolduruluyor. Şu an 5.803 aktif kullanıcının **2.184'ünde** unvan dolu; diğerlerinde `titleName` **null** gelir. Oran, başka birimlerin dökümleri ve sonra kaynak tablo geldikçe backend tarafında artacak; frontend'de ek iş gerekmeyecek.
+Unvanlar kaynak sistemin unvan tablosundan (ComTitle, 2026-10-13'te yüklendi) gelir. 5.803 aktif kullanıcının **5.784'ünde** unvan dolu. Kalan 19 kişide `titleName` **null** gelir: kaynakta unvanı hiç girilmemiş olanlar. Kaynakta silinmiş bir unvana bağlı kişilerde de unvan gelir.
 
-- `null` gelince hiçbir şey gösterilmesin (boş bırakılsın); "Unvan tanımsız" gibi bir metin yazılmasın, listelerin yarısından fazlası öyle görünür.
-- Bazı farklı unvanlar şimdilik aynı metinle gelir (ör. iki ayrı "Sözleşmeli Bilişim Personeli"). Metne göre gruplama yapılmasın.
+- `null` gelince hiçbir şey gösterilmesin (boş bırakılsın); "Unvan tanımsız" gibi bir metin yazılmasın.
+- Unvanlar kaynaktaki yazımıyla gelir; büyük harf kullanımı tutarsız olabilir (ör. "DAİMİ TEMSİLCİ YARDIMCISI" ile "Daire Başkanı"). Metin olduğu gibi gösterilsin, büyük/küçük harf dönüştürülmesin.
+- Bazı unvanlar uzundur (153 karaktere kadar, ör. büyükelçi + koordinatörlük); listelerde taşmaya karşı kısaltma (ellipsis) ve tam metin için tooltip önerilir.
 
 ## Önerilen gösterim
 

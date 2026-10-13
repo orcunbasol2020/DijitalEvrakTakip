@@ -624,19 +624,38 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.Property<int>("TitleId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .UseCollation("Turkish_CI_AS");
+
                     b.Property<string>("DefaultName")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)")
+                        .UseCollation("Turkish_CI_AS");
 
                     b.Property<string>("DefaultShortName")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .UseCollation("Turkish_CI_AS");
+
+                    b.Property<short?>("DefaultSortOrder")
+                        .HasColumnType("smallint");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
+
+                    b.Property<bool?>("IsExternal")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("TransferId")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("Trash")
+                        .HasColumnType("bit");
 
                     b.HasKey("TitleId");
 

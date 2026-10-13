@@ -1,15 +1,19 @@
 namespace DijitalEvrakTakip.Domain.Entities
 {
     /// <summary>
-    /// Unvan listesi. EGovernmentCmsCommon.dbo.ComTitle'ın kopyası olacak; kaynak şema gelene kadar geçici yapı,
-    /// kolonlar ComDepartment adlandırmasına uyduruldu. TitleId kaynaktaki Id ile aynıdır (ComAuthorizationUser.TitleId),
-    /// isimler şimdilik DISNET dökümlerinden eşleştirilerek doldurulur.
+    /// Unvan listesi. EGovernmentCmsCommon.dbo.ComTitle tablosunun birebir kopyası; veri oradan aktarılır.
+    /// TitleId, ComAuthorizationUser.TitleId ile eşleşir.
     /// </summary>
     public class ComTitle
     {
         public int TitleId { get; set; }
         public string DefaultName { get; set; } = null!;
         public string? DefaultShortName { get; set; }
+        public short? DefaultSortOrder { get; set; }
+        public string? Code { get; set; }
         public bool IsDeleted { get; set; }
+        public int? TransferId { get; set; }
+        public bool? IsExternal { get; set; }
+        public bool? Trash { get; set; }
     }
 }
