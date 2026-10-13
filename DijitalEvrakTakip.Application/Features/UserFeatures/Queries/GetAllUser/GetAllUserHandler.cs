@@ -75,6 +75,7 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser
                     DepartmentId = u.DepartmentId,
                     DepartmentName = u.Department.Name,
                     DepartmentShortName = u.Department.ShortName,
+                    TitleName = u.TitleName,
                     IsActive = u.IsActive,
                     IsDeleted = u.IsDeleted,
                     Roles = u.UserRoles

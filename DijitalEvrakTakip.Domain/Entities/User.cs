@@ -21,6 +21,9 @@ public sealed class User
     public int? DepartmentId { get; set; }
     public Department Department { get; set; }
 
+    /// <summary>ComAuthorizationUser.TitleId'nin ComTitle'daki adı; unvan tanımsızsa boş.</summary>
+    public string TitleName { get; set; }
+
     /// <summary>Kaynakta aktif, girişi engellenmemiş ve kurumdan ayrılmamış (LeaveDate boş).</summary>
     public bool IsActive { get; set; }
     public bool IsDeleted { get; set; }

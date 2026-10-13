@@ -10,6 +10,9 @@ public sealed record UserDto
     public int? DepartmentId { get; set; }
     public string DepartmentName { get; set; }
     public string DepartmentShortName { get; set; }
+
+    // ComTitle adı; unvanı tanımsız kullanıcılarda null.
+    public string TitleName { get; set; }
     public bool IsActive { get; set; }
     public bool IsDeleted { get; set; }
 

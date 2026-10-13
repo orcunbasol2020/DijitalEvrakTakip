@@ -619,6 +619,30 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                     b.ToTable("ComDepartment", (string)null);
                 });
 
+            modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.ComTitle", b =>
+                {
+                    b.Property<int>("TitleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DefaultName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("DefaultShortName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.HasKey("TitleId");
+
+                    b.ToTable("ComTitle", (string)null);
+                });
+
             modelBuilder.Entity("DijitalEvrakTakip.Domain.Entities.Department", b =>
                 {
                     b.Property<int>("Id")
@@ -1824,6 +1848,9 @@ namespace DijitalEvrakTakip.Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Surname")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TitleName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserName")

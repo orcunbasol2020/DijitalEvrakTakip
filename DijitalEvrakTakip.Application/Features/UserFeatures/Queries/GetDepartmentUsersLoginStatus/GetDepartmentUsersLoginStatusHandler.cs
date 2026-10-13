@@ -54,6 +54,7 @@ public sealed class GetDepartmentUsersLoginStatusHandler
                 DepartmentId = u.DepartmentId,
                 DepartmentName = u.Department != null ? u.Department.Name : null,
                 DepartmentShortName = u.Department != null ? u.Department.ShortName : null,
+                TitleName = u.TitleName,
                 IsActive = u.IsActive
             })
             .ToListAsync(cancellationToken);

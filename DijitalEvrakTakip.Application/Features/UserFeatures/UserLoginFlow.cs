@@ -51,6 +51,7 @@ public sealed class UserLoginFlow
             DepartmentId = user.DepartmentId,
             DepartmentName = user.Department?.Name,
             DepartmentShortName = user.Department?.ShortName,
+            TitleName = user.TitleName,
 
             IsDeleted = user.IsDeleted,
             IsActive = user.IsActive,

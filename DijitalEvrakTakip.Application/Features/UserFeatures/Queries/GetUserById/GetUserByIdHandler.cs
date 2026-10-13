@@ -30,6 +30,7 @@ public sealed class GetUserByIdHandler : IRequestHandler<GetUserByIdQuery, UserD
             DepartmentId = user.DepartmentId,
             DepartmentName = user.Department?.Name,
             DepartmentShortName = user.Department?.ShortName,
+            TitleName = user.TitleName,
             IsActive = user.IsActive,
             IsDeleted = user.IsDeleted
         };
