@@ -1,0 +1,7 @@
+Pasif yaptığın rolün tekrar aktif görünmesi: Sorun backend'de, RoleService.UpdateAsync hâlâ düzeltilmemiş. Uç nokta "Rol başarıyla güncellendi" diye 200 dönüyor ama veritabanına hiçbir şey yazmıyor. Ekranda anahtar pasife geçiyor, sayfayı tekrar açınca veritabanındaki eski değer, yani aktif geliyor. Kodu az önce yine kontrol ettim, _roleRepository.Update(role) satırı hâlâ eksik. Düzeltme koduyla birlikte rol_guncelleme.md notunda yazıyor. Backend bu satırı ekleyince hem anahtar hem Rolü Güncelle penceresi çalışacak. Frontend'de yapılacak bir şey yok.
+
+Kurye Takip'i silmek: Backend'de silme uç noktası olmadığı için şu an silemiyorum. Önerdiğim yolla ilerledim:
+- Roller sayfası: Her satırda düzenle butonunun yanında bir Sil butonu var, onay sorduktan sonra siliyor. Menü ve sayfa yetkilerinde kullanılan rollerde bu buton kapalı. Bunlar Yönetici, Gelen Evrak, Giden Evrak, Ön Kayıt, Birim Yöneticisi ve Birim Evrak Sorumlusu. Bu rollerden biri silinirse kullanıcılar ekranlara erişemez. Silinmiş roller artık listede görünmüyor.
+- Backend notu: Aynı nota bir Roles/Delete uç noktası eklenmesini yazdım. Silme kaydı fiziksel olarak silmeyecek, yalnızca isDeleted işaretleyecek. Role atanmış kullanıcı varsa silme reddedilecek. Kurye Takip'e atanmış kimse olmadığını kontrol ettim.
+
+Backend iki düzeltmeyi de yapınca Kurye Takip'i sayfadan sil butonuyla silebilirsin. Sonra ben de frontend'deki ikon ve gizli rol tanımlarından kaldırırım.
