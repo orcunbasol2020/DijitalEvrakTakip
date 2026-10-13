@@ -14,4 +14,7 @@ public static class DepartmentTypes
 
     /// <summary>Merkez birim (Ankara teşkilatı)</summary>
     public const int Central = 30006;
+
+    /// <summary>"Bakan" birimi (ComDepartment 11082872); merkez teşkilatı ağacının kökü.</summary>
+    public const int MinisterDepartmentId = 11082872;
 }

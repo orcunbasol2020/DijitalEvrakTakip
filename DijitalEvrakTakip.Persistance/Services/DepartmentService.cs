@@ -3,6 +3,7 @@ using DijitalEvrakTakip.Domain.Constants;
 using DijitalEvrakTakip.Domain.Entities;
 using DijitalEvrakTakip.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace DijitalEvrakTakip.Persistance.Services;
 
@@ -20,19 +21,34 @@ public sealed class DepartmentService : IDepartmentService
         bool includeMissions,
         CancellationToken cancellationToken)
     {
-        return await _departmentRepository
+        // Merkez teşkilatı, DISNET'teki gibi Bakan'ın alt ağacıdır. Kaynakta Bakan'a bağlı olmayan eski / dış
+        // kayıtlar (eski bakanlıklar, kapanmış daireler ...) tip olarak merkez olsa da listeye girmez; yurtiçi
+        // temsilcilikler ise tip olarak 30001 olsa da bu ağaçta oldukları için gelir.
+        var centralIds = (await GetDescendantIdsAsync(DepartmentTypes.MinisterDepartmentId, includeSelf: true, cancellationToken))
+            .ToHashSet();
+
+        var departments = await _departmentRepository
             .GetAll()
             .AsNoTracking()
-            .Where(x => !x.IsDeleted && (includeMissions || x.Type == DepartmentTypes.Central))
-            // Makam sırası: önce seviye (Bakan, Bakan Yardımcılığı, GM ...), sonra seviyedeki sıra, sonra ad;
-            // seviyesi / sırası boş olanlar sona
-            .OrderBy(x => x.Level == null)
-            .ThenBy(x => x.Level)
-            .ThenBy(x => x.SortOrder == null)
-            .ThenBy(x => x.SortOrder)
-            .ThenBy(x => x.Name)
+            .Where(x => !x.IsDeleted)
             .ToListAsync(cancellationToken);
+
+        return departments
+            .Where(x => centralIds.Contains(x.Id) || (includeMissions && IsMission(x.Type)))
+            // Kardeşler arasındaki sıra (DomisticOrganizationSortOrder; DISNET'teki sıra), sonra makam seviyesi,
+            // sonra ad; boşlar sona. Ön yüz ağacı bu sırayı koruyarak kurar.
+            .OrderBy(x => x.SortOrder == null)
+            .ThenBy(x => x.SortOrder)
+            .ThenBy(x => x.Level == null)
+            .ThenBy(x => x.Level)
+            .ThenBy(x => x.Name, TurkishNameComparer)
+            .ToList();
     }
+
+    private static readonly StringComparer TurkishNameComparer = StringComparer.Create(new CultureInfo("tr-TR"), ignoreCase: true);
+
+    private static bool IsMission(int? type) =>
+        type is >= DepartmentTypes.Embassy and <= DepartmentTypes.HonoraryConsulate;
 
     public async Task<Department?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
