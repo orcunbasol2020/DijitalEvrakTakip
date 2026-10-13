@@ -75,6 +75,7 @@ public sealed class UsersController : ApiController
         // IP ve UserAgent istemciden alınmaz, sunucu tarafında HttpContext'ten doldurulur (login logu için).
         request = request with
         {
+            ExpectedPassword = loginSettings.Value.FormLoginPassword,
             IpAddress = GetClientIpAddress(),
             UserAgent = Request.Headers["User-Agent"].ToString()
         };

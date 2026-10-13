@@ -17,6 +17,12 @@ public sealed class LoginSettings
     /// </summary>
     public bool FormLoginEnabled { get; set; }
 
+    /// <summary>
+    /// Form girişinde tüm kullanıcılar için ortak geliştirme şifresi (kaynak sistemde şifre tutulmaz).
+    /// Boşsa form girişi hiç kabul edilmez; local'de launchSettings.json'dan verilir.
+    /// </summary>
+    public string FormLoginPassword { get; set; }
+
     /// <summary>Windows oturumundaki kullanıcıyla otomatik giriş (api/Users/WindowsLogin).</summary>
     public bool WindowsLoginEnabled { get; set; } = true;
 }
