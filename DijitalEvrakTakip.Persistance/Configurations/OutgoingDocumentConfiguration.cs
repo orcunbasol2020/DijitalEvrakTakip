@@ -12,6 +12,9 @@ public sealed class OutgoingDocumentConfiguration
     {
         builder.ToTable("OutgoingDocuments");
 
+        // Yalnızca cevaplarda doldurulur
+        builder.Ignore(x => x.ExternalInstitutionName);
+
         // Primary Key
         builder.HasKey(x => x.Id);
 
@@ -77,11 +80,9 @@ public sealed class OutgoingDocumentConfiguration
         // -----------------------------
 
         builder.Property(x => x.DepartmentId)
-            .HasColumnType("uniqueidentifier")
             .IsRequired(false);
 
         builder.Property(x => x.ExternalInstitutonId)
-            .HasColumnType("uniqueidentifier")
             .IsRequired(false);
 
         builder.HasOne(x => x.Department)

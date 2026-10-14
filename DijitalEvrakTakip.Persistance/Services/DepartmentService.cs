@@ -1,42 +1,56 @@
 using DijitalEvrakTakip.Application.Services;
+using DijitalEvrakTakip.Domain.Constants;
 using DijitalEvrakTakip.Domain.Entities;
 using DijitalEvrakTakip.Domain.Repositories;
-using GenericRepository;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace DijitalEvrakTakip.Persistance.Services;
 
 public sealed class DepartmentService : IDepartmentService
 {
     private readonly IDepartmentRepository _departmentRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
     public DepartmentService(
-        IDepartmentRepository departmentRepository,
-        IUnitOfWork unitOfWork)
+        IDepartmentRepository departmentRepository)
     {
         _departmentRepository = departmentRepository;
-        _unitOfWork = unitOfWork;
-    }
-
-    public async Task CreateAsync(
-        Department department,
-        CancellationToken cancellationToken)
-    {
-        await _departmentRepository.AddAsync(department, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<IList<Department>> GetAllAsync(
+        bool includeMissions,
         CancellationToken cancellationToken)
     {
-        return await _departmentRepository
+        // Merkez teşkilatı, DISNET'teki gibi Bakan'ın alt ağacıdır. Kaynakta Bakan'a bağlı olmayan eski / dış
+        // kayıtlar (eski bakanlıklar, kapanmış daireler ...) tip olarak merkez olsa da listeye girmez; yurtiçi
+        // temsilcilikler ise tip olarak 30001 olsa da bu ağaçta oldukları için gelir.
+        var centralIds = (await GetDescendantIdsAsync(DepartmentTypes.MinisterDepartmentId, includeSelf: true, cancellationToken))
+            .ToHashSet();
+
+        var departments = await _departmentRepository
             .GetAll()
+            .AsNoTracking()
             .Where(x => !x.IsDeleted)
             .ToListAsync(cancellationToken);
+
+        return departments
+            .Where(x => centralIds.Contains(x.Id) || (includeMissions && IsMission(x.Type)))
+            // Kardeşler arasındaki sıra (DomisticOrganizationSortOrder; DISNET'teki sıra), sonra makam seviyesi,
+            // sonra ad; boşlar sona. Ön yüz ağacı bu sırayı koruyarak kurar.
+            .OrderBy(x => x.SortOrder == null)
+            .ThenBy(x => x.SortOrder)
+            .ThenBy(x => x.Level == null)
+            .ThenBy(x => x.Level)
+            .ThenBy(x => x.Name, TurkishNameComparer)
+            .ToList();
     }
 
-    public async Task<Department?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    private static readonly StringComparer TurkishNameComparer = StringComparer.Create(new CultureInfo("tr-TR"), ignoreCase: true);
+
+    private static bool IsMission(int? type) =>
+        type is >= DepartmentTypes.Embassy and <= DepartmentTypes.HonoraryConsulate;
+
+    public async Task<Department?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         return await _departmentRepository
             .GetAll()
@@ -44,12 +58,12 @@ public sealed class DepartmentService : IDepartmentService
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<IList<Guid>> GetDescendantIdsAsync(
-        Guid departmentId,
+    public async Task<IList<int>> GetDescendantIdsAsync(
+        int departmentId,
         bool includeSelf,
         CancellationToken cancellationToken)
     {
-        // Departman sayısı az olduğu için tüm liste bir kez çekilip hiyerarşi bellekte gezilir.
+        // Birim sayısı küçük (~1000) olduğu için tüm liste bir kez çekilip hiyerarşi bellekte gezilir.
         var departments = await _departmentRepository
             .GetAll()
             .AsNoTracking()
@@ -58,24 +72,24 @@ public sealed class DepartmentService : IDepartmentService
             .ToListAsync(cancellationToken);
 
         if (!departments.Any(x => x.Id == departmentId))
-            return new List<Guid>();
+            return new List<int>();
 
         var childrenByParent = departments
             .Where(x => x.ParentId.HasValue)
             .ToLookup(x => x.ParentId!.Value, x => x.Id);
 
-        var result = new List<Guid>();
-        var visited = new HashSet<Guid> { departmentId };
+        var result = new List<int>();
+        var visited = new HashSet<int> { departmentId };
         if (includeSelf)
             result.Add(departmentId);
 
-        var stack = new Stack<Guid>();
+        var stack = new Stack<int>();
         stack.Push(departmentId);
 
         while (stack.Count > 0)
         {
-            Guid parentId = stack.Pop();
-            foreach (Guid childId in childrenByParent[parentId])
+            int parentId = stack.Pop();
+            foreach (int childId in childrenByParent[parentId])
             {
                 // Döngüsel veri (A->B->A) durumunda sonsuz döngüye girmemek için ziyaret kontrolü.
                 if (!visited.Add(childId))

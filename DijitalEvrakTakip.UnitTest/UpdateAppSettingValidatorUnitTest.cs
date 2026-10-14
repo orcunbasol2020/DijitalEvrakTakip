@@ -22,6 +22,12 @@ namespace DijitalEvrakTakip.UnitTest
         [InlineData("SupportPhone", null)]
         [InlineData("AnnouncementMessage", "")]
         [InlineData("SupportEmail", "")]
+        [InlineData("AtlasTransferEnabled", "true")]
+        [InlineData("AtlasTransferIntervalSeconds", "10")]
+        [InlineData("AtlasTransferBatchSize", "100")]
+        [InlineData("AtlasTransferMaxTryCount", "20")]
+        [InlineData("AtlasEypRecipientKkk", "12345678")]
+        [InlineData("AtlasEypRecipientName", "T.C. Dışişleri Bakanlığı")]
         public void Validate_Passes_WhenValueIsValid(string key, string? value)
         {
             var result = _validator.Validate(new UpdateAppSettingCommand(key, value, null));
@@ -48,6 +54,14 @@ namespace DijitalEvrakTakip.UnitTest
         [InlineData("ApplicationName", "")]
         [InlineData("SupportEmail", "gecersiz")]
         [InlineData("BilinmeyenAyar", "1")]
+        [InlineData("AtlasTransferEnabled", "evet")]
+        [InlineData("AtlasTransferIntervalSeconds", "9")]
+        [InlineData("AtlasTransferBatchSize", "101")]
+        [InlineData("AtlasTransferMaxTryCount", "0")]
+        [InlineData("AtlasEypRecipientKkk", "")]
+        [InlineData("AtlasEypRecipientKkk", "1234-5678")]
+        [InlineData("AtlasEypRecipientKkk", "١٢٣")]
+        [InlineData("AtlasEypRecipientName", " ")]
         public void Validate_Fails_WhenValueIsInvalid(string key, string? value)
         {
             var result = _validator.Validate(new UpdateAppSettingCommand(key, value, null));

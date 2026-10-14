@@ -3,88 +3,57 @@ using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
 using DijitalEvrakTakip.Domain.Enums;
 using MediatR;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetUserByUsername;
 
+/// <summary>
+/// Kullanıcı adı + ortak geliştirme şifresiyle giriş: yalnızca geliştirme ortamında başka kullanıcılarla
+/// test için (LoginSettings.FormLoginEnabled; canlıda kapalı, uç nokta 404 döner). Kaynak sistemde
+/// (ComAuthorizationUser) şifre tutulmadığından tüm kullanıcılar için tek şifre (FormLoginPassword)
+/// kullanılır. Canlıda kullanıcı Windows oturumuyla girer (WindowsLogin).
+/// </summary>
 public sealed class GetUserByUsernameHandler : IRequestHandler<GetUserByUsernameQuery, UserLoginDto>
 {
     private readonly IUserService _userService;
-    private readonly IUserRoleService _roleService;
-    private readonly IJwtProvider _jwtProvider;
-    private readonly IUserLoginLogService _loginLogService;
+    private readonly UserLoginFlow _loginFlow;
 
-    public GetUserByUsernameHandler(
-        IUserService userService,
-        IUserRoleService userRoleService,
-        IJwtProvider jwtProvider,
-        IUserLoginLogService loginLogService)
+    public GetUserByUsernameHandler(IUserService userService, UserLoginFlow loginFlow)
     {
         _userService = userService;
-        _roleService = userRoleService;
-        _jwtProvider = jwtProvider;
-        _loginLogService = loginLogService;
+        _loginFlow = loginFlow;
     }
 
     public async Task<UserLoginDto> Handle(
         GetUserByUsernameQuery request,
         CancellationToken cancellationToken)
     {
-        User user = await _userService.GetByUserNameAsync(request.UserName, cancellationToken);
+        // "HITIT\kullanici" da yazılabilir
+        string userName = UserLoginFlow.ToUserName(request.UserName);
+
+        User user = string.IsNullOrEmpty(userName)
+            ? null
+            : await _userService.GetByUserNameAsync(userName, cancellationToken);
 
         if (user == null)
-            return await FailAsync(null, request, LoginFailureReasonEnum.UserNotFound, cancellationToken);
+            return await _loginFlow.FailAsync(
+                null, userName ?? request.UserName, LoginFailureReasonEnum.UserNotFound,
+                request.IpAddress, request.UserAgent, cancellationToken);
 
-        // NOT: Şifre karşılaştırması ileride LDAP bind ile değiştirilecek.
-        // Aşağıdaki IsDeleted/IsActive kontrolü, loglama ve token üretimi LDAP'tan bağımsızdır.
-        if (user.Password != request.Password)
-            return await FailAsync(user.Id, request, LoginFailureReasonEnum.InvalidPassword, cancellationToken);
+        if (!IsPasswordValid(request.Password, request.ExpectedPassword))
+            return await _loginFlow.FailAsync(
+                user.Id, userName, LoginFailureReasonEnum.InvalidPassword,
+                request.IpAddress, request.UserAgent, cancellationToken);
 
-        if (user.IsDeleted)
-            return await FailAsync(user.Id, request, LoginFailureReasonEnum.UserDeleted, cancellationToken);
-
-        if (!user.IsActive)
-            return await FailAsync(user.Id, request, LoginFailureReasonEnum.UserInactive, cancellationToken);
-
-        IList<string> roles = await _roleService.GetRolesByUserIdAsync(user.Id, cancellationToken);
-
-        UserLoginDto response = new()
-        {
-            Id = user.Id,
-            Name = user.Name,
-            Surname = user.Surname,
-            UserName = user.UserName,
-            Email = user.Email,
-
-            DepartmentId = user.DepartmentId.ToString(),
-            DepartmentName = user.Department?.Name,
-            DepartmentShortName = user.Department?.ShortName,
-
-            IsDeleted = user.IsDeleted,
-            IsActive = user.IsActive,
-            Roles = roles
-        };
-
-        (string token, DateTime expiration) = _jwtProvider.CreateToken(response);
-        response.Token = token;
-        response.TokenExpiration = expiration;
-
-        await _loginLogService.LogAsync(
-            user.Id, request.UserName, isSuccess: true, failureReason: null,
-            request.IpAddress, request.UserAgent, cancellationToken);
-
-        return response;
+        return await _loginFlow.CompleteAsync(
+            user, userName, request.IpAddress, request.UserAgent, cancellationToken);
     }
 
-    private async Task<UserLoginDto> FailAsync(
-        Guid? userId,
-        GetUserByUsernameQuery request,
-        LoginFailureReasonEnum reason,
-        CancellationToken cancellationToken)
-    {
-        await _loginLogService.LogAsync(
-            userId, request.UserName, isSuccess: false, reason,
-            request.IpAddress, request.UserAgent, cancellationToken);
-
-        return null;
-    }
+    // Şifre ayarlanmamışsa hiçbir şifre kabul edilmez; karşılaştırma sabit sürelidir.
+    private static bool IsPasswordValid(string password, string expected) =>
+        !string.IsNullOrEmpty(expected)
+        && password != null
+        && CryptographicOperations.FixedTimeEquals(
+            Encoding.UTF8.GetBytes(password), Encoding.UTF8.GetBytes(expected));
 }

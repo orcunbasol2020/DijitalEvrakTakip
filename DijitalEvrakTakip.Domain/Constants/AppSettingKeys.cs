@@ -31,6 +31,15 @@ public static class AppSettingKeys
     public const string AtlasNumberPoolBatchSize = "AtlasNumberPoolBatchSize";
     public const string AtlasNumberPoolEnforced = "AtlasNumberPoolEnforced";
 
+    // Yayınlanan gelen evrakların EYP olarak Atlas'a aktarım kuyruğu
+    public const string AtlasTransferEnabled = "AtlasTransferEnabled";
+    public const string AtlasTransferIntervalSeconds = "AtlasTransferIntervalSeconds";
+    public const string AtlasTransferBatchSize = "AtlasTransferBatchSize";
+    public const string AtlasTransferMaxTryCount = "AtlasTransferMaxTryCount";
+    // EYP dağıtım listesine yazılan kurum (evrakı alan taraf: Bakanlık) KKK / DETSİS kodu ve adı
+    public const string AtlasEypRecipientKkk = "AtlasEypRecipientKkk";
+    public const string AtlasEypRecipientName = "AtlasEypRecipientName";
+
     public static readonly IReadOnlyList<string> All = new[]
     {
         ApplicationName,
@@ -50,6 +59,12 @@ public static class AppSettingKeys
         AtlasNumberPoolIntervalSeconds,
         AtlasNumberPoolMinStock,
         AtlasNumberPoolBatchSize,
-        AtlasNumberPoolEnforced
+        AtlasNumberPoolEnforced,
+        AtlasTransferEnabled,
+        AtlasTransferIntervalSeconds,
+        AtlasTransferBatchSize,
+        AtlasTransferMaxTryCount,
+        AtlasEypRecipientKkk,
+        AtlasEypRecipientName
     };
 }

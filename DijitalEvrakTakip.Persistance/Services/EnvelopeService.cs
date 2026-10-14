@@ -50,7 +50,7 @@ public sealed class EnvelopeService : IEnvelopeService
 
     public async Task<IList<Envelope>> GetAllAsync(
         Guid? createdByUserId,
-        Guid? departmentId,
+        int? departmentId,
         CancellationToken cancellationToken)
     {
         var query = _envelopeRepository
@@ -96,7 +96,7 @@ public sealed class EnvelopeService : IEnvelopeService
     }
 
     public async Task<ExternalInstitution?> GetExternalInstitutionByIdAsync(
-    Guid id, CancellationToken cancellationToken)
+    int id, CancellationToken cancellationToken)
     {
         return await _externalInstitutionRepository
             .GetAll()

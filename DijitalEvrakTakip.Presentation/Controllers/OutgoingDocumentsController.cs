@@ -56,7 +56,7 @@ public sealed class OutgoingDocumentsController : ApiController
     public async Task<IActionResult> GetAll(
         [FromQuery] int? status,
         [FromQuery] string? createdUserId,
-        [FromQuery] Guid? departmentId,
+        [FromQuery] int? departmentId,
         CancellationToken cancellationToken)
     {
         var query = new GetAllOutgoingDocumentQuery

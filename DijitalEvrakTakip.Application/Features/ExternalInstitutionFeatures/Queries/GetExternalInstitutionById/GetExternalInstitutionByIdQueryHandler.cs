@@ -20,7 +20,7 @@ public sealed class GetExternalInstitutionByIdQueryHandler
     {
         var entity = await _service.GetByIdAsync(request.Id, cancellationToken);
 
-        if (entity == null || entity.IsDeleted)
+        if (entity == null)
             return null;
 
         return new ExternalInstitutionDto

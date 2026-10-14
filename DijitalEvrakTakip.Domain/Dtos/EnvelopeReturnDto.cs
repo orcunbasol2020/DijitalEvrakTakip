@@ -8,6 +8,6 @@ public sealed class EnvelopeReturnDto
     public string? Address { get; set; }
 
     // Yeni alan
-    public Guid? ExternalInstitutionId { get; set; }
+    public int? ExternalInstitutionId { get; set; }
     public string? ExternalInstitutionName { get; set; }
 }

@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DijitalEvrakTakip.Application\DijitalEvrakTakip.Application.csproj" />
+    <ProjectReference Include="..\DijitalEvrakTakip.Infrastructure\DijitalEvrakTakip.Infrastructure.csproj" />
     <ProjectReference Include="..\DijitalEvrakTakip.Presentation\DijitalEvrakTakip.Presentation.csproj" />
   </ItemGroup>
 

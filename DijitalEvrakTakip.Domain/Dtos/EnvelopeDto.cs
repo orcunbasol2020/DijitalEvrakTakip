@@ -6,9 +6,10 @@ public sealed record EnvelopeDto(
     bool IsClosed,
     int Status,
     Guid CreatedByUserId,
-    Guid? ExternalInstitutionId,
-    Guid? DepartmentId,
-    Guid? TargetDepartmentId,
+    int? ExternalInstitutionId,
+    string? ExternalInstitutionName,
+    int? DepartmentId,
+    int? TargetDepartmentId,
     string? UnitName,
     string? Address,
     DateTime CreatedDate

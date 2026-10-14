@@ -8,7 +8,7 @@ public sealed record OutgoingDocumentShipmentDto(
     DateTime SentDate,
     Guid SentUserId,
     string? SentUserFullName,
-    Guid? ExternalInstitutionId,
+    int? ExternalInstitutionId,
     string? ExternalInstitutionName,
     string? RecipientName,
     int Status,
@@ -27,8 +27,8 @@ public sealed record OutgoingDocumentShipmentItemDto(
     Guid OutgoingDocumentId,
     string? DocumentNumber,
     string? Subject,
-    Guid? DepartmentId,
+    int? DepartmentId,
     string? DepartmentName,
-    Guid? ExternalInstitutionId,
+    int? ExternalInstitutionId,
     string? ExternalInstitutionName
 );

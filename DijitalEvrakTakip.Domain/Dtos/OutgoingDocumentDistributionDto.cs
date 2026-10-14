@@ -3,9 +3,9 @@ namespace DijitalEvrakTakip.Domain.Dtos;
 public sealed record OutgoingDocumentDistributionDto(
     Guid Id,
     Guid OutgoingDocumentId,
-    Guid? DepartmentId,
+    int? DepartmentId,
     string? DepartmentName,
-    Guid? ExternalInstitutionId,
+    int? ExternalInstitutionId,
     string? ExternalInstitutionName,
     bool? ActionRequired,
     int? DeliveryMethod,

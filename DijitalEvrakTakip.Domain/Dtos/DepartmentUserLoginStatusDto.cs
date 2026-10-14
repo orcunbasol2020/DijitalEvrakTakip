@@ -10,10 +10,12 @@ public sealed class DepartmentUserLoginStatusDto
     public string Surname { get; set; }
     public string UserName { get; set; }
     public string Email { get; set; }
-    public Guid DepartmentId { get; set; }
+    public int? DepartmentId { get; set; }
     public string DepartmentName { get; set; }
     public string DepartmentShortName { get; set; }
-    public int UserType { get; set; }
+
+    // ComTitle adı; unvanı tanımsız kullanıcılarda null.
+    public string TitleName { get; set; }
     public bool IsActive { get; set; }
 
     /// <summary>Son başarılı giriş JWT geçerlilik süresi içindeyse true.</summary>

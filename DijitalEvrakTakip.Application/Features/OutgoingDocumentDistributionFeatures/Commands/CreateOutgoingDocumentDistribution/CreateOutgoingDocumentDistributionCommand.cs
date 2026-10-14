@@ -9,8 +9,8 @@ public sealed record CreateOutgoingDocumentDistributionCommand(
 ) : IRequest<IList<OutgoingDocumentDistributionDto>>;
 
 public sealed record OutgoingDocumentDistributionRecipient(
-    Guid? DepartmentId,
-    Guid? ExternalInstitutionId,
+    int? DepartmentId,
+    int? ExternalInstitutionId,
     bool? ActionRequired,
     DateTime? SentDate,
     DateTime? DeliveryDate,

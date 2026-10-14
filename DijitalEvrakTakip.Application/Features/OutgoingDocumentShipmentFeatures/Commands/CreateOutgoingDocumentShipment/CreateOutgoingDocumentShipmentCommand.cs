@@ -15,7 +15,7 @@ public sealed record CreateOutgoingDocumentShipmentCommand(
     string TrackingNumber,
     Guid SentUserId,
     DateTime? SentDate,
-    Guid? ExternalInstitutionId,
+    int? ExternalInstitutionId,
     string? RecipientName,
     decimal? Cost,
     string? Notes,

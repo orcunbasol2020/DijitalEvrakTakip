@@ -27,9 +27,9 @@ public sealed class GetDepartmentUsersLoginStatusHandler
         GetDepartmentUsersLoginStatusQuery request,
         CancellationToken cancellationToken)
     {
-        IList<Guid> departmentIds = request.IncludeSubDepartments
+        IList<int> departmentIds = request.IncludeSubDepartments
             ? await _departmentService.GetDescendantIdsAsync(request.DepartmentId, includeSelf: true, cancellationToken)
-            : new List<Guid> { request.DepartmentId };
+            : new List<int> { request.DepartmentId };
 
         if (departmentIds.Count == 0)
             return new List<DepartmentUserLoginStatusDto>();
@@ -38,7 +38,7 @@ public sealed class GetDepartmentUsersLoginStatusHandler
             .GetAll()
             .AsNoTracking()
             .Include(u => u.Department)
-            .Where(u => !u.IsDeleted && departmentIds.Contains(u.DepartmentId));
+            .Where(u => !u.IsDeleted && u.DepartmentId.HasValue && departmentIds.Contains(u.DepartmentId.Value));
 
         if (request.OnlyActive)
             query = query.Where(u => u.IsActive);
@@ -54,7 +54,7 @@ public sealed class GetDepartmentUsersLoginStatusHandler
                 DepartmentId = u.DepartmentId,
                 DepartmentName = u.Department != null ? u.Department.Name : null,
                 DepartmentShortName = u.Department != null ? u.Department.ShortName : null,
-                UserType = u.UserType,
+                TitleName = u.TitleName,
                 IsActive = u.IsActive
             })
             .ToListAsync(cancellationToken);

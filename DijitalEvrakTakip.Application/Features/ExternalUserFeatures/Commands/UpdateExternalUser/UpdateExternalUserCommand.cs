@@ -10,6 +10,6 @@ public sealed record UpdateExternalUserCommand(
     string? Email,
     string? IdentityNo,
     int? UserType,
-    Guid? ExternalInstitutionId,
+    int? ExternalInstitutionId,
     bool? IsActive
 ) : IRequest<MessageResponse>;

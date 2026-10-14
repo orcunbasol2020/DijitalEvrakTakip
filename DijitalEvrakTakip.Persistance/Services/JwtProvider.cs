@@ -30,7 +30,7 @@ public sealed class JwtProvider : IJwtProvider
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("name", user.Name ?? string.Empty),
             new Claim("surname", user.Surname ?? string.Empty),
-            new Claim("departmentId", user.DepartmentId ?? string.Empty),
+            new Claim("departmentId", user.DepartmentId?.ToString() ?? string.Empty),
             new Claim("departmentName", user.DepartmentName ?? string.Empty),
             new Claim("departmentShortName", user.DepartmentShortName ?? string.Empty)
         };

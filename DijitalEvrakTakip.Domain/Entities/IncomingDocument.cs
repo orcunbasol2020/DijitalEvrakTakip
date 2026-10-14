@@ -27,6 +27,8 @@ namespace DijitalEvrakTakip.Domain.Entities
         public int? Status { get; set; }
         // PublishStatusEnum: Atlas'a yayın (aktarım) durumu
         public int? SubmissionStatus { get; set; }
+        // SubmissionStatus'un son değiştiği zaman; aktarım kuyruğu bu sırayla işlenir
+        public DateTime? SubmissionUpdatedAt { get; set; }
         public int? OcrStatus { get; set; }
 
         public bool? ElectronicCopy { get; set; }
@@ -41,10 +43,15 @@ namespace DijitalEvrakTakip.Domain.Entities
         public DateTime? DocumentDate { get; set; }
         public DateTime? ReleaseDate { get; set; }
 
-        public Guid? ExternalInstitutionId { get; set; }
+        public int? ExternalInstitutionId { get; set; }
         public ExternalInstitution? ExternalInstitution { get; set; }
 
-        public Guid? DepartmentId { get; set; }
+        /// <summary>Gönderen / alıcı kurumun adı; veritabanında tutulmaz, cevaplarda doldurulur (ExternalInstitutionNames).</summary>
+        public string? ExternalInstitutionName { get; set; }
+
+        // Geçiş dönemi alanı: "Nereye" artık Distributions'ta tutulur; burada
+        // ilk Gereği alıcısı (yoksa ilk alıcı) tutulur
+        public int? DepartmentId { get; set; }
         public Department? Department { get; set; }
 
         public string UserId { get; set; } = null!;
@@ -56,5 +63,8 @@ namespace DijitalEvrakTakip.Domain.Entities
 
         public ICollection<DocumentAssignment> DocumentAssignments { get; set; }
             = new List<DocumentAssignment>();
+
+        public ICollection<IncomingDocumentDistribution> Distributions { get; set; }
+            = new List<IncomingDocumentDistribution>();
     }
 }

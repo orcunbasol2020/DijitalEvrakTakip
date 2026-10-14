@@ -1,8 +1,6 @@
-﻿using DijitalEvrakTakip.Application.Services;
+using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
-using DijitalEvrakTakip.Domain.Repositories;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,22 +9,33 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser
     public sealed class GetAllUserHandler : IRequestHandler<GetAllUserQuery, IList<UserDto>>
     {
         private readonly IUserService _userService;
+        private readonly IDepartmentService _departmentService;
 
-        public GetAllUserHandler(IUserService userService)
+        public GetAllUserHandler(IUserService userService, IDepartmentService departmentService)
         {
             _userService = userService;
+            _departmentService = departmentService;
         }
 
         public async Task<IList<UserDto>> Handle(GetAllUserQuery request, CancellationToken cancellationToken)
         {
-            //IList<UserDto> users = await _userService.GetAllAsync(request, cancellationToken);
-            //return users.OrderBy(u => u.Name).ToList();
-
-            IQueryable<User> query = _userService.GetAll();
+            IQueryable<User> query = _userService.GetAll().Where(u => !u.IsDeleted);
+            bool filtered = false;
 
             if (request.DepartmentId.HasValue)
             {
-                query = query.Where(u => u.DepartmentId == request.DepartmentId.Value);
+                if (request.IncludeSubDepartments)
+                {
+                    // Birim ağacı tek sorguda çekilir; alt birimler için ayrı sorgu atılmaz.
+                    IList<int> departmentIds = await _departmentService.GetDescendantIdsAsync(
+                        request.DepartmentId.Value, includeSelf: true, cancellationToken);
+                    query = query.Where(u => u.DepartmentId.HasValue && departmentIds.Contains(u.DepartmentId.Value));
+                }
+                else
+                {
+                    query = query.Where(u => u.DepartmentId == request.DepartmentId.Value);
+                }
+                filtered = true;
             }
 
             if (request.RoleId.HasValue)
@@ -34,11 +43,28 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser
                 Guid roleId = request.RoleId.Value;
                 query = query.Where(u => u.UserRoles.Any(ur =>
                     ur.RoleId == roleId && !ur.IsDeleted && !ur.Role.IsDeleted && ur.Role.IsActive));
+                filtered = true;
             }
 
+            if (request.OnlyWithRoles)
+            {
+                query = query.Where(u => u.UserRoles.Any(ur =>
+                    !ur.IsDeleted && !ur.Role.IsDeleted && ur.Role.IsActive));
+                filtered = true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Search))
+            {
+                query = _userService.Search(query, request.Search);
+                filtered = true;
+            }
+
+            IQueryable<User> ordered = query.OrderBy(u => u.Name).ThenBy(u => u.Surname);
+            if (!filtered)
+                ordered = ordered.Take(GetAllUserQuery.MaxUnfilteredCount);
+
             // Roller aynı sorguda projekte edilir; kullanıcı başına ayrı sorgu atılmaz.
-            var result = await query
-                .OrderBy(u => u.Name)
+            var result = await ordered
                 .Select(u => new UserDto
                 {
                     Id = u.Id.ToString(),
@@ -46,14 +72,12 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser
                     Surname = u.Surname,
                     Email = u.Email,
                     UserName = u.UserName,
-                    DepartmentId = u.DepartmentId.ToString(),
+                    DepartmentId = u.DepartmentId,
                     DepartmentName = u.Department.Name,
                     DepartmentShortName = u.Department.ShortName,
-                    UserType = u.UserType,
+                    TitleName = u.TitleName,
                     IsActive = u.IsActive,
                     IsDeleted = u.IsDeleted,
-                    CreatedDate = u.CreatedDate,
-                    UpdateDate = u.UpdateDate,
                     Roles = u.UserRoles
                         .Where(ur => !ur.IsDeleted && !ur.Role.IsDeleted && ur.Role.IsActive)
                         .OrderBy(ur => ur.Role.Name)
@@ -65,6 +89,4 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetAllUser
             return result;
         }
     }
-
-
 }

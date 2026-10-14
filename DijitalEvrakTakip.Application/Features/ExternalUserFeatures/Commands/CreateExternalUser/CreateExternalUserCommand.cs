@@ -9,6 +9,6 @@ public sealed record CreateExternalUserCommand(
     string Email,
     string? IdentityNo,
     int UserType,
-    Guid ExternalInstitutionId,
+    int ExternalInstitutionId,
     bool IsActive
 ) : IRequest<MessageResponse>;

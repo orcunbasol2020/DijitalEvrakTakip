@@ -28,7 +28,14 @@ public sealed class UpdateAppSettingValidator : AbstractValidator<UpdateAppSetti
             [AppSettingKeys.AtlasNumberPoolEnforced] = (IsBool, "Değer true veya false olmalıdır!"),
             [AppSettingKeys.AtlasNumberPoolMinStock] = (v => IsIntInRange(v, 1), "Minimum stok en az 1 olmalıdır!"),
             [AppSettingKeys.AtlasNumberPoolBatchSize] = (v => IsIntInRange(v, 1, 1000), "Paket adedi 1 ile 1000 arasında olmalıdır!"),
-            [AppSettingKeys.AtlasNumberPoolIntervalSeconds] = (v => IsIntInRange(v, 30), "Kontrol aralığı en az 30 saniye olmalıdır!")
+            [AppSettingKeys.AtlasNumberPoolIntervalSeconds] = (v => IsIntInRange(v, 30), "Kontrol aralığı en az 30 saniye olmalıdır!"),
+
+            [AppSettingKeys.AtlasTransferEnabled] = (IsBool, "Değer true veya false olmalıdır!"),
+            [AppSettingKeys.AtlasTransferIntervalSeconds] = (v => IsIntInRange(v, 10), "Kontrol aralığı en az 10 saniye olmalıdır!"),
+            [AppSettingKeys.AtlasTransferBatchSize] = (v => IsIntInRange(v, 1, 100), "Parti boyutu 1 ile 100 arasında olmalıdır!"),
+            [AppSettingKeys.AtlasTransferMaxTryCount] = (v => IsIntInRange(v, 1, 20), "Deneme sayısı 1 ile 20 arasında olmalıdır!"),
+            [AppSettingKeys.AtlasEypRecipientKkk] = (IsDigits, "KKK (DETSİS) kodu yalnızca rakamlardan oluşmalıdır!"),
+            [AppSettingKeys.AtlasEypRecipientName] = (NotEmpty, "Kurum adı boş olamaz!")
         };
 
     public UpdateAppSettingValidator()
@@ -56,6 +63,8 @@ public sealed class UpdateAppSettingValidator : AbstractValidator<UpdateAppSetti
     private static bool NotEmpty(string? value) => !string.IsNullOrWhiteSpace(value);
 
     private static bool IsBool(string? value) => bool.TryParse(value, out _);
+
+    private static bool IsDigits(string? value) => !string.IsNullOrEmpty(value) && value.All(char.IsAsciiDigit);
 
     private static bool IsIntInRange(string? value, int min, int max = int.MaxValue) =>
         int.TryParse(value, out var number) && number >= min && number <= max;

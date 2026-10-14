@@ -9,6 +9,6 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetUsersBy
 /// IncludeSelf=false verilirse yalnızca alt departmanlardaki personeller döner.
 /// </summary>
 public sealed record GetUsersByParentDepartmentQuery(
-    Guid DepartmentId,
+    int DepartmentId,
     bool IncludeSelf = true,
     bool OnlyActive = true) : IRequest<IList<UserDto>>;

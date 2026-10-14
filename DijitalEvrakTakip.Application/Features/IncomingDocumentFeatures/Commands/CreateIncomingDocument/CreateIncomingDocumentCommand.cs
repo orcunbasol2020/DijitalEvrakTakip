@@ -14,8 +14,8 @@ public sealed record CreateIncomingDocumentCommand
     int? LanguageId,
     string? Subject,
     string? Content_Ocr,
-    Guid? ExternalInstitutionId,
-    Guid? DepartmentId,
+    int? ExternalInstitutionId,
+    int? DepartmentId,
     int? Status,
     bool? ElectronicCopy,
     bool? Release,
@@ -30,5 +30,7 @@ public sealed record CreateIncomingDocumentCommand
     string? Notes,
     string? CreatedUserId = null,
     bool? HasAttachment = null,
-    string? AttachmentDescription = null
+    string? AttachmentDescription = null,
+    // "Nereye" listesi. Gönderilmezse DepartmentId tek alıcı olarak kaydedilir
+    IList<IncomingDocumentRecipient>? Recipients = null
 ) : IRequest<MessageResponse>;

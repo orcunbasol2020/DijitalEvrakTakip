@@ -9,7 +9,7 @@ namespace DijitalEvrakTakip.Application.Features.UserFeatures.Queries.GetDepartm
 /// OnlyLoggedIn=true ise yalnızca oturumu açık olanlar döner.
 /// </summary>
 public sealed record GetDepartmentUsersLoginStatusQuery(
-    Guid DepartmentId,
+    int DepartmentId,
     bool IncludeSubDepartments = true,
     bool OnlyActive = true,
     bool OnlyLoggedIn = false) : IRequest<IList<DepartmentUserLoginStatusDto>>;

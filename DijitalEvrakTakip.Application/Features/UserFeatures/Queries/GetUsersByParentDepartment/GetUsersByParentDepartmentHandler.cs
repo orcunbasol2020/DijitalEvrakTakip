@@ -25,7 +25,7 @@ public sealed class GetUsersByParentDepartmentHandler
         GetUsersByParentDepartmentQuery request,
         CancellationToken cancellationToken)
     {
-        IList<Guid> departmentIds = await _departmentService.GetDescendantIdsAsync(
+        IList<int> departmentIds = await _departmentService.GetDescendantIdsAsync(
             request.DepartmentId,
             request.IncludeSelf,
             cancellationToken);
@@ -36,7 +36,7 @@ public sealed class GetUsersByParentDepartmentHandler
         IQueryable<User> query = _userService
             .GetAll()
             .Include(u => u.Department)
-            .Where(u => !u.IsDeleted && departmentIds.Contains(u.DepartmentId));
+            .Where(u => !u.IsDeleted && u.DepartmentId.HasValue && departmentIds.Contains(u.DepartmentId.Value));
 
         if (request.OnlyActive)
             query = query.Where(u => u.IsActive);

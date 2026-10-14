@@ -25,18 +25,18 @@ public sealed class GetAllEnvelopeHandler
         var envelopes = await _envelopeService.GetAllAsync(request.CreatedByUserId, request.DepartmentId, cancellationToken);
 
         var result = new List<EnvelopeDocumentCountDto>();
+        var activeEnvelopes = envelopes.Where(x => !x.IsDeleted).ToList();
 
-        foreach (var x in envelopes.Where(x => !x.IsDeleted))
+        // Kurum adları tek sorguda; silinmiş kurumun adı da gelir
+        var institutionNames = await _externalInstitutionService.GetNamesAsync(
+            activeEnvelopes.Where(x => x.ExternalInstitutionId.HasValue).Select(x => x.ExternalInstitutionId!.Value),
+            cancellationToken);
+
+        foreach (var x in activeEnvelopes)
         {
-            string? institutionName = null;
-
-            if (x.ExternalInstitutionId.HasValue)
-            {
-                var institution = await _externalInstitutionService
-                    .GetByIdAsync(x.ExternalInstitutionId.Value, cancellationToken);
-
-                institutionName = institution?.Name;
-            }
+            string? institutionName = x.ExternalInstitutionId.HasValue
+                ? institutionNames.GetValueOrDefault(x.ExternalInstitutionId.Value)
+                : null;
 
             result.Add(new EnvelopeDocumentCountDto(
                 x.Id,

@@ -11,6 +11,9 @@ public sealed class IncomingDocumentConfiguration
     {
         builder.ToTable("IncomingDocuments");
 
+        // Yalnızca cevaplarda doldurulur
+        builder.Ignore(x => x.ExternalInstitutionName);
+
         // Primary Key
         builder.HasKey(x => x.Id);
 
@@ -52,6 +55,12 @@ public sealed class IncomingDocumentConfiguration
 
         builder.Property(x => x.SubmissionStatus);
 
+        builder.Property(x => x.SubmissionUpdatedAt)
+            .HasColumnType("datetime2");
+
+        // Atlas aktarım kuyruğu Kuyrukta durumundaki evrakları bu sırayla alır
+        builder.HasIndex(x => new { x.SubmissionStatus, x.SubmissionUpdatedAt });
+
         builder.Property(x => x.OcrStatus);
 
         builder.Property(x => x.PageCount);
@@ -87,11 +96,9 @@ public sealed class IncomingDocumentConfiguration
         // -----------------------------
 
         builder.Property(x => x.ExternalInstitutionId)
-            .HasColumnType("uniqueidentifier")
             .IsRequired(false);
 
         builder.Property(x => x.DepartmentId)
-            .HasColumnType("uniqueidentifier")
             .IsRequired(false);
 
         builder.HasOne(x => x.ExternalInstitution)

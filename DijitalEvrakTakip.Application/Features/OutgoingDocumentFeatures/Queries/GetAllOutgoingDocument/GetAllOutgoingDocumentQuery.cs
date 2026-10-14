@@ -18,5 +18,5 @@ public sealed record GetAllOutgoingDocumentQuery() : IRequest<IList<OutgoingDocu
     /// <summary>
     /// Departman Id'si. Verilirse sadece o departmana ait kayıtlar döner (aynı birimdeki kullanıcılar birbirinin evraklarını görebilir).
     /// </summary>
-    public Guid? DepartmentId { get; set; }
+    public int? DepartmentId { get; set; }
 }

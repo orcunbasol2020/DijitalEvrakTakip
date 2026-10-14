@@ -1,9 +1,11 @@
 using DijitalEvrakTakip.WebApi.BackgroundServices;
 using DijitalEvrakTakip.Application.Behaviors;
+using DijitalEvrakTakip.Application.Features.UserFeatures;
 using DijitalEvrakTakip.Application.Options;
 using DijitalEvrakTakip.Application.Services;
 using DijitalEvrakTakip.Domain.Repositories;
 using DijitalEvrakTakip.Infrastructure.Atlas;
+using DijitalEvrakTakip.Infrastructure.Eyp;
 using DijitalEvrakTakip.Persistance.Context;
 using DijitalEvrakTakip.Persistance.Repositories;
 using DijitalEvrakTakip.Persistance.Services;
@@ -19,13 +21,21 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 //services 
+// WindowsLogin tarayıcının Windows kimliğini gönderdiği (withCredentials) bir istek; bu tür isteklerde
+// AllowAnyOrigin kullanılamaz, ön yüzün adresleri Cors:AllowedOrigins'te açıkça verilmeli.
+string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
     {
-        builder.AllowAnyOrigin();
+        if (allowedOrigins.Length > 0)
+            builder.WithOrigins(allowedOrigins).AllowCredentials();
+        else
+            builder.AllowAnyOrigin();
         builder.AllowAnyMethod();
         builder.AllowAnyHeader();
+        // İndirilen dosyanın adını (ör. EYP paketi) ön yüz farklı adresten okuyabilsin
+        builder.WithExposedHeaders("Content-Disposition");
     });
 });
 
@@ -33,6 +43,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 builder.Services.AddScoped<IUserLoginLogService, UserLoginLogService>();
+builder.Services.AddScoped<UserLoginFlow>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
@@ -41,6 +52,8 @@ builder.Services.AddTransient<ErrorMiddleware>();
 builder.Services.AddScoped<IUnitOfWork>(srv => srv.GetRequiredService<AppDbContext>());
 builder.Services.AddScoped<IIncomingDocumentService, IncomingDocumentService>();
 builder.Services.AddScoped<IIncomingDocumentApplicationService, IncomingDocumentApplicationService>();
+builder.Services.AddScoped<IIncomingDocumentAttachmentService, IncomingDocumentAttachmentService>();
+builder.Services.AddScoped<INotaReportService, NotaReportService>();
 builder.Services.AddScoped<IOutgoingDocumentService, OutgoingDocumentService>();
 builder.Services.AddScoped<IOutgoingDocumentDistributionService, OutgoingDocumentDistributionService>();
 builder.Services.AddScoped<IOutgoingDocumentShipmentService, OutgoingDocumentShipmentService>();
@@ -66,6 +79,13 @@ builder.Services.AddHostedService<ZimmetApprovalReminderBackgroundService>();
 builder.Services.AddScoped<IAtlasEbysClient, FakeAtlasEbysClient>();
 builder.Services.AddScoped<IAtlasDocumentNumberPoolService, AtlasDocumentNumberPoolService>();
 builder.Services.AddHostedService<AtlasDocumentNumberPoolBackgroundService>();
+// EYP paketleri Cbddo.eYazisma ile üretilir; Atlas teslim yöntemi netleşene kadar sahte gönderim istemcisi
+builder.Services.AddScoped<IEypService, EypService>();
+builder.Services.AddScoped<IAtlasEypTransferClient, FakeAtlasEypTransferClient>();
+builder.Services.AddScoped<IAtlasTransferService, AtlasTransferService>();
+// Son/sonraki aktarım turu bilgisi bellekte; arka plan servisi ve istekler aynı örneği görür
+builder.Services.AddSingleton<IAtlasTransferMonitor, AtlasTransferMonitor>();
+builder.Services.AddHostedService<AtlasTransferBackgroundService>();
 builder.Services.AddSingleton<IAppVersionProvider, AssemblyAppVersionProvider>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IWetSignedDocumentStorageService>(_ =>
@@ -90,6 +110,41 @@ builder.Services.AddScoped<IIncomingDocumentStorageService>(_ =>
 
     return new IncomingDocumentStorageService(rootPath);
 });
+// Gelen evrak ekleri; tarama/OCR akışının izlediği IncomingDocumentsPath klasöründen ayrı olmalı
+builder.Services.AddScoped<IIncomingDocumentAttachmentStorageService>(_ =>
+{
+    string configuredPath = builder.Configuration["FileStorage:IncomingAttachmentsPath"]
+        ?? "App_Data/IncomingDocumentAttachments";
+
+    string rootPath = Path.IsPathRooted(configuredPath)
+        ? configuredPath
+        : Path.Combine(builder.Environment.ContentRootPath, configuredPath);
+
+    return new IncomingDocumentAttachmentStorageService(rootPath);
+});
+builder.Services.AddScoped<IEypPackageStorageService>(_ =>
+{
+    string configuredPath = builder.Configuration["FileStorage:EypPackagesPath"]
+        ?? "App_Data/EypPackages";
+
+    string rootPath = Path.IsPathRooted(configuredPath)
+        ? configuredPath
+        : Path.Combine(builder.Environment.ContentRootPath, configuredPath);
+
+    return new EypPackageStorageService(rootPath);
+});
+// Dosyası yüklenmemiş evrakların EYP üst yazısı ("Bu Belge Fiziki Olarak Gönderilecektir.")
+builder.Services.AddSingleton<IPhysicalDeliveryPdfProvider>(_ =>
+{
+    string configuredPath = builder.Configuration["FileStorage:PhysicalDeliveryPdfPath"]
+        ?? @"C:\EvrakTakip\belgeler\Sablonlar\fiziki.pdf";
+
+    string path = Path.IsPathRooted(configuredPath)
+        ? configuredPath
+        : Path.Combine(builder.Environment.ContentRootPath, configuredPath);
+
+    return new PhysicalDeliveryPdfProvider(path);
+});
 
 //repository
 builder.Services.AddScoped<IExternalUserRepository, ExternalUserRepository>();
@@ -98,6 +153,8 @@ builder.Services.AddScoped<IEnvelopeRepository, EnvelopeRepository>();
 builder.Services.AddScoped<IScannedDocumentRepository, ScannedDocumentRepository>();
 builder.Services.AddScoped<IDocumentAssignmentRepository, DocumentAssignmentRepository>();
 builder.Services.AddScoped<IIncomingDocumentRepository, IncomingDocumentRepository>();
+builder.Services.AddScoped<IIncomingDocumentDistributionRepository, IncomingDocumentDistributionRepository>();
+builder.Services.AddScoped<IIncomingDocumentAttachmentRepository, IncomingDocumentAttachmentRepository>();
 builder.Services.AddScoped<IOutgoingDocumentRepository, OutgoingDocumentRepository>();
 builder.Services.AddScoped<IOutgoingDocumentDistributionRepository, OutgoingDocumentDistributionRepository>();
 builder.Services.AddScoped<IOutgoingDocumentShipmentRepository, OutgoingDocumentShipmentRepository>();
@@ -140,8 +197,13 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
             ClockSkew = TimeSpan.FromMinutes(1)
         };
-    });
+    })
+    // Yalnızca api/Users/WindowsLogin bu şemayı kullanır; diğer uç noktalar JWT ile çalışır.
+    // Linux'ta (pod) Kerberos için keytab ve krb5.conf gerekir.
+    .AddNegotiate(LoginSettings.WindowsScheme, _ => { });
 builder.Services.AddAuthorization();
+
+builder.Services.Configure<LoginSettings>(builder.Configuration.GetSection(LoginSettings.SectionName));
 
 string connectionString = builder.Configuration.GetConnectionString("SqlServer");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));

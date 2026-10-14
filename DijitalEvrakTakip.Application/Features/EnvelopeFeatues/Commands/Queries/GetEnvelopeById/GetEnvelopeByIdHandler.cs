@@ -8,10 +8,14 @@ public sealed class GetEnvelopeByIdHandler
     : IRequestHandler<GetEnvelopeByIdQuery, EnvelopeDto?>
 {
     private readonly IEnvelopeService _envelopeService;
+    private readonly IExternalInstitutionService _externalInstitutionService;
 
-    public GetEnvelopeByIdHandler(IEnvelopeService envelopeService)
+    public GetEnvelopeByIdHandler(
+        IEnvelopeService envelopeService,
+        IExternalInstitutionService externalInstitutionService)
     {
         _envelopeService = envelopeService;
+        _externalInstitutionService = externalInstitutionService;
     }
 
     public async Task<EnvelopeDto?> Handle(
@@ -23,6 +27,11 @@ public sealed class GetEnvelopeByIdHandler
         if (envelope == null || envelope.IsDeleted)
             return null;
 
+        string? institutionName = envelope.ExternalInstitutionId.HasValue
+            ? (await _externalInstitutionService.GetNamesAsync(new[] { envelope.ExternalInstitutionId.Value }, cancellationToken))
+                .GetValueOrDefault(envelope.ExternalInstitutionId.Value)
+            : null;
+
         return new EnvelopeDto(
             envelope.Id,
             envelope.EnvelopeNo,
@@ -30,6 +39,7 @@ public sealed class GetEnvelopeByIdHandler
             envelope.Status,
             envelope.CreatedByUserId,
             envelope.ExternalInstitutionId,
+            institutionName,
             envelope.DepartmentId,
             envelope.TargetDepartmentId,
             envelope.UnitName,

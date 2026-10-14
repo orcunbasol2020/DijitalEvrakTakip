@@ -54,5 +54,18 @@ public enum TransactionTypeEnum
 
     // Teslim Alındı / Devir Alındı kaydının yanına yazılır; şerh metni zimmet talebinde
     [Description("Şerhli Kabul")]
-    ZimmetSerhliKabul = 17
+    ZimmetSerhliKabul = 17,
+
+    // Atlas aktarım kuyruğu sonucu; kullanıcı olarak evrakı yayınlayan kişi yazılır
+    [Description("Atlas'a Aktarıldı")]
+    AtlasAktarildi = 18,
+
+    [Description("Atlas Aktarımı Hatalı")]
+    AtlasAktarimHatali = 19,
+
+    [Description("Ek Yükleme")]
+    EkYukleme = 20,
+
+    [Description("Ek Silme")]
+    EkSilme = 21
 }

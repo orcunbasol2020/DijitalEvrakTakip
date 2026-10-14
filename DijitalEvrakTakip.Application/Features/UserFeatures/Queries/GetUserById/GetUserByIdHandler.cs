@@ -27,14 +27,12 @@ public sealed class GetUserByIdHandler : IRequestHandler<GetUserByIdQuery, UserD
             Surname = user.Surname,
             Email = user.Email,
             UserName = user.UserName,
-            DepartmentId = user.DepartmentId.ToString(),
+            DepartmentId = user.DepartmentId,
             DepartmentName = user.Department?.Name,
             DepartmentShortName = user.Department?.ShortName,
-            UserType = user.UserType,
+            TitleName = user.TitleName,
             IsActive = user.IsActive,
-            IsDeleted = user.IsDeleted,
-            CreatedDate = user.CreatedDate,
-            UpdateDate = user.UpdateDate
+            IsDeleted = user.IsDeleted
         };
     }
 }

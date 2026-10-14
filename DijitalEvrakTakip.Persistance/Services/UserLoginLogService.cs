@@ -1,6 +1,7 @@
 using DijitalEvrakTakip.Application.Features.UserLoginLogFeatures.Queries.GetUserLoginLogs;
 using DijitalEvrakTakip.Application.Options;
 using DijitalEvrakTakip.Application.Services;
+using DijitalEvrakTakip.Domain.Constants;
 using DijitalEvrakTakip.Domain.Dtos;
 using DijitalEvrakTakip.Domain.Entities;
 using DijitalEvrakTakip.Domain.Enums;
@@ -108,7 +109,7 @@ public sealed class UserLoginLogService : IUserLoginLogService
         if (!string.IsNullOrWhiteSpace(request.UserName))
         {
             string term = request.UserName.Trim();
-            query = query.Where(x => x.UserName.Contains(term));
+            query = query.Where(x => EF.Functions.Collate(x.UserName, SqlCollations.Turkish).Contains(term));
         }
 
         if (request.UserId.HasValue)

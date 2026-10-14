@@ -48,6 +48,9 @@ public interface IIncomingDocumentService
 
     Task<IncomingDocument?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
+    /// <summary>Evrağın silinmemiş alıcılarını (birim bilgisiyle) eklenme sırasına göre getirir.</summary>
+    Task<IList<IncomingDocumentDistribution>> GetDistributionsAsync(Guid incomingDocumentId, CancellationToken cancellationToken);
+
     Task<IncomingDocument?> GetByQrCodeAsync(string qrCode, CancellationToken cancellationToken);
 
     /// <summary>
