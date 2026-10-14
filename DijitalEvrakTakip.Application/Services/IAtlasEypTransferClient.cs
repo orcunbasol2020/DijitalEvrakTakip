@@ -8,6 +8,9 @@ namespace DijitalEvrakTakip.Application.Services;
 /// </summary>
 public interface IAtlasEypTransferClient
 {
+    /// <summary>true ise paketler Atlas'a gönderilmez, başarılı sayılır (sahte istemci).</summary>
+    bool IsSimulated { get; }
+
     /// <summary>
     /// Paketi gönderir. Atlas'a erişilemiyorsa istisna fırlatabilir veya
     /// <see cref="AtlasEypTransferResultDto.TransientFailure"/> dönebilir; ikisi de tekrar denenir.

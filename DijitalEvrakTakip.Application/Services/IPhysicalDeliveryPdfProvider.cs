@@ -6,5 +6,11 @@ namespace DijitalEvrakTakip.Application.Services;
 /// </summary>
 public interface IPhysicalDeliveryPdfProvider
 {
+    /// <summary>PDF'in yolu (durum ekranında gösterilir).</summary>
+    string Path { get; }
+
+    /// <summary>PDF yolda duruyor mu.</summary>
+    bool IsAvailable { get; }
+
     Task<byte[]> GetAsync(CancellationToken cancellationToken);
 }

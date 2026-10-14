@@ -31,4 +31,22 @@ public interface IAtlasTransferService
     Task<AtlasTransferStatsDto> GetStatsAsync(CancellationToken cancellationToken);
 
     Task<IReadOnlyList<AtlasTransferFailedDocumentDto>> GetFailedAsync(CancellationToken cancellationToken);
+
+    /// <summary>Servisin ayarları, son/sonraki turu, ön koşul kontrolleri ve sayılar.</summary>
+    Task<AtlasTransferStatusDto> GetStatusAsync(CancellationToken cancellationToken);
+
+    /// <summary>Kuyrukta bekleyen ve o anda aktarılan evraklar, sıraya alınma sırasıyla.</summary>
+    Task<IReadOnlyList<AtlasTransferQueueItemDto>> GetQueueAsync(CancellationToken cancellationToken);
+
+    /// <summary>Tüm evraklardaki son gönderim denemeleri, en yenisi önce.</summary>
+    Task<IReadOnlyList<AtlasTransferAttemptDto>> GetRecentAttemptsAsync(int limit, CancellationToken cancellationToken);
+
+    /// <summary>Evrakın aktarım durumu, paketleri ve denemeleri. Evrak yoksa hata fırlatır.</summary>
+    Task<AtlasTransferDocumentDto> GetDocumentAsync(Guid documentId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Evrakın EYP paket dosyası. <paramref name="packageId"/> verilmezse güncel paket döner.
+    /// Paket üretilmemişse veya dosyası yoksa hata fırlatır.
+    /// </summary>
+    Task<AtlasTransferPackageFileDto> GetPackageFileAsync(Guid documentId, Guid? packageId, CancellationToken cancellationToken);
 }

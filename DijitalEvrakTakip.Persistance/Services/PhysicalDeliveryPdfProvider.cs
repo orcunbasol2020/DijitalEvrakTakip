@@ -8,18 +8,20 @@ namespace DijitalEvrakTakip.Persistance.Services;
 /// </summary>
 public sealed class PhysicalDeliveryPdfProvider : IPhysicalDeliveryPdfProvider
 {
-    private readonly string _path;
-
     public PhysicalDeliveryPdfProvider(string path)
     {
-        _path = path;
+        Path = path;
     }
+
+    public string Path { get; }
+
+    public bool IsAvailable => File.Exists(Path);
 
     public Task<byte[]> GetAsync(CancellationToken cancellationToken)
     {
-        if (!File.Exists(_path))
-            throw new InvalidOperationException($"Fiziki gönderim PDF'i bulunamadı: {_path}");
+        if (!IsAvailable)
+            throw new InvalidOperationException($"Fiziki gönderim PDF'i bulunamadı: {Path}");
 
-        return File.ReadAllBytesAsync(_path, cancellationToken);
+        return File.ReadAllBytesAsync(Path, cancellationToken);
     }
 }

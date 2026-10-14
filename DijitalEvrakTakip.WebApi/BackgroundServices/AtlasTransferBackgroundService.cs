@@ -12,18 +12,22 @@ public sealed class AtlasTransferBackgroundService : BackgroundService
     private static readonly TimeSpan FallbackInterval = TimeSpan.FromMinutes(1);
 
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IAtlasTransferMonitor _monitor;
     private readonly ILogger<AtlasTransferBackgroundService> _logger;
 
     public AtlasTransferBackgroundService(
         IServiceScopeFactory scopeFactory,
+        IAtlasTransferMonitor monitor,
         ILogger<AtlasTransferBackgroundService> logger)
     {
         _scopeFactory = scopeFactory;
+        _monitor = monitor;
         _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        _monitor.NextRunScheduled(DateTime.UtcNow + StartupDelay);
         try
         {
             await Task.Delay(StartupDelay, stoppingToken);
@@ -56,6 +60,9 @@ public sealed class AtlasTransferBackgroundService : BackgroundService
             {
                 _logger.LogError(ex, "Atlas aktarım turu başarısız oldu");
             }
+
+            // İzleme ekranındaki "sonraki tur"
+            _monitor.NextRunScheduled(DateTime.UtcNow + interval);
 
             try
             {

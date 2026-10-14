@@ -34,6 +34,8 @@ builder.Services.AddCors(options =>
             builder.AllowAnyOrigin();
         builder.AllowAnyMethod();
         builder.AllowAnyHeader();
+        // İndirilen dosyanın adını (ör. EYP paketi) ön yüz farklı adresten okuyabilsin
+        builder.WithExposedHeaders("Content-Disposition");
     });
 });
 
@@ -81,6 +83,8 @@ builder.Services.AddHostedService<AtlasDocumentNumberPoolBackgroundService>();
 builder.Services.AddScoped<IEypService, EypService>();
 builder.Services.AddScoped<IAtlasEypTransferClient, FakeAtlasEypTransferClient>();
 builder.Services.AddScoped<IAtlasTransferService, AtlasTransferService>();
+// Son/sonraki aktarım turu bilgisi bellekte; arka plan servisi ve istekler aynı örneği görür
+builder.Services.AddSingleton<IAtlasTransferMonitor, AtlasTransferMonitor>();
 builder.Services.AddHostedService<AtlasTransferBackgroundService>();
 builder.Services.AddSingleton<IAppVersionProvider, AssemblyAppVersionProvider>();
 builder.Services.AddMemoryCache();

@@ -9,6 +9,8 @@ namespace DijitalEvrakTakip.Infrastructure.Atlas;
 /// </summary>
 public sealed class FakeAtlasEypTransferClient : IAtlasEypTransferClient
 {
+    public bool IsSimulated => true;
+
     public Task<AtlasEypTransferResultDto> SendAsync(AtlasEypSubmissionDto submission, CancellationToken cancellationToken)
     {
         return Task.FromResult(AtlasEypTransferResultDto.Success($"FAKE-{Guid.NewGuid():N}"));
