@@ -42,7 +42,7 @@ public sealed class EypMetadataDto
     public string? OlusturanKkk { get; set; }
     public string? Sender { get; set; }
 
-    // Oluşturan kurumun iletişim bilgileri; en az biri doluysa pakete eklenir
+    // Oluşturan kurumun iletişim bilgileri; boş olanlar pakete "-" olarak yazılır
     public string? OlusturanAdres { get; set; }
     public string? OlusturanEPosta { get; set; }
     public string? OlusturanFaks { get; set; }
@@ -75,7 +75,17 @@ public sealed class DagitimDto
     // Kurum KKK (DETSİS) kodu
     public string KKK { get; set; } = string.Empty;
 
+    // Birimin kendi kodu; boşsa KKK yazılır. Kaydı kapatılmış birimde KKK aktif üst birimin kodudur
+    public string? BirimKKK { get; set; }
+
     public string KurumAdi { get; set; } = string.Empty;
+
+    // Kurumun iletişim bilgileri; boş olanlar pakete "-" olarak yazılır
+    public string? Adres { get; set; }
+    public string? Telefon { get; set; }
+    public string? Faks { get; set; }
+    public string? EPosta { get; set; }
+    public string? WebAdresi { get; set; }
 
     // Oluştururken: GRG = Gereği, BLG = Bilgi
     public string? BilgiGeregiRumuz { get; set; }
@@ -124,12 +134,14 @@ public sealed class EkDto
     // DED = Elektronik dosya, HRF = Harici referans, FZK = Fiziksel nesne
     public string? Tur { get; set; }
 
+    // Ekin özgün dosya adı (üstveride görünür); paket içindeki dosya <BelgeId>_<SiraNo> adıyla tutulur
     public string? DosyaAdi { get; set; }
 
     public string? MimeTuru { get; set; }
 
     public string? Ad { get; set; }
 
+    // 1 üst yazıdır; ekler 2'den başlar
     public int SiraNo { get; set; }
 
     public string? Aciklama { get; set; }

@@ -42,6 +42,7 @@ public sealed class AtlasTransferService : IAtlasTransferService
     private readonly IEypPackageStorageService _packageStorage;
     private readonly IIncomingDocumentStorageService _documentStorage;
     private readonly IIncomingDocumentAttachmentStorageService _attachmentStorage;
+    private readonly IPhysicalDeliveryPdfProvider _physicalDeliveryPdf;
     private readonly IAppSettingService _appSettingService;
     private readonly AppDbContext _context;
     private readonly ILogger<AtlasTransferService> _logger;
@@ -52,6 +53,7 @@ public sealed class AtlasTransferService : IAtlasTransferService
         IEypPackageStorageService packageStorage,
         IIncomingDocumentStorageService documentStorage,
         IIncomingDocumentAttachmentStorageService attachmentStorage,
+        IPhysicalDeliveryPdfProvider physicalDeliveryPdf,
         IAppSettingService appSettingService,
         AppDbContext context,
         ILogger<AtlasTransferService> logger)
@@ -61,6 +63,7 @@ public sealed class AtlasTransferService : IAtlasTransferService
         _packageStorage = packageStorage;
         _documentStorage = documentStorage;
         _attachmentStorage = attachmentStorage;
+        _physicalDeliveryPdf = physicalDeliveryPdf;
         _appSettingService = appSettingService;
         _context = context;
         _logger = logger;
@@ -320,15 +323,29 @@ public sealed class AtlasTransferService : IAtlasTransferService
         EypRecipient recipient,
         CancellationToken cancellationToken)
     {
-        var metadata = IncomingDocumentEypMapper.Map(
-            document, recipient, await LoadAttachmentsAsync(document.Id, cancellationToken));
+        var agencies = new ComAgencyLookup(_context);
 
-        // Dosyası yüklenmemiş (güvenlik nedeniyle yalnızca bilgileri girilmiş) evrakta standart PDF kullanılır
+        // Gönderenin iletişim bilgisi ComAgency kaydından (DETSİS kodu olmayan misyonların da kaydı var; dilekçenin yok)
+        var senderContact = document.ExternalInstitutionId is > 0
+            ? await agencies.GetContactAsync(document.ExternalInstitutionId.Value, cancellationToken)
+            : null;
+        var defaultRecipient = int.TryParse(recipient.Kkk, out var recipientAgencyId)
+            ? recipient with { Contact = await agencies.GetContactAsync(recipientAgencyId, cancellationToken) }
+            : recipient;
+
+        var metadata = IncomingDocumentEypMapper.Map(
+            document,
+            defaultRecipient,
+            await LoadDistributionsAsync(document.Id, agencies, recipient, cancellationToken),
+            await LoadAttachmentsAsync(document.Id, cancellationToken),
+            senderContact);
+
+        // Dosyası yüklenmemiş (genelde gizlilik dereceli, yalnızca bilgileri girilmiş) evrakta fiziki gönderim PDF'i kullanılır
         byte[] ustYazi;
         bool usedPlaceholder;
         if (string.IsNullOrWhiteSpace(document.DocumentName))
         {
-            ustYazi = PhysicalDeliveryPlaceholderPdf.Get();
+            ustYazi = await _physicalDeliveryPdf.GetAsync(cancellationToken);
             usedPlaceholder = true;
         }
         else
@@ -370,7 +387,45 @@ public sealed class AtlasTransferService : IAtlasTransferService
             var content = await File.ReadAllBytesAsync(
                 _attachmentStorage.GetFullPath(attachment.StoredFileName), cancellationToken);
 
-            result.Add(new EypAttachment(attachment.Name, attachment.Description, content));
+            result.Add(new EypAttachment(attachment.Name, attachment.Description, attachment.OriginalFileName, content));
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Evrakın "Nereye" birimlerini EYP dağıtımına çevirir. Kurum kodu ComAgency'den gelir (bkz.
+    /// <see cref="ComAgencyLookup.ResolveDepartmentAsync"/>); ağaçta kod bulunamayan birime evrakı alan kurumun kodu yazılır.
+    /// </summary>
+    private async Task<IReadOnlyList<EypDistribution>> LoadDistributionsAsync(
+        Guid documentId,
+        ComAgencyLookup agencies,
+        EypRecipient recipient,
+        CancellationToken cancellationToken)
+    {
+        var rows = await (
+                from distribution in _context.Set<IncomingDocumentDistribution>().AsNoTracking()
+                where distribution.IncomingDocumentId == documentId && !distribution.IsDeleted
+                join department in _context.Set<Department>() on distribution.DepartmentId equals department.Id
+                orderby distribution.CreatedDate
+                select new { distribution.DepartmentId, distribution.ActionRequired, department.Name })
+            .ToListAsync(cancellationToken);
+
+        var result = new List<EypDistribution>(rows.Count);
+        foreach (var row in rows)
+        {
+            var (kkk, birimKkk) = await agencies.ResolveDepartmentAsync(row.DepartmentId, cancellationToken);
+            if (kkk is null)
+            {
+                _logger.LogWarning("Birimin kurum kodu bulunamadı, evrakı alan kurumun kodu yazılıyor: {DepartmentId}", row.DepartmentId);
+                kkk = recipient.Kkk;
+            }
+
+            var contact = int.TryParse(kkk, out var agencyId)
+                ? await agencies.GetContactAsync(agencyId, cancellationToken)
+                : null;
+
+            result.Add(new EypDistribution(kkk, birimKkk ?? kkk, row.Name, row.ActionRequired, contact));
         }
 
         return result;

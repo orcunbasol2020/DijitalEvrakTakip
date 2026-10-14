@@ -77,8 +77,8 @@ builder.Services.AddHostedService<ZimmetApprovalReminderBackgroundService>();
 builder.Services.AddScoped<IAtlasEbysClient, FakeAtlasEbysClient>();
 builder.Services.AddScoped<IAtlasDocumentNumberPoolService, AtlasDocumentNumberPoolService>();
 builder.Services.AddHostedService<AtlasDocumentNumberPoolBackgroundService>();
-// e-Yazışma kütüphanesi ve Atlas teslim yöntemi netleşene kadar sahte EYP servisi ve sahte gönderim istemcisi
-builder.Services.AddScoped<IEypService, FakeEypService>();
+// EYP paketleri Cbddo.eYazisma ile üretilir; Atlas teslim yöntemi netleşene kadar sahte gönderim istemcisi
+builder.Services.AddScoped<IEypService, EypService>();
 builder.Services.AddScoped<IAtlasEypTransferClient, FakeAtlasEypTransferClient>();
 builder.Services.AddScoped<IAtlasTransferService, AtlasTransferService>();
 builder.Services.AddHostedService<AtlasTransferBackgroundService>();
@@ -128,6 +128,18 @@ builder.Services.AddScoped<IEypPackageStorageService>(_ =>
         : Path.Combine(builder.Environment.ContentRootPath, configuredPath);
 
     return new EypPackageStorageService(rootPath);
+});
+// Dosyası yüklenmemiş evrakların EYP üst yazısı ("Bu Belge Fiziki Olarak Gönderilecektir.")
+builder.Services.AddSingleton<IPhysicalDeliveryPdfProvider>(_ =>
+{
+    string configuredPath = builder.Configuration["FileStorage:PhysicalDeliveryPdfPath"]
+        ?? @"C:\EvrakTakip\belgeler\Sablonlar\fiziki.pdf";
+
+    string path = Path.IsPathRooted(configuredPath)
+        ? configuredPath
+        : Path.Combine(builder.Environment.ContentRootPath, configuredPath);
+
+    return new PhysicalDeliveryPdfProvider(path);
 });
 
 //repository

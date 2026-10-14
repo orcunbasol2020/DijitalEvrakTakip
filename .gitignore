@@ -5,3 +5,7 @@ obj/
 *.suo
 *.db
 *.log
+
+# e-Yazışma kütüphanesi (Cbddo.eYazisma) kaynağı ve DLL'i yalnızca yerelde tutulur; bkz. lib/eYazisma/README.md
+lib/eYazisma/src/
+lib/eYazisma/Cbddo.eYazisma.dll

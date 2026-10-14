@@ -4,27 +4,43 @@ using DijitalEvrakTakip.Domain.Enums;
 
 namespace DijitalEvrakTakip.Application.Eyp;
 
-/// <summary>EYP dağıtım listesine yazılan, evrakı alan kurum (Bakanlık).</summary>
-public sealed record EypRecipient(string Kkk, string Name);
+/// <summary>Kurumun iletişim bilgisi (ComAgency); boş alanlar pakete "-" olarak yazılır.</summary>
+public sealed record EypContact(string? Address, string? Phone, string? Fax, string? Email, string? WebAddress);
 
-/// <summary>Pakete içeriğiyle (DED) eklenecek elektronik ek; EYP sırasıyla verilir.</summary>
-public sealed record EypAttachment(string Name, string? Description, byte[] Content);
+/// <summary>
+/// "Nereye" listesi boşken dağıtım listesine yazılan, evrakı alan kurum (Bakanlık); ayarlardan gelir.
+/// </summary>
+public sealed record EypRecipient(string Kkk, string Name, EypContact? Contact = null);
+
+/// <summary>
+/// Dağıtım listesine yazılan "Nereye" birimi. Kkk birimin aktif kurum kodudur; birimin kaydı kapatılmışsa
+/// aktif üst birimin kodu olur, BirimKkk ise her durumda birimin kendi kodudur. Name birimin adıdır.
+/// </summary>
+public sealed record EypDistribution(string Kkk, string BirimKkk, string Name, bool? ActionRequired, EypContact? Contact = null);
+
+/// <summary>Pakete içeriğiyle (DED) eklenecek elektronik ek; EYP sırasıyla verilir. FileName ekin özgün dosya adıdır.</summary>
+public sealed record EypAttachment(string Name, string? Description, string FileName, byte[] Content);
 
 /// <summary>
 /// Gelen evrakı EYP üstverisine çevirir. Gelen evrakta paketi oluşturan gönderen dış kurumdur,
-/// dağıtımda evrakı alan kurum (Bakanlık) bulunur.
-/// Atlas ekibiyle netleşmesi beklenen eşlemeler: BelgeNo, Kişiye Özel gizlilik derecesi,
-/// İvedi Süreli ivedilik karşılığı ve DETSİS kodu olmayan gönderenler (yabancı misyonlar, dilekçeler).
+/// dağıtımda evrakın "Nereye" birimleri (boşsa evrakı alan kurum, Bakanlık) bulunur.
+/// Atlas ekibiyle netleşmesi beklenen eşlemeler: BelgeNo, Kişiye Özel gizlilik derecesi ve
+/// İvedi Süreli ivedilik karşılığı.
 /// </summary>
 public static class IncomingDocumentEypMapper
 {
     public const string UstYaziFileName = "ustyazi.pdf";
     public const string PdfMimeType = "application/pdf";
 
+    /// <summary>DETSİS kodu olmayan gönderenlerin (yabancı misyonlar, dilekçeler) KKK'sı.</summary>
+    public const string NoDetsisCode = "99999999";
+
+    // Örnek paketlerdeki gibi sıra 1 üst yazıdır, ekler 2'den başlar
+    private const int FirstAttachmentOrder = 2;
+
     /// <summary>
     /// EYP üretmek için eksik olan bilgileri döner; liste boşsa evrak aktarılabilir.
-    /// Gönderen kurumun DETSİS kodu aranmaz: yabancı misyonların ve dilekçelerin DETSİS kodu yoktur,
-    /// bu gönderenlerin EYP'de nasıl yazılacağı Atlas ekibiyle netleşene kadar kod boş bırakılır.
+    /// Gönderen kurumun DETSİS kodu aranmaz: kodu olmayan gönderene <see cref="NoDetsisCode"/> yazılır.
     /// </summary>
     public static IReadOnlyList<string> Validate(IncomingDocument document)
     {
@@ -52,20 +68,24 @@ public static class IncomingDocumentEypMapper
 
     /// <summary>
     /// Evrakın EYP üstverisini oluşturur. <see cref="IncomingDocument.ExternalInstitution"/> yüklü olmalıdır.
-    /// Eksik bilgi varsa <see cref="InvalidOperationException"/> fırlatır.
+    /// Dağıtım listesi <paramref name="distributions"/> ("Nereye") doluysa ondan, boşsa
+    /// <paramref name="recipient"/>'tan oluşur. Eksik bilgi varsa <see cref="InvalidOperationException"/> fırlatır.
     /// </summary>
     public static EypMetadataDto Map(
         IncomingDocument document,
         EypRecipient recipient,
-        IReadOnlyList<EypAttachment>? attachments = null)
+        IReadOnlyList<EypDistribution>? distributions = null,
+        IReadOnlyList<EypAttachment>? attachments = null,
+        EypContact? senderContact = null)
     {
+        distributions ??= Array.Empty<EypDistribution>();
         attachments ??= Array.Empty<EypAttachment>();
 
         var errors = Validate(document).ToList();
         if (document.ExternalInstitutionId is not null && document.ExternalInstitution is null)
             errors.Add("Gönderen kurum bulunamadı.");
-        if (string.IsNullOrWhiteSpace(recipient.Kkk) || string.IsNullOrWhiteSpace(recipient.Name))
-            errors.Add("Evrakı alan kurumun KKK kodu veya adı ayarlarda tanımlı değil.");
+        if (distributions.Count == 0 && (string.IsNullOrWhiteSpace(recipient.Kkk) || string.IsNullOrWhiteSpace(recipient.Name)))
+            errors.Add("Evrakın \"Nereye\" birimi yok ve evrakı alan kurumun KKK kodu veya adı ayarlarda tanımlı değil.");
 
         if (errors.Count > 0)
             throw new InvalidOperationException(string.Join(" ", errors));
@@ -82,23 +102,38 @@ public static class IncomingDocumentEypMapper
             BelgeNo = string.IsNullOrWhiteSpace(document.OrginalNo) ? document.QrCode.Trim() : document.OrginalNo.Trim(),
             MimeType = PdfMimeType,
             FileName = UstYaziFileName,
-            // DETSİS kodu olmayan gönderende (yabancı misyon, dilekçe) boş kalır; bkz. Validate
-            OlusturanKkk = string.IsNullOrWhiteSpace(institution.DetsisCode) ? null : institution.DetsisCode.Trim(),
-            Sender = institution.Name,
-            OlusturanAdres = string.IsNullOrWhiteSpace(institution.Address) ? null : institution.Address.Trim()
+            OlusturanKkk = string.IsNullOrWhiteSpace(institution.DetsisCode) ? NoDetsisCode : institution.DetsisCode.Trim(),
+            Sender = institution.Name.Trim(),
+            // İletişim bilgisi ComAgency'den; gelmezse (ör. dilekçe) en azından view'daki adres
+            OlusturanAdres = Clean(senderContact?.Address) ?? Clean(institution.Address),
+            OlusturanTelefon = Clean(senderContact?.Phone),
+            OlusturanFaks = Clean(senderContact?.Fax),
+            OlusturanEPosta = Clean(senderContact?.Email),
+            OlusturanWebAdresi = Clean(senderContact?.WebAddress)
         };
 
-        metadata.DagitimListesi.Add(new DagitimDto
+        var ivedilik = ToIvedilikKodu(document.UrgencyDegree);
+        if (distributions.Count > 0)
         {
-            KKK = recipient.Kkk.Trim(),
-            KurumAdi = recipient.Name.Trim(),
-            // Bilgi/Gereği girilmemişse Gereği
-            BilgiGeregiRumuz = document.ActionRequired == false ? "BLG" : "GRG",
-            IvedilikRumuz = ToIvedilikKodu(document.UrgencyDegree)
-        });
+            foreach (var distribution in distributions)
+            {
+                metadata.DagitimListesi.Add(CreateDagitim(
+                    distribution.Kkk, distribution.BirimKkk, distribution.Name, distribution.Contact,
+                    // Bilgi/Gereği alıcı bazında; girilmemişse Gereği
+                    distribution.ActionRequired == false ? "BLG" : "GRG",
+                    ivedilik));
+            }
+        }
+        else
+        {
+            metadata.DagitimListesi.Add(CreateDagitim(
+                recipient.Kkk, null, recipient.Name, recipient.Contact,
+                document.ActionRequired == false ? "BLG" : "GRG",
+                ivedilik));
+        }
 
         // Elektronik ekler (yüklenen PDF'ler) içerikleriyle DED türünde eklenir
-        var siraNo = 0;
+        var siraNo = FirstAttachmentOrder - 1;
         foreach (var attachment in attachments)
         {
             siraNo++;
@@ -108,17 +143,17 @@ public static class IncomingDocumentEypMapper
                 SiraNo = siraNo,
                 Ad = attachment.Name,
                 Aciklama = attachment.Description,
-                DosyaAdi = $"ek{siraNo}.pdf",
+                DosyaAdi = attachment.FileName,
                 MimeTuru = PdfMimeType,
+                // Örnek paketlerdeki gibi elektronik ekler imzalı bileşen olarak (Ekler/ klasörü) eklenir
+                ImzaliMi = true,
                 DosyaIcerigi = attachment.Content
             });
         }
 
         // Fiziki ek dosyası tutulmaz; açıklamasıyla FZK türünde, içeriksiz ve elektronik eklerden sonra tanımlanır.
         // "Ek var" denip açıklama girilmemişse, ek elektronik eklerden ibaret sayılır.
-        var physicalDescription = string.IsNullOrWhiteSpace(document.AttachmentDescription)
-            ? null
-            : document.AttachmentDescription.Trim();
+        var physicalDescription = Clean(document.AttachmentDescription);
 
         if (document.HasAttachment == true && (physicalDescription is not null || attachments.Count == 0))
         {
@@ -133,6 +168,23 @@ public static class IncomingDocumentEypMapper
 
         return metadata;
     }
+
+    private static DagitimDto CreateDagitim(
+        string kkk, string? birimKkk, string name, EypContact? contact, string bilgiGeregi, string ivedilik) => new()
+    {
+        KKK = kkk.Trim(),
+        BirimKKK = Clean(birimKkk),
+        KurumAdi = name.Trim(),
+        BilgiGeregiRumuz = bilgiGeregi,
+        IvedilikRumuz = ivedilik,
+        Adres = Clean(contact?.Address),
+        Telefon = Clean(contact?.Phone),
+        Faks = Clean(contact?.Fax),
+        EPosta = Clean(contact?.Email),
+        WebAdresi = Clean(contact?.WebAddress)
+    };
+
+    private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     /// <summary>
     /// SecurityDegreeEnum → EYP güvenlik kodu. Kişiye Özel'in EYP karşılığı belirlenmediği için null döner.

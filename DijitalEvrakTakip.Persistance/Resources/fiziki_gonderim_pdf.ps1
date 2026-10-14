@@ -4,9 +4,10 @@
 # Ek kütüphane gerektirmez: logo JPEG'e çevrilip gömülür, yazı PDF'in yerleşik Times-Bold
 # (Times New Roman) yazı tipiyle basılır, belge sembolü vektörel çizilir.
 # Kullanım (Windows PowerShell 5.1, dosya UTF-8 olduğu için bu şekilde çalıştırılır):
-#   & ([scriptblock]::Create((Get-Content -Raw -Encoding UTF8 .\fiziki_gonderim_pdf.ps1))) -LogoPath logo.png -OutputPath fiziki_gonderim.pdf
-# Bu klasördeki fiziki_gonderim.pdf gömülü kaynak olarak derlenir; Bakanlık logosu Angular projesindeki
-# src/assets/images/mfa_logo.png dosyasıdır. Logo veya metin değişirse PDF bu betikle yeniden üretilir.
+#   & ([scriptblock]::Create((Get-Content -Raw -Encoding UTF8 .\fiziki_gonderim_pdf.ps1))) -LogoPath logo.png -OutputPath C:\EvrakTakip\belgeler\Sablonlar\fiziki.pdf
+# Uygulama PDF'i FileStorage:PhysicalDeliveryPdfPath yolundan okur (varsayılan C:\EvrakTakip\belgeler\Sablonlar\fiziki.pdf).
+# Bakanlık logosu Angular projesindeki src/assets/images/mfa_logo.png dosyasıdır. Logo veya metin değişirse
+# PDF bu betikle yeniden üretilip şablon klasörüne konur.
 param(
     [Parameter(Mandatory = $true)][string]$LogoPath,
     [Parameter(Mandatory = $true)][string]$OutputPath

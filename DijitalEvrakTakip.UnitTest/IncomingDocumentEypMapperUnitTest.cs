@@ -48,15 +48,74 @@ namespace DijitalEvrakTakip.UnitTest
             Assert.Equal(5, errors.Count);
         }
 
-        // Yabancı misyonların DETSİS kodu yok; Atlas ekibiyle netleşene kadar zorunlu değil
+        // Yabancı misyonların ve dilekçelerin DETSİS kodu yok; standart kod yazılır
         [Fact]
-        public void InstitutionWithoutDetsisCode_IsAccepted_AndLeavesSenderCodeEmpty()
+        public void InstitutionWithoutDetsisCode_IsAccepted_AndGetsStandardCode()
         {
             var document = CreateValidDocument();
             document.ExternalInstitution!.DetsisCode = " ";
 
             Assert.Empty(IncomingDocumentEypMapper.Validate(document));
-            Assert.Null(IncomingDocumentEypMapper.Map(document, Recipient).OlusturanKkk);
+            Assert.Equal("99999999", IncomingDocumentEypMapper.Map(document, Recipient).OlusturanKkk);
+        }
+
+        [Fact]
+        public void Map_FillsSenderContact_FromComAgency()
+        {
+            var contact = new EypContact(" Atatürk Bulvarı ", "0 312 000 00 00", null, "info@kurum.gov.tr", null);
+
+            var metadata = IncomingDocumentEypMapper.Map(CreateValidDocument(), Recipient, senderContact: contact);
+
+            Assert.Equal("Atatürk Bulvarı", metadata.OlusturanAdres);
+            Assert.Equal("0 312 000 00 00", metadata.OlusturanTelefon);
+            Assert.Null(metadata.OlusturanFaks);
+            Assert.Equal("info@kurum.gov.tr", metadata.OlusturanEPosta);
+        }
+
+        // ComAgency kaydı olmayan gönderende (dilekçe) adres view'dan gelir
+        [Fact]
+        public void Map_FallsBackToInstitutionAddress_WithoutContact()
+        {
+            Assert.Equal("Ankara", IncomingDocumentEypMapper.Map(CreateValidDocument(), Recipient).OlusturanAdres);
+        }
+
+        [Fact]
+        public void Map_UsesNereyeUnitsAsDistribution_WithTheirOwnBilgiGeregi()
+        {
+            var document = CreateValidDocument();
+            var distributions = new[]
+            {
+                new EypDistribution("80981219", "72610926", "BDHD Bilişim Destek Hizmetleri Daire Başkanlığı", true,
+                    new EypContact("Balgat", null, null, null, null)),
+                new EypDistribution("91851323", "91851323", "BTGM Bilgi Teknolojileri Genel Müdürlüğü", false)
+            };
+
+            var dagitimlar = IncomingDocumentEypMapper.Map(document, Recipient, distributions).DagitimListesi;
+
+            Assert.Equal(2, dagitimlar.Count);
+
+            Assert.Equal("80981219", dagitimlar[0].KKK);
+            Assert.Equal("72610926", dagitimlar[0].BirimKKK);
+            Assert.Equal("BDHD Bilişim Destek Hizmetleri Daire Başkanlığı", dagitimlar[0].KurumAdi);
+            Assert.Equal("GRG", dagitimlar[0].BilgiGeregiRumuz);
+            Assert.Equal("CIV", dagitimlar[0].IvedilikRumuz);
+            Assert.Equal("Balgat", dagitimlar[0].Adres);
+
+            Assert.Equal("91851323", dagitimlar[1].KKK);
+            Assert.Equal("BLG", dagitimlar[1].BilgiGeregiRumuz);
+            Assert.Equal("CIV", dagitimlar[1].IvedilikRumuz);
+        }
+
+        // "Nereye" doluyken ayardaki alıcı kullanılmadığı için ayar eksikliği paketi durdurmaz
+        [Fact]
+        public void Map_DoesNotNeedRecipient_WhenNereyeIsFilled()
+        {
+            var metadata = IncomingDocumentEypMapper.Map(
+                CreateValidDocument(),
+                new EypRecipient("", ""),
+                new[] { new EypDistribution("91851323", "91851323", "BTGM", null) });
+
+            Assert.Equal("91851323", Assert.Single(metadata.DagitimListesi).KKK);
         }
 
         [Fact]
@@ -89,6 +148,8 @@ namespace DijitalEvrakTakip.UnitTest
 
             var dagitim = Assert.Single(metadata.DagitimListesi);
             Assert.Equal("12345678", dagitim.KKK);
+            Assert.Null(dagitim.BirimKKK);
+            Assert.Equal("T.C. Dışişleri Bakanlığı", dagitim.KurumAdi);
             Assert.Equal("GRG", dagitim.BilgiGeregiRumuz);
             Assert.Equal("CIV", dagitim.IvedilikRumuz);
 
@@ -114,6 +175,7 @@ namespace DijitalEvrakTakip.UnitTest
             var ek = Assert.Single(IncomingDocumentEypMapper.Map(document, Recipient).EkListesi);
 
             Assert.Equal("FZK", ek.Tur);
+            Assert.Equal(2, ek.SiraNo);
             Assert.Equal("1 flash disk", ek.Ad);
             Assert.Null(ek.DosyaIcerigi);
         }
@@ -127,28 +189,31 @@ namespace DijitalEvrakTakip.UnitTest
             var first = new byte[] { 1 };
             var second = new byte[] { 2 };
 
-            var ekler = IncomingDocumentEypMapper.Map(document, Recipient, new[]
+            var ekler = IncomingDocumentEypMapper.Map(document, Recipient, attachments: new[]
             {
-                new EypAttachment("Toplantı gündemi", "Taslak", first),
-                new EypAttachment("Katılımcı listesi", null, second)
+                new EypAttachment("Toplantı gündemi", "Taslak", "Gündem Taslağı.pdf", first),
+                new EypAttachment("Katılımcı listesi", null, "katilimci.pdf", second)
             }).EkListesi;
 
             Assert.Equal(3, ekler.Count);
 
+            // Sıra 1 üst yazıdır; ekler 2'den başlar, üstveride ekin özgün dosya adı görünür
             Assert.Equal("DED", ekler[0].Tur);
-            Assert.Equal(1, ekler[0].SiraNo);
+            Assert.Equal(2, ekler[0].SiraNo);
             Assert.Equal("Toplantı gündemi", ekler[0].Ad);
             Assert.Equal("Taslak", ekler[0].Aciklama);
+            Assert.Equal("Gündem Taslağı.pdf", ekler[0].DosyaAdi);
             Assert.Equal("application/pdf", ekler[0].MimeTuru);
+            Assert.True(ekler[0].ImzaliMi);
             Assert.Same(first, ekler[0].DosyaIcerigi);
 
             Assert.Equal("DED", ekler[1].Tur);
-            Assert.Equal(2, ekler[1].SiraNo);
+            Assert.Equal(3, ekler[1].SiraNo);
+            Assert.Equal("katilimci.pdf", ekler[1].DosyaAdi);
             Assert.Same(second, ekler[1].DosyaIcerigi);
-            Assert.NotEqual(ekler[0].DosyaAdi, ekler[1].DosyaAdi);
 
             Assert.Equal("FZK", ekler[2].Tur);
-            Assert.Equal(3, ekler[2].SiraNo);
+            Assert.Equal(4, ekler[2].SiraNo);
             Assert.Equal("1 dergi", ekler[2].Ad);
         }
 
@@ -160,7 +225,7 @@ namespace DijitalEvrakTakip.UnitTest
             document.HasAttachment = true;
 
             var ek = Assert.Single(IncomingDocumentEypMapper.Map(
-                document, Recipient, new[] { new EypAttachment("Ek", null, new byte[] { 1 }) }).EkListesi);
+                document, Recipient, attachments: new[] { new EypAttachment("Ek", null, "ek.pdf", new byte[] { 1 }) }).EkListesi);
 
             Assert.Equal("DED", ek.Tur);
         }
@@ -175,7 +240,7 @@ namespace DijitalEvrakTakip.UnitTest
         }
 
         [Fact]
-        public void Map_Throws_WhenRecipientIsNotConfigured()
+        public void Map_Throws_WhenNereyeIsEmptyAndRecipientIsNotConfigured()
         {
             Assert.Throws<InvalidOperationException>(
                 () => IncomingDocumentEypMapper.Map(CreateValidDocument(), new EypRecipient("", "")));

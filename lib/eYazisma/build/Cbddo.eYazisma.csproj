@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    lib/eYazisma/Cbddo.eYazisma.dll bu projeyle, lib/eYazisma/src'deki kaynaktan derlenir. Çözüme ekli değildir;
+    kütüphane değişirse elle derlenir:
+      dotnet build lib/eYazisma/build/Cbddo.eYazisma.csproj -c Release
+    ve bin/Release/net8.0/Cbddo.eYazisma.dll, lib/eYazisma'ya kopyalanır (bkz. lib/eYazisma/README.md).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Cbddo.eYazisma</AssemblyName>
+    <RootNamespace>Cbddo.eYazisma</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoWarn>CS0162;CS0168;CS0219;CS0414;CS0618;CS1591;SYSLIB0021;SYSLIB0023</NoWarn>
+    <EyazismaSource>$(MSBuildThisFileDirectory)..\src</EyazismaSource>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.IO.Packaging" Version="10.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(EyazismaSource)\Tipler\*.cs" />
+    <Compile Include="$(EyazismaSource)\Xsd.cs" />
+    <Compile Include="$(EyazismaSource)\XsdAraclar.cs" />
+    <Compile Include="Uyumluluk.cs" />
+  </ItemGroup>
+</Project>
